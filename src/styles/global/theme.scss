@@ -1,0 +1,89 @@
+/* colors */
+:root {
+  --gray-0: #ffffff;
+  --gray-5: #F6F6F6;
+  --gray-10: #F0EEEE;
+  --gray-20: #E2E2E2;
+  --gray-30: #D5D1D1;
+  --gray-40: #BFBBBB;
+  --gray-50: #8B8888;
+  --gray-60: #565656;
+  --gray-70: #444242;
+  --gray-80: #2D2B2B;
+  --gray-90: #1D1C1C;
+  --gray-100: #000000;
+  --gray-A100: #F4F3F6;
+
+  --point-pink-5: #FFEBF3;
+  --point-pink-10: #F8D6E3;
+  --point-pink-20: #FBB4CE;
+  --point-pink-30: #FD90B8;
+  --point-pink-40: #EB4281;
+  --point-pink-50: #D70251;
+  --point-pink-60: #BC0046;
+  --point-pink-70: #910036;
+  --point-pink-80: #680027;
+  --point-pink-90: #52001E;
+
+  --point-orange-5: #FFEFE3;
+  --point-orange-10: #FFD0AD;
+  --point-orange-20: #FFA561;
+  --point-orange-30: #E97217;
+  --point-orange-40: #DB5F00;
+  --point-orange-50: #B14C00;
+  --point-orange-60: #873A00;
+  --point-orange-70: #682D00;
+  --point-orange-80: #4D2100;
+  --point-orange-90: #381800;
+
+  --normal: #00CE5C; 
+  --critical: #FD5154;
+  --major: #F38A2F;
+  --minor: #FFC44C; 
+  --warning: #5184F6;
+}
+
+:root {
+ --border-color: var(--gray-40);
+ --background-color: var(--gray-0);
+ --text-color-base: var(--gray-90);
+ --text-color: var(--gray-70);
+ --text-color-disabled: var(--gray-50);
+ --disabled-color: var(--gray-20);
+ --placeholder-color: var(--gray-50);
+}
+
+/* typography and spacing scale */
+:root {
+  --font-family: 'Pretendard';
+  --font-size: .9375rem; /* 15px */
+  --font-size-13: .8125rem; /* 13px */
+  --font-size-14: .875rem; /* 14px */
+  --font-size-16: 1rem; /* 16px */
+  --font-size-17: 1.0625rem; /* 17px */
+  --font-size-19: 1.1875rem; /* 19px */
+  --font-size-20: 1.25rem; /* 20px */
+  --font-size-24: 1.5rem; /* 24px */
+  --font-size-28: 1.75rem; /* 28px */
+  --radius: .5rem; /* 8px */
+  --radius-sm: .25rem;/* 4px */
+  --radius-md: .375rem;/* 6px */
+  --radius-lg: .75rem; /* 12px */
+  --radius-xl: 1.25rem; /* 20px */
+  --radius-full: 100%; /* 100% */
+  --spacing: .125rem; /* 2px */
+  --spacing-1: var(--spacing); /* 2px */
+  --spacing-2: calc(2 * var(--spacing)); /* 4px */
+  --spacing-3: calc(3 * var(--spacing)); /* 6px */
+  --spacing-4: calc(4 * var(--spacing)); /* 8px */
+  --spacing-5: calc(5 * var(--spacing)); /* 10px */
+  --spacing-6: calc(6 * var(--spacing)); /* 12px */
+  --spacing-7: calc(7 * var(--spacing)); /* 14px */
+  --spacing-8: calc(8 * var(--spacing)); /* 16px */
+  --spacing-9: calc(9 * var(--spacing)); /* 18px */
+  --spacing-10: calc(10 * var(--spacing)); /* 20px */
+  --spacing-12: calc(12 * var(--spacing)); /* 24px */
+  --spacing-16: calc(16 * var(--spacing)); /* 32px */
+  --spacing-15: calc(15 * var(--spacing)); /* 30px */
+  --spacing-20: calc(20 * var(--spacing)); /* 40px */
+}

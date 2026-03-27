@@ -1,0 +1,36 @@
+.react-aria-Meter {
+  display: grid;
+  grid-template-areas:
+    'label value'
+    'bar bar';
+  grid-template-columns: 1fr auto;
+  width: 100%;
+  color: var(--text-color);
+  font: var(--font-size) system-ui;
+
+  .value {
+    grid-area: value;
+  }
+
+  .track {
+    grid-area: bar;
+    forced-color-adjust: none;
+    height: 10px;
+    border-radius: 9999px;
+    border-radius: var(--radius-sm);
+    border: 1px solid #e9e8ea;
+    background: #fff;
+  }
+
+  .fill {
+    background: linear-gradient(270deg, #d70251 -52.39%, #ed751a 100%);
+    box-shadow: 0 0 16px 0 rgba(220, 28, 68, 0.2);
+    height: 100%;
+    border-radius: 3px;
+
+    @media (forced-colors: active) {
+      box-shadow: none;
+      background: Highlight;
+    }
+  }
+}

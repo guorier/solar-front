@@ -1,0 +1,68 @@
+.react-aria-Meter {
+  display: grid;
+  grid-template-areas:
+    'label value'
+    'bar bar';
+  grid-template-columns: 1fr auto;
+  width: 100%;
+  color: var(--text-color);
+  font: var(--font-size) system-ui;
+
+  .value {
+    grid-area: value;
+  }
+
+  .track {
+    grid-area: bar;
+    forced-color-adjust: none;
+    height: 14px;
+    border-radius: 9999px;
+    border-radius: var(--radius-sm);
+    border: 1px solid #e9e8ea;
+    background: #fff;
+  }
+
+  .fill {
+    background: linear-gradient(270deg, #d70251 -52.39%, #ed751a 100%);
+    box-shadow: 0 0 16px 0 rgba(220, 28, 68, 0.2);
+    height: 100%;
+    border-radius: 3px;
+
+    @media (forced-colors: active) {
+      box-shadow: none;
+      background: Highlight;
+    }
+  }
+}
+
+
+.track {
+  position: relative;
+  width: 100%;
+  height: var(--track-height, 14px);
+  border-radius: var(--track-radius, 2px);
+  background: var(--track-color, #ece8eb);
+  overflow: hidden;
+}
+
+.track.inset {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+
+.fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: var(--track-radius, 2px) 0 0 var(--track-radius, 2px);
+  background: var(--fill-color, #d70251);
+  transition: width 0.35s ease;
+}
+
+.field-description {
+  margin-top: 6px;
+}
+
+.field-Button {
+  cursor: pointer;
+}

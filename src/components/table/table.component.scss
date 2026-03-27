@@ -1,0 +1,434 @@
+$border-color-header: var(--border-color);
+$border-color-cell: var(--gray-10);
+$bg-header: var(--gray-5);
+$bg-tfoot: #f3f3f3;
+$color-total: #db1946;
+
+.react-aria-Table {
+  border-top: 1px solid var(--gray-90);
+  border-bottom: 1px solid var(--gray-30);
+  background: #fff;
+  overflow: clip;
+  outline: none;
+  border-spacing: 0;
+  align-self: start;
+  width: 100%;
+  word-break: break-word;
+  forced-color-adjust: none;
+
+  &div {
+    padding: 0;
+  }
+
+  &[data-focus-visible] {
+    outline: 2px solid var(--focus-ring-color);
+  }
+
+  &[data-drop-target] {
+    outline: 2px solid var(--highlight-background);
+    background: var(--highlight-overlay);
+  }
+
+  &:has(.react-aria-TableBody[data-empty]) {
+    height: 100%;
+    min-height: 100px;
+  }
+
+  // 헤더 스타일
+  .react-aria-TableHeader {
+    border-bottom: 1px solid $border-color-header;
+    background: $bg-header;
+
+    .react-aria-Column {
+      padding: var(--spacing-6);
+      border: 0;
+      font-size: var(--font-size);
+      font-weight: 500;
+    }
+  }
+
+  // 바디 스타일
+  .react-aria-TableBody {
+    padding: var(--spacing-1);
+
+    .react-aria-Row {
+      border-bottom: 1px solid var(--gray-10);
+    }
+    .tfoot {
+      background: $bg-tfoot;
+
+      .react-aria-Cell {
+        color: $color-total;
+      }
+    }
+
+    &[data-empty] {
+      text-align: center;
+      font-style: italic;
+    }
+  }
+
+  // 로우 스타일
+  .react-aria-Row {
+    outline: none;
+    cursor: default;
+    border-bottom: 1px solid $border-color-cell;
+    color: var(--text-color);
+    position: relative;
+    transform: scale(1);
+    transition:
+      background 200ms,
+      color 200ms;
+    -webkit-tap-highlight-color: transparent;
+
+    &tr:last-child {
+      border-radius: 0 0 var(--radius) var(--radius);
+    }
+
+    &[data-focus-visible] {
+      outline: 2px solid var(--focus-ring-color);
+      outline-offset: -2px;
+    }
+
+    &[data-pressed] {
+      background: var(--gray-100);
+    }
+
+    &:nth-child(2n) {
+      background: #fff;
+      &[data-pressed] {
+        background: var(--gray-200);
+      }
+    }
+
+    &[data-selected] {
+      background: var(--highlight-background);
+      color: var(--highlight-foreground);
+      --focus-ring-color: var(--highlight-foreground);
+
+      &[data-focus-visible],
+      .react-aria-Cell[data-focus-visible] {
+        outline-offset: -4px;
+      }
+
+      &[data-pressed] {
+        background: var(--highlight-background-pressed);
+      }
+    }
+
+    &[data-disabled] {
+      color: var(--text-color-disabled);
+    }
+
+    &[data-href] {
+      cursor: pointer;
+    }
+
+    &[data-dragging] {
+      opacity: 0.6;
+      transform: translateZ(0);
+    }
+
+    &[data-drop-target] {
+      outline: 2px solid var(--highlight-background);
+      background: var(--highlight-overlay);
+      z-index: 4;
+    }
+
+    .drag-button {
+      all: unset;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 15px;
+      text-align: center;
+
+      svg {
+        width: var(--spacing-4);
+        height: var(--spacing-4);
+      }
+
+      &[data-focus-visible] {
+        border-radius: var(--radius-sm);
+        outline: 2px solid var(--focus-ring-color);
+      }
+    }
+  }
+
+  // 공통 셀 & 컬럼 스타일
+  .react-aria-Cell,
+  .react-aria-Column {
+    padding: var(--spacing-2);
+    outline: none;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    text-align: center;
+
+    &div {
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
+
+    &[data-focus-visible] {
+      outline: 2px solid var(--focus-ring-color);
+      outline-offset: -2px;
+    }
+
+    label {
+      margin-bottom: 0;
+    }
+  }
+
+  // 컬럼 헤더 전용 스타일
+  .react-aria-Column {
+    --button-color: var(--gray);
+    --button-border: transparent;
+    --button-shadow: transparent;
+    --button-border-size: 0px;
+    cursor: default;
+    border-bottom: 0.5px solid var(--border-color);
+    border-inline-end: 0.5px solid var(--border-color);
+    position: relative;
+    z-index: calc(sibling-count() - sibling-index());
+
+    &:last-child {
+      border-inline-end: none;
+    }
+
+    &[data-pressed] {
+      background: var(--gray-200);
+    }
+
+    &[data-sort-direction] {
+      --button-color: var(--tint);
+      &[data-pressed] {
+        background: var(--tint-200);
+      }
+    }
+
+    .column-header {
+      display: flex;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    .column-name {
+      flex: 1;
+      font: inherit;
+      text-align: start;
+      color: inherit;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border-color: transparent;
+      border-radius: var(--radius-sm);
+      text-align: center;
+
+      &[data-focus-visible] {
+        outline: 2px solid var(--focus-ring-color);
+        outline-offset: 2px;
+      }
+    }
+
+    .sort-indicator {
+      padding: 0 2px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &:not([data-sort-direction]) .sort-indicator {
+      visibility: hidden;
+    }
+  }
+
+  // 리사이저 스타일
+  .react-aria-ColumnResizer {
+    width: 1px;
+    border-radius: var(--radius-sm);
+    background-color: var(--gray-500);
+    padding: 0 var(--spacing-2);
+    translate: var(--spacing-4) 0;
+    height: 32px;
+    margin: -16px 0;
+    flex: 0 0 auto;
+    touch-action: none;
+    box-sizing: content-box;
+    background-clip: content-box;
+
+    &[data-resizable-direction='both'] {
+      cursor: ew-resize;
+    }
+    &[data-resizable-direction='left'] {
+      cursor: e-resize;
+    }
+    &[data-resizable-direction='right'] {
+      cursor: w-resize;
+    }
+
+    &[data-focus-visible] {
+      background-color: var(--focus-ring-color);
+      outline: 2px solid var(--focus-ring-color);
+      outline-offset: -2px;
+    }
+
+    &[data-resizing] {
+      width: 2px;
+      background-color: var(--highlight-background);
+    }
+  }
+
+  // 일반 셀 스타일
+  .react-aria-Cell {
+    transform: translateZ(0);
+    color: var(--text-color);
+    border: 0;
+
+    &[role='rowheader'] {
+      color: var(--text-color-base);
+      font-weight: 600;
+    }
+
+    // 테두리 반전 및 둥근 모서리
+    &:is(.react-aria-Row:last-child > :first-child) {
+      border-end-start-radius: var(--radius);
+    }
+    &:is(.react-aria-Row:last-child > :last-child) {
+      border-end-end-radius: var(--radius);
+    }
+
+    img {
+      height: 30px;
+      width: 30px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .react-aria-TextField,
+    .react-aria-Select,
+    .react-aria-DatePicker {
+      max-width: 220px;
+      margin: auto;
+    }
+  }
+
+  // 드롭 인디케이터 & 체크박스
+  .react-aria-DropIndicator[data-drop-target] {
+    outline: 1px solid var(--highlight-background);
+    transform: translateZ(0);
+  }
+
+  :where(.react-aria-Row) .react-aria-Checkbox {
+    --checkmark-color: var(--highlight-background);
+    &[data-selected] .indicator {
+      --indicator-color: var(--highlight-foreground);
+      --indicator-shadow: transparent;
+    }
+  }
+
+  //vertical
+  &[data-table-type='vertical'] {
+
+    .react-aria-TableHeader {
+      border: 0;
+      .react-aria-Column {
+        padding: 0;
+      }
+    }
+
+    .react-aria-TableBody {
+      .react-aria-Row {
+        border-bottom: 1px solid var(--gray-30);
+
+        &:last-child {
+          border-bottom: 0;
+        }
+
+        .react-aria-Cell {
+          height: 58px;
+          padding: var(--spacing-4) var(--spacing-10);
+          color: var(--text-color);
+          font-size: var(--font-size);
+          text-align: left;
+
+          &[role='rowheader'] {
+            background-color: var(--gray-A100);
+            color: var(--text-color-base);
+
+            label {
+              margin: 0;
+              font-size: var(--font-size);
+              &.imp {
+                &::after {
+                  display: inline-block;
+                  content: '*';
+                  color: var(--point-pink-50);
+                  font-size: var(--font-size);
+                  margin-left: var(--spacing);
+                }
+              }
+            }
+          }
+
+          .react-aria-TextField,
+          .react-aria-Select,
+          .react-aria-DatePicker {
+            max-width: 220px;
+            margin: 0;
+          }
+        }
+      }
+    }
+  }
+}
+// 리사이저 컨테이너 스타일
+// .react-aria-ResizableTableContainer {
+//   width: 100%;
+//   overflow: auto;
+//   position: relative;
+//   border: 0.5px solid var(--border-color);
+//   border-radius: var(--radius);
+//   background: var(--overlay-background);
+
+//   .react-aria-Table {
+//     border: none;
+//     border-radius: 0;
+
+//     &:has(.react-aria-TableBody[data-empty]) {
+//       height: 100%;
+//     }
+//   }
+
+//   .react-aria-TableHeader {
+//     position: sticky;
+//     top: 0;
+//     z-index: 10;
+//   }
+
+//   .react-aria-Cell {
+//     white-space: nowrap;
+//     overflow: hidden;
+//     text-overflow: ellipsis;
+//   }
+// }
+
+.react-aria-TableLoadingIndicator {
+  height: 32px;
+  position: relative;
+}
+
+//modal
+.react-aria-Modal {
+  .react-aria-Table {
+    &[data-table-type='vertical'] {
+      .react-aria-TableBody {
+        .react-aria-Row {
+          .react-aria-Cell {
+            height: 40px;
+          }
+        }
+      }
+    }
+  }
+}

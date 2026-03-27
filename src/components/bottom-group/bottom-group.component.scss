@@ -1,0 +1,32 @@
+.button-group {
+  display: flex;
+  justify-content: right;
+  gap: var(--spacing-4);
+
+  button {
+    min-width: 80px !important;
+  }
+}
+
+.field-Button {
+    background: var(--tint-200);
+    color: var(--tint-1400);
+    forced-color-adjust: none;
+    border-radius: var(--radius-sm);
+    
+    aspect-ratio: 1;
+    -webkit-tap-highlight-color: transparent;
+    border: none;
+    justify-content: center;
+    align-items: center;
+    width: 56px;
+    height: 42px;
+    padding: 0;
+    transition-property: scale, background;
+    transition-duration: .2s;
+    display: flex;
+
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}

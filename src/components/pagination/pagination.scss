@@ -1,0 +1,31 @@
+.btn-pg {
+  width: 24px;
+  height: 24px !important;
+  border-radius: var(--radius-sm) !important;
+  background-color: var(--gray-0) !important;
+  color: var(--gray-50) !important;
+  font-size: var(--font-size-14) !important;
+  font-weight: 500 !important;
+  &[data-focused] {
+    background-color: var(--gray-10) !important;
+    color: var(--gray-60) !important;
+    font-weight: 700 !important;
+  }
+  &[aria-current='page'] {
+    background-color: var(--gray-10) !important;
+    color: var(--gray-60) !important;
+    font-weight: 700 !important;
+  }
+  &[data-hovered] {
+    color: var(--gray-60) !important;
+    font-weight: 700 !important;
+  }
+  /* pagination.scss */
+}
+.pagination{
+  .react-aria-Button:disabled {
+    border:0 !important;
+    background: transparent !important;
+    opacity: 0.4;
+  }
+}

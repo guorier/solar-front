@@ -1,0 +1,13 @@
+label {
+  margin: 0;
+  font-size: var(--font-size);
+  &.imp {
+    &::after {
+      display: inline-block;
+      content: '*';
+      color: var(--point-pink-50);
+      font-size: var(--font-size);
+      margin-left: var(--spacing);
+    }
+  }
+}

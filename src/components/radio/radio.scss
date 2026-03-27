@@ -1,0 +1,54 @@
+/* src/components/radio/radio.component.scss */
+.radio {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  
+  + .radio {
+    margin-left: var(--spacing-10);
+  }
+
+  .radio__input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    border-radius: 50%;
+    position: relative;
+    cursor: pointer;
+    box-sizing: border-box;
+
+    &:checked {
+      border-color: var(--gray-70);
+
+      &::after {
+        content: '';
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: var(--gray-70);
+      }
+    }
+
+    &:hover,
+    &:focus {
+      outline: none;
+      border-color: var(--gray-70);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+
+  span {
+    margin-left: var(--spacing-2);
+  }
+}

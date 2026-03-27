@@ -1,0 +1,221 @@
+
+.react-aria-TextField {
+  position: relative;
+
+  input[type='date'] {
+    height: 42px;
+    padding: 0 var(--spacing-8);
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-40);
+    background-image: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 0.5H24C28.1421 0.5 31.5 3.85786 31.5 8V24C31.5 28.1421 28.1421 31.5 24 31.5H8C3.85786 31.5 0.5 28.1421 0.5 24V8C0.5 3.85786 3.85786 0.5 8 0.5Z' fill='%23444242'/%3E%3Cpath d='M8 0.5H24C28.1421 0.5 31.5 3.85786 31.5 8V24C31.5 28.1421 28.1421 31.5 24 31.5H8C3.85786 31.5 0.5 28.1421 0.5 24V8C0.5 3.85786 3.85786 0.5 8 0.5Z' stroke='%23444242'/%3E%3Cg clip-path='url(%23clip0_423_490)'%3E%3Cpath d='M24 14.6667V24H8V14.6667H24ZM24 13.3333V11.3333C24 10.8029 23.7893 10.2942 23.4142 9.91912C23.0391 9.54405 22.5304 9.33333 22 9.33333H20V8H18.6667V9.33333H13.3333V8H12V9.33333H10C9.46957 9.33333 8.96086 9.54405 8.58579 9.91912C8.21071 10.2942 8 10.8029 8 11.3333V13.3333H24ZM20 17.3333H18.6667V18.6667H20V17.3333ZM16.6667 17.3333H15.3333V18.6667H16.6667V17.3333ZM13.3333 17.3333H12V18.6667H13.3333V17.3333ZM20 20H18.6667V21.3333H20V20ZM16.6667 20H15.3333V21.3333H16.6667V20ZM13.3333 20H12V21.3333H13.3333V20Z' fill='white'/%3E%3C/g%3E%3Cdefs%3E%3CclipPath id='clip0_423_490'%3E%3Crect width='16' height='16' fill='white' transform='translate(8 8)'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E%0A");
+    background-color: var(--disabled-color);
+    background-repeat: no-repeat;
+    background-position: calc(100% - 4px) center;
+
+    &::-webkit-calendar-picker-indicator {
+      position: absolute; 
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent; 
+      color: transparent;
+      cursor: pointer;
+    }
+    &::before {
+      content: attr(placeholder);
+      width: 100%;
+      height: 100%;
+    }
+
+    &:valid::before {
+      display: none; 
+    }
+  }
+
+}
+// .react-aria-DatePicker {
+//   .react-aria-Label {
+//     display: none;
+//   }
+//   .react-aria-Group {
+//     display: flex;
+//     align-items: center;
+//     position: relative;
+//     height: 42px;
+//     padding: 0 var(--spacing-8);
+//     border-radius: var(--radius);
+//     border: 1px solid var(--gray-40);
+//     background: var(--disabled-color);
+//   }
+
+//   .react-aria-DateInput {
+//     flex: 1;
+//     min-width: 0;
+//     padding-right: var(--spacing-10);
+//     overflow-x: auto;
+//     overflow-y: clip;
+//     scrollbar-width: none;
+//   }
+
+//   .field-Button {
+//     right: 5px;
+//     top: 4px;
+//     width: 32px;
+//     height: 32px;
+//     border-radius: var(--radius);
+//     border: 1px solid var(--gray-70);
+//     background: var(--gray-70);
+//   }
+// }
+
+// .react-aria-Popover[data-trigger='DatePicker'] {
+//   max-height: auto !important;
+//   background: white;
+//   border: 1px solid var(--gray-40);
+//   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+//   z-index: 1000;
+// }
+// .react-aria-DateField {
+//   display: flex;
+//   flex-direction: column;
+// }
+
+// .react-aria-DateInput {
+//   display: inline;
+//   padding-right: var(--spacing-16);
+//   border-radius: var(--radius);
+//   font: var(--font-size) system-ui;
+//   color: var(--gray-50);
+//   height: var(--spacing-8);
+//   line-height: var(--spacing-8);
+//   width: fit-content;
+//   min-width: 150px;
+//   white-space: nowrap;
+//   forced-color-adjust: none;
+//   cursor: text;
+
+//   &[data-focus-within] {
+//     outline: 2px solid var(--focus-ring-color);
+//     outline-offset: -1px;
+//   }
+
+//   &[data-disabled] {
+//     color: var(--text-color-disabled);
+//     cursor: default;
+//   }
+// }
+
+// .react-aria-DateSegment {
+//   padding: 2px;
+//   font-size: var(--font-size);
+//   font-variant-numeric: tabular-nums;
+//   text-align: end;
+//   color: var(--field-text-color);
+//   -webkit-tap-highlight-color: transparent;
+
+//   &[data-type=literal] {
+//     padding: 0;
+//   }
+
+//   &[data-placeholder] {
+//     color: var(--text-color-placeholder);
+//   }
+
+//   &:focus {
+//     color: var(--highlight-foreground);
+//     background: var(--highlight-background);
+//     outline: none;
+//     border-radius: 4px;
+//     caret-color: transparent;
+//   }
+
+//   &[data-invalid] {
+//     color: var(--invalid-color);
+
+//     &:focus {
+//       background: var(--highlight-background-invalid);
+//       color: var(--highlight-foreground);
+//     }
+//   }
+
+//   &[data-disabled] {
+//     color: var(--text-color-disabled);
+//     cursor: default;
+//   }
+// }
+
+// .react-aria-Calendar {
+//   width: calc(var(--spacing-9) * 7);
+//   max-width: 100%;
+//   container-type: inline-size;
+//   color: var(--text-color);
+//   font: var(--font-size) system-ui;
+
+//   header {
+//     display: flex;
+//     align-items: center;
+//     margin: 0 var(--spacing-1) var(--spacing-4) var(--spacing-1);
+
+//     .react-aria-Heading {
+//       flex: 1;
+//       margin: 0;
+//       text-align: center;
+//       font-size: var(--font-size-lg);
+//     }
+//   }
+
+//   .react-aria-CalendarGrid {
+//     border-spacing: 0;
+//   }
+
+//   [slot=errorMessage] {
+//     font: var(--font-size-sm) system-ui;
+//     color: var(--invalid-color);
+//   }
+// }
+
+
+// .react-aria-CalendarHeaderCell {
+//   font-size: var(--font-size-sm);
+// }
+
+// .react-aria-CalendarCell {
+//   --gap: var(--spacing-1);
+//   width: calc((100cqw / 7) - var(--gap));
+//   aspect-ratio: 1;
+//   margin: calc(var(--gap) / 2);
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   font-size: var(--font-size);
+//   text-align: center;
+//   border-radius: 9999px;
+//   cursor: default;
+//   forced-color-adjust: none;
+//   transition: scale 200ms;
+//   -webkit-tap-highlight-color: transparent;
+
+//   @media (min-resolution: 200dpi) {
+//     @container (width < 300px) {
+//       --gap: 0px;
+//     }
+//   }
+
+//   &[data-outside-month] {
+//     display: none;
+//   }
+
+//   &[data-pressed] {
+//     scale: 0.9;
+//   }
+
+//   &[data-unavailable] {
+//     text-decoration: line-through;
+//     color: var(--invalid-color);
+//   }
+
+//   &[data-invalid] {
+//     --button-color: var(--invalid-color);
+//   }
+// }

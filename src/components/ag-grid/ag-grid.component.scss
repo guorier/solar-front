@@ -1,0 +1,162 @@
+// 변수 정의
+$border-color-header: var(--gray-40);
+$border-color-cell: var(--gray-10);
+$bg-header: var(--gray-A100);
+$bg-tfoot: var(--gray-5);
+$color-total: var(--point-pink-50);
+
+.ag-theme-alpine {
+  // 기본 테마 오버라이드 및 변수 설정
+  --ag-border-color: #{$border-color-cell};
+  --ag-header-background-color: #{$bg-header};
+  --ag-selected-row-background-color: #ebf2f8;
+  --ag-row-hover-color: #f4f5f6;
+  --ag-header-column-separator-color: #{$border-color-header};
+
+  // 폰트 설정
+  --ag-header-font-family: 'Pretendard', 'Malgun Gothic', '맑은 고딕';
+  --ag-cell-font-family: 'Pretendard', 'Malgun Gothic', '맑은 고딕';
+
+  flex: 1;
+
+  .ag-root-wrapper {
+    height: 100%;
+    border-radius: 0;
+    border: 0;
+    border-top: 1px solid var(--gray-90);
+    border-bottom: 1px solid var(--gray-10);
+    background: #fff;
+
+    .ag-root-wrapper-body {
+      height: 100%;
+      flex-direction: var(--flex-direction);
+      .ag-root {
+        height: 100%;
+      }
+    }
+  }
+
+  .ag-header {
+    background: $bg-header;
+    border-bottom: 1px solid $border-color-header;
+
+    .ag-header-row {
+      font-size: var(--font-size-16);
+      font-weight: 500;
+      color: var(--text-color-base);
+    }
+
+    .ag-header-cell {
+      padding: 0 8px;
+      text-align: center;
+      justify-content: center;
+
+      // 컬럼명 텍스트 스타일
+      .ag-header-cell-text {
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      // 리사이저 스타일 (ColumnResizer 반영)
+      .ag-header-cell-resize {
+        &::after {
+          width: 1px;
+          height: 16px;
+          background: var(--gray-500, #ccc);
+          top: 50%;
+          transform: translateY(-50%);
+        }
+      }
+
+      &.checkbox-header {
+        .ag-header-cell-comp-wrapper {
+          display: none;
+        }
+      }
+
+      // 헤더 텍스트 중앙 정렬
+      .ag-header-group-cell-label,
+      .ag-header-cell-label {
+        justify-content: center;
+      }
+    }
+  }
+  .ag-row {
+    border-bottom: 1px solid $border-color-cell;
+    transition:
+      background 200ms,
+      color 200ms;
+
+    &.ag-row-selected {
+      background-color: var(--ag-selected-row-background-color);
+      color: var(--highlight-foreground);
+    }
+
+    // 푸터/합계행 스타일 (tfoot 클래스 대응)
+    &.ag-row-footer {
+      background: $bg-tfoot;
+      .ag-cell {
+        color: $color-total;
+        font-weight: bold;
+      }
+    }
+  }
+
+  // 4. 셀 스타일 (Cell 스타일 반영)
+  .ag-ltr .ag-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    font-size: var(--font-size-16);
+    font-weight: 500;
+    line-height: 1.8;
+    word-break: break-word;
+
+    &.ag-cell-focus:not(.ag-cell-range-selected):focus-within {
+      outline: 2px solid var(--mantine-color-main-6, #007bff) !important;
+      outline-offset: -2px;
+    }
+
+    &[aria-colindex='1'] {
+      border-left: 0;
+      color: #333;
+    }
+
+    img {
+      height: 30px;
+      width: 30px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .ag-selection-checkbox { margin-right: 0; }
+  }
+
+  .ag-checkbox-input-wrapper {
+    width: 16px;
+    height: 16px;
+    border-radius: var(--radius-sm);
+    border-color: var(--border-color);
+
+    &.ag-checked {
+      border-color: var(--gray-70);
+      background: var(--gray-70);
+      &::after {
+        color: #fff;
+      }
+    }
+
+    &:focus-within {
+      box-shadow: 0 0 0 2px var(--focus-ring-color, rgba(0,123,255,0.5));
+    }
+  }
+
+  // 데이터 없을 때 스타일
+  .ag-overlay-no-rows-wrapper {
+    font-style: italic;
+    color: #999;
+  }
+}

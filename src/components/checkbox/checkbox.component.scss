@@ -1,0 +1,49 @@
+
+  .react-aria-Checkbox {
+    display: flex;
+    position: relative;
+    align-items: center;
+    gap: var(--spacing-2);
+    cursor: pointer;
+    border: 0;
+
+    > span {
+      width: 100%;
+      height: 100%;
+    }
+
+    .indicator {
+      box-sizing: border-box;
+      border-radius: var(--radius-sm);
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--gray-40);
+      transition: all 200ms;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    // &[data-selected],
+    // &[data-indeterminate] {
+    //   svg {
+    //     stroke-dashoffset: 44;
+    //   }
+    // }
+
+    &[data-indeterminate] {
+      svg {
+        stroke: var(--gray-20);
+        fill: var(--gray-20);
+      }
+    }
+
+    &[data-selected] {
+      .indicator {
+        border-color: var(--gray-70);
+        background: var(--gray-70);
+      }
+    }
+  }
+
