@@ -212,6 +212,8 @@ const mergeDashboardDataWithSocket = (
 };
 
 export default function DashboardPage() {
+  const realtimeTopic = process.env.NEXT_PUBLIC_WS_SOLAR_TOPIC ?? '/topic/realtime-data';
+
   const [selectedPlant, setSelectedPlant] = useState<PlantData>({
     pwplId: '',
     macAddr: '',
@@ -256,7 +258,8 @@ export default function DashboardPage() {
     [toFixedTwo],
   );
 
-  const socketStatusMap = useDashboardSocketContext() as Record<string, DashboardSocketPlantStatus>;
+  const { realtimeData } = useDashboardSocketContext();
+  const socketStatusMap = realtimeData as Record<string, DashboardSocketPlantStatus>;
 
   const { data: dashboardData } = usePostDashboardSelect({
     pwplIds,
@@ -559,6 +562,39 @@ export default function DashboardPage() {
 
     writeSocketCacheMap(nextCacheMap);
   }, [socketStatusMap, selectedPlantCombo]);
+
+  useEffect(() => {
+    if (selectedPlantCombo.length === 0) {
+      return;
+    }
+
+    const normalizedLiveMap = normalizeSocketStatusMap(socketStatusMap);
+    const monitoredPlants = selectedPlantCombo
+      .map((plant) => {
+        const normalizedMacAddr = normalizeMac(plant.macAddr);
+        const socketPayload = normalizedLiveMap[normalizedMacAddr];
+
+        if (!socketPayload) {
+          return null;
+        }
+
+        return {
+          topic: `${realtimeTopic}/${plant.pwplId}`,
+          pwplId: plant.pwplId,
+          pwplNm: plant.pwplNm,
+          macAddr: plant.macAddr,
+          normalizedMacAddr,
+          payload: socketPayload,
+        };
+      })
+      .filter(Boolean);
+
+    if (monitoredPlants.length === 0) {
+      return;
+    }
+
+    console.log('[Monitoring Map] realtime websocket update', monitoredPlants);
+  }, [realtimeTopic, selectedPlantCombo, socketStatusMap]);
 
   return (
     <>

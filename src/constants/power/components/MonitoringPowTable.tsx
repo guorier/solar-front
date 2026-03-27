@@ -306,7 +306,7 @@ export default function MonitoringPowTable({
                   </Cell>
                   <Cell>{String(item.status ?? '-')}</Cell>
                   <Cell>
-                    <Link href={`/monitoring/power/${item.id}`} className="pow-link">
+                    <Link href={`/monitoring/power/${item.plantId}`} className="pow-link">
                       상세
                     </Link>
                   </Cell>

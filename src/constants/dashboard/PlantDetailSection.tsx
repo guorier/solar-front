@@ -51,7 +51,6 @@ export function PlantDetailSection({
   const pwplLat = dashboardData?.plantDetail?.pwplLat ?? data?.lat;
   const pwplLot = dashboardData?.plantDetail?.pwplLot ?? data?.lng;
   const updateTime = data?.detail?.updateTime ?? '-';
-  console.log("현재출력>>>>>>>>>>>>>",currentPower);
   
   return (
     <InfoGroupComponent
