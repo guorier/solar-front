@@ -1,3 +1,4 @@
+// src\app\(home)\layout.tsx
 import { MainLayout } from '@/layouts';
 import { DashboardSocketProvider } from '@/providers/DashboardSocketProvider';
 

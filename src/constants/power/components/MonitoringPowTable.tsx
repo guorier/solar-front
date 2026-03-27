@@ -74,7 +74,7 @@ const formatDisplayTime = (value: string): string => {
   if (matchedValue) {
     const [, month, day, hour, minute] = matchedValue;
 
-    return `${month.padStart(2, '0')}.${day.padStart(2, '0')} ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+    return `${month.padStart(2, '0')}-${day.padStart(2, '0')} ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
   }
 
   return value.replace(/:\d{2}$/, '');
@@ -219,7 +219,7 @@ export default function MonitoringPowTable({
               {renderSortLabel('이전 발전량', 'previousPowerW')}
             </Column>
             <Column width={120} minWidth={120}>
-              {renderSortLabel('일 발전량', 'dayPowerMWh')}
+              {renderSortLabel('전일 누적 발전량', 'dayPowerMWh')}
             </Column>
             <Column width={100} minWidth={100}>
               {renderSortLabel('일사량', 'irradianceWm2')}

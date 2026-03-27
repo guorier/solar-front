@@ -129,13 +129,6 @@ const rtuColumns: LogColumn[] = [
   { key: 'time', label: '시간', width: '10%', isRowHeader: true },
   { key: 'plantName', label: '발전소', width: '12%' },
   { key: 'weather', label: 'RTU HEX', width: 'auto' },
-  { key: 'logLevel', label: '레벨', width: '8%' },
-  { key: 'message', label: '메시지', width: 'auto' },
-  { key: 'currentPowerW', label: '현재 발전량', width: '6%' },
-  { key: 'previousPowerW', label: '이전 발전량', width: '6%' },
-  { key: 'changedPowerW', label: '변동 전력', width: '6%' },
-  { key: 'changeRate', label: '변화율', width: '6%' },
-  { key: 'temperatureC', label: '온도', width: '6%' },
 ];
 
 const cellStyle: CSSProperties = {

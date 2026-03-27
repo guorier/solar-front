@@ -1,13 +1,14 @@
 // power/MonitoringPow.tsx
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ButtonComponent, TitleComponent } from '@/components';
 import { ModalPlantSelector } from '@/constants/monitoring/ModalPlantSelector';
 import MonitoringPowChart from './components/MonitoringPowChart';
 import MonitoringPowTable from './components/MonitoringPowTable';
 import { getPowerTrendHistory, PAGE_SIZE, parsePwplIds } from './monitoringPowMock';
 import { PowerTrendChartSeries, PowerTrendRow } from './monitoringPowType';
+import { useDashboardSocketContext } from '@/providers/DashboardSocketContext';
 import { useSearchParams } from 'next/navigation';
 import './MonitoringPow.scss';
 
@@ -21,41 +22,6 @@ type SavedPlantItem = {
 };
 
 type LocalStorageRecord = Record<string, unknown>;
-
-type SocketHeader = {
-  mac?: string;
-  timeStamp?: string;
-};
-
-type SocketInverter = {
-  deviceAddresses?: number | string;
-  gridPowerW?: number | string;
-  prevGridPowerW?: number | string;
-  dailyTotalPowerW?: number | string;
-  irradianceWm2?: number | string;
-  solarRadiation?: number | string;
-  temperatureC?: number | string;
-  inverterTemperature?: number | string;
-  formattedEfficiency?: number | string;
-  efficiency?: number | string;
-  fluctuate?: number | string;
-  fluctuateRate?: number | string;
-  alrmCode?: string;
-};
-
-type SocketPayload = {
-  header?: SocketHeader;
-  inverter?: SocketInverter;
-  targetPwplId?: string;
-  pwplId?: string;
-  pwplNm?: string;
-  plantName?: string;
-  timeStampStr?: string;
-};
-
-const POLLING_INTERVAL = 60000;
-// const POLLING_INTERVAL = 3000;
-const REALTIME_SYNC_INTERVAL = 1000;
 
 const isObjectRecord = (value: unknown): value is LocalStorageRecord => {
   return typeof value === 'object' && value !== null;
@@ -90,198 +56,159 @@ const toDateValue = (value: string): number => {
   return parsedTime;
 };
 
-const parseJson = (value: string | null): unknown => {
-  if (!value) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(value);
-  } catch {
-    return null;
-  }
-};
-
 const getStatus = (alrmCode: string): PowerTrendRow['status'] => {
   return alrmCode === '000000' ? '정상' : '비정상';
 };
 
-const getSavedPlantItems = (): SavedPlantItem[] => {
-  const parsedPwplIds = parseJson(localStorage.getItem('pwplIds'));
+// 웹소켓 목록 데이터 포맷 변환
+type WebSocketListItem = {
+  deviceAddresses?: number | string;
+  equipmentType?: string;
+  gridPowerW?: number;
+  fluctuate?: number;
+  targetPwplId?: string;
+  fluctuateRate?: number;
+  timeStampStr?: string;
+  alrmCode?: string;
+  formattedEfficiency?: number | string;
+  prevGridPowerW?: number;
+  dailyTotalPowerW?: number;
+  pwplNm?: string;
+  irradianceWm2?: number;
+  temperatureC?: number;
+};
 
-  if (!Array.isArray(parsedPwplIds)) {
+const convertWebSocketListToRow = (item: WebSocketListItem): PowerTrendRow | null => {
+  const targetPwplId = item.targetPwplId;
+  const deviceAddr = item.deviceAddresses;
+  const timeStampStr = item.timeStampStr;
+
+  if (!targetPwplId || !deviceAddr || !timeStampStr) {
+    return null;
+  }
+
+  const rowId = `${targetPwplId}__${deviceAddr}`;
+
+  return {
+    id: rowId,
+    plantId: targetPwplId,
+    plantName: item.pwplNm ?? targetPwplId,
+    inverterId: String(deviceAddr),
+    inverterName: `${deviceAddr}호`,
+    time: timeStampStr,
+    currentPowerW: toNumber(item.gridPowerW),
+    previousPowerW: toNumber(item.prevGridPowerW),
+    dayPowerMWh: round(toNumber(item.dailyTotalPowerW) / 1000, 3),
+    irradianceWm2: toNumber(item.irradianceWm2),
+    temperatureC: toNumber(item.temperatureC),
+    inverterEfficiency: String(item.formattedEfficiency ?? ''),
+    changedPowerW: toNumber(item.fluctuate),
+    changeRate: round(toNumber(item.fluctuateRate), 1),
+    status: getStatus(String(item.alrmCode ?? '000000')),
+  };
+};
+
+const convertWebSocketListToRows = (data: unknown, selectedPwplIds: string[]): PowerTrendRow[] => {
+  if (!Array.isArray(data)) {
     return [];
   }
 
-  return parsedPwplIds.reduce<SavedPlantItem[]>((accumulator, item) => {
-    if (typeof item === 'string') {
-      return accumulator;
-    }
+  const rows: PowerTrendRow[] = [];
 
+  data.forEach((item) => {
     if (!isObjectRecord(item)) {
-      return accumulator;
+      return;
     }
 
-    const pwplId = typeof item.pwplId === 'string' ? item.pwplId : '';
-    const macAddr = typeof item.macAddr === 'string' ? item.macAddr : '';
+    const wsItem = item as WebSocketListItem;
+
+    // 선택된 발전소인 경우만 처리
+    if (selectedPwplIds.length > 0 && !selectedPwplIds.includes(wsItem.targetPwplId ?? '')) {
+      return;
+    }
+
+    const row = convertWebSocketListToRow(wsItem);
+    if (row) {
+      rows.push(row);
+    }
+  });
+
+  return rows;
+};
+
+// 웹소켓 차트 데이터 포맷 변환
+type WebSocketChartItem = {
+  gridPowerW?: number;
+  fluctuate?: number;
+  targetPwplId?: string;
+  timeStampStr?: string;
+  pwplNm?: string;
+};
+
+const convertWebSocketChartData = (
+  data: unknown,
+  selectedPwplIds: string[],
+): PowerTrendChartSeries[] => {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  // targetPwplId별로 그룹화
+  const groupedMap = new Map<string, WebSocketChartItem[]>();
+
+  data.forEach((item) => {
+    if (!isObjectRecord(item)) {
+      return;
+    }
+
+    const wsItem = item as WebSocketChartItem;
+    const pwplId = wsItem.targetPwplId;
 
     if (!pwplId) {
-      return accumulator;
+      return;
     }
 
-    accumulator.push({
-      pwplId,
-      macAddr,
-    });
+    // 선택된 발전소인 경우만 처리
+    if (selectedPwplIds.length > 0 && !selectedPwplIds.includes(pwplId)) {
+      return;
+    }
 
-    return accumulator;
-  }, []);
-};
+    if (!groupedMap.has(pwplId)) {
+      groupedMap.set(pwplId, []);
+    }
 
-const getSelectedMacAddrs = (): string[] => {
-  const parsedMacAddrs = parseJson(localStorage.getItem('macAddrs'));
+    groupedMap.get(pwplId)!.push(wsItem);
+  });
 
-  if (!Array.isArray(parsedMacAddrs)) {
-    return [];
-  }
+  // 각 발전소별 차트 시리즈 생성
+  const chartSeries: PowerTrendChartSeries[] = [];
 
-  return parsedMacAddrs
-    .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
-    .map((item) => item.trim().toUpperCase());
-};
+  groupedMap.forEach((items, pwplId) => {
+    const plantName = items[0]?.pwplNm ?? pwplId;
+    const chartItems = items
+      .map((item) => {
+        const timeStr = item.timeStampStr ?? '';
+        console.log(`🔍 항목 변환: timeStampStr="${timeStr}" → time="${timeStr}"`);
+        return {
+          time: timeStr,
+          close: toNumber(item.gridPowerW),
+          status: '정상' as const,
+        };
+      })
+      .filter((item) => item.time !== '');
 
-const extractSocketPayload = (value: unknown): SocketPayload[] => {
-  if (Array.isArray(value)) {
-    return value.flatMap((item) => extractSocketPayload(item));
-  }
-
-  if (!isObjectRecord(value)) {
-    return [];
-  }
-
-  const header = isObjectRecord(value.header) ? (value.header as SocketHeader) : undefined;
-  const inverter = isObjectRecord(value.inverter) ? (value.inverter as SocketInverter) : undefined;
-
-  if (header?.mac && inverter) {
-    return [
-      {
-        header,
-        inverter,
-        targetPwplId: typeof value.targetPwplId === 'string' ? value.targetPwplId : undefined,
-        pwplId: typeof value.pwplId === 'string' ? value.pwplId : undefined,
-        pwplNm: typeof value.pwplNm === 'string' ? value.pwplNm : undefined,
-        plantName: typeof value.plantName === 'string' ? value.plantName : undefined,
-        timeStampStr: typeof value.timeStampStr === 'string' ? value.timeStampStr : undefined,
-      },
-    ];
-  }
-
-  return Object.values(value).flatMap((item) => extractSocketPayload(item));
-};
-
-const buildRealtimeRows = (selectedPwplIds: string[]): PowerTrendRow[] => {
-  const selectedMacAddrs = getSelectedMacAddrs();
-  const savedPlantItems = getSavedPlantItems();
-  const macToPwplIdMap = new Map<string, string>();
-
-  savedPlantItems.forEach((item) => {
-    if (item.macAddr) {
-      macToPwplIdMap.set(item.macAddr.toUpperCase(), item.pwplId);
+    if (chartItems.length > 0) {
+      chartSeries.push({
+        plantId: pwplId,
+        plantName,
+        inverterId: '전체',
+        inverterName: '전체 발전량',
+        data: chartItems,
+      });
     }
   });
 
-  const latestRows = new Map<string, PowerTrendRow>();
-
-  for (let index = 0; index < localStorage.length; index += 1) {
-    const storageKey = localStorage.key(index);
-
-    if (!storageKey) {
-      continue;
-    }
-
-    const parsedValue = parseJson(localStorage.getItem(storageKey));
-    const payloads = extractSocketPayload(parsedValue);
-
-    payloads.forEach((payload) => {
-      const macAddr = payload.header?.mac?.toUpperCase();
-
-      if (!macAddr) {
-        return;
-      }
-
-      if (selectedMacAddrs.length > 0 && !selectedMacAddrs.includes(macAddr)) {
-        return;
-      }
-
-      const plantId =
-        payload.targetPwplId ?? payload.pwplId ?? macToPwplIdMap.get(macAddr) ?? macAddr;
-
-      if (selectedPwplIds.length > 0 && !selectedPwplIds.includes(plantId)) {
-        return;
-      }
-
-      const inverterId = String(payload.inverter?.deviceAddresses ?? macAddr);
-      const rowId = `${plantId}__${inverterId}`;
-      const currentTime =
-        payload.timeStampStr ?? payload.header?.timeStamp ?? latestRows.get(rowId)?.time ?? '';
-
-      const currentRow: PowerTrendRow = {
-        id: rowId,
-        plantId,
-        plantName: payload.pwplNm ?? payload.plantName ?? plantId,
-        inverterId,
-        inverterName: `${inverterId}호`,
-        time: currentTime,
-        currentPowerW: toNumber(payload.inverter?.gridPowerW),
-        previousPowerW: toNumber(payload.inverter?.prevGridPowerW),
-        dayPowerMWh: round(toNumber(payload.inverter?.dailyTotalPowerW) / 1000, 3),
-        irradianceWm2: toNumber(
-          payload.inverter?.irradianceWm2 ?? payload.inverter?.solarRadiation,
-        ),
-        temperatureC: toNumber(
-          payload.inverter?.temperatureC ?? payload.inverter?.inverterTemperature,
-        ),
-        inverterEfficiency: String(
-          payload.inverter?.formattedEfficiency ?? payload.inverter?.efficiency ?? '',
-        ),
-        changedPowerW: toNumber(payload.inverter?.fluctuate),
-        changeRate: round(toNumber(payload.inverter?.fluctuateRate), 1),
-        status: getStatus(String(payload.inverter?.alrmCode ?? '000000')),
-      };
-
-      const previousRow = latestRows.get(rowId);
-
-      if (!previousRow || toDateValue(currentRow.time) >= toDateValue(previousRow.time)) {
-        latestRows.set(rowId, currentRow);
-      }
-    });
-  }
-
-  return Array.from(latestRows.values()).sort((a, b) => toDateValue(b.time) - toDateValue(a.time));
-};
-
-const mergeRowsWithRealtime = (
-  apiRows: PowerTrendRow[],
-  realtimeRows: PowerTrendRow[],
-  page: number,
-): PowerTrendRow[] => {
-  if (realtimeRows.length === 0) {
-    return apiRows;
-  }
-
-  const mergedMap = new Map<string, PowerTrendRow>();
-
-  apiRows.forEach((item) => {
-    mergedMap.set(item.id, item);
-  });
-
-  realtimeRows.forEach((item) => {
-    mergedMap.set(item.id, item);
-  });
-
-  return Array.from(mergedMap.values())
-    .sort((a, b) => toDateValue(b.time) - toDateValue(a.time))
-    .slice(0, page * PAGE_SIZE);
+  return chartSeries;
 };
 
 export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPowProps) {
@@ -295,22 +222,89 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
-  const [elapsedSeconds, setElapsedSeconds] = useState<number>(Math.floor(POLLING_INTERVAL / 1000));
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(60);
   const [refreshMotion, setRefreshMotion] = useState<boolean>(false);
-  const pollingTimerRef = useRef<number | null>(null);
-  const realtimeSyncTimerRef = useRef<number | null>(null);
 
-  const syncRealtimeRows = useCallback(() => {
-    const realtimeRows = buildRealtimeRows(pwplIds);
+  // 프로바이더에서 제공하는 웹소켓 데이터
+  const { powerTrendListData, powerTrendChartData } = useDashboardSocketContext();
 
-    if (realtimeRows.length === 0) {
+  // 프로바이더의 차트 데이터가 업데이트되면 차트 데이터 업데이트
+  const filteredChartData = useMemo(() => {
+    if (!Array.isArray(powerTrendChartData) || powerTrendChartData.length === 0) {
+      return [];
+    }
+    
+    // 웹소켓에서 받은 차트 데이터를 PowerTrendChartSeries로 변환 (필터링 포함)
+    const convertedChartData = convertWebSocketChartData(powerTrendChartData, pwplIds);
+    console.log('🔄 필터링된 차트 데이터:', convertedChartData);
+    
+    return convertedChartData;
+  }, [powerTrendChartData, pwplIds]);
+
+  useEffect(() => {
+    if (filteredChartData.length === 0) {
       return;
     }
 
-    setRows((prevRows) => mergeRowsWithRealtime(prevRows, realtimeRows, page));
+    console.log('📊 필터링된 차트 데이터 반영:', filteredChartData);
+    
+    // 웹소켓 차트 데이터로 업데이트 (기존 데이터와 merge)
+    setChartData((prevChartData) => {
+      const mergedMap = new Map<string, PowerTrendChartSeries>();
+      
+      // 기존 차트 데이터 추가
+      prevChartData.forEach((series) => {
+        const key = `${series.plantId}__${series.inverterId}`;
+        mergedMap.set(key, series);
+      });
+      
+      // 웹소켓 데이터로 업데이트 (같은 plant + inverter는 덮어씌움)
+      filteredChartData.forEach((series) => {
+        const key = `${series.plantId}__${series.inverterId}`;
+        mergedMap.set(key, series);
+      });
+      
+      return Array.from(mergedMap.values());
+    });
+  }, [filteredChartData]);
+
+  // 프로바이더의 Context 데이터가 업데이트되면 rows 업데이트
+  useEffect(() => {
+    if (!Array.isArray(powerTrendListData) || powerTrendListData.length === 0) {
+      return;
+    }
+
+    console.log('📋 Context 추이 목록 데이터 받음:', powerTrendListData, 'pwplIds:', pwplIds);
+
+    // 웹소켓에서 받은 목록 데이터를 행으로 변환
+    const wsRows = convertWebSocketListToRows(powerTrendListData, pwplIds);
+
+    if (wsRows.length === 0) {
+      return;
+    }
+
+    // 기존 행과 웹소켓 행을 병합
+    setRows((prevRows) => {
+      const mergedMap = new Map<string, PowerTrendRow>();
+
+      // 기존 행 추가
+      prevRows.forEach((item) => {
+        mergedMap.set(item.id, item);
+      });
+
+      // 웹소켓 행으로 업데이트 (최신 데이터)
+      wsRows.forEach((item) => {
+        mergedMap.set(item.id, item);
+      });
+
+      return Array.from(mergedMap.values())
+        .sort((a, b) => toDateValue(b.time) - toDateValue(a.time))
+        .slice(0, page * PAGE_SIZE);
+    });
+
     setLastUpdatedAt(Date.now());
-    setElapsedSeconds(Math.floor(POLLING_INTERVAL / 1000));
-  }, [page, pwplIds]);
+    setElapsedSeconds(60);
+  }, [powerTrendListData, pwplIds, page]);
 
   const loadInitial = useCallback(async () => {
     if (pwplIds.length === 0) {
@@ -332,14 +326,12 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
         size: PAGE_SIZE,
       });
 
-      const realtimeRows = buildRealtimeRows(pwplIds);
-      const mergedRows = mergeRowsWithRealtime(response.list, realtimeRows, page);
-
+      // 초기 데이터 설정 (웹소켓 수신 전 UI 표시용)
       setChartData(response.chart);
-      setRows(mergedRows);
+      setRows(response.list);
       setHasMore(response.hasMore);
       setLastUpdatedAt(Date.now());
-      setElapsedSeconds(Math.floor(POLLING_INTERVAL / 1000));
+      setElapsedSeconds(60);
     } finally {
       setIsLoading(false);
 
@@ -388,18 +380,6 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
   }, [searchParams]);
 
   useEffect(() => {
-    const realtimeRows = buildRealtimeRows(pwplIds);
-
-    if (realtimeRows.length === 0) {
-      return;
-    }
-
-    setRows(realtimeRows);
-    setLastUpdatedAt(Date.now());
-    setElapsedSeconds(Math.floor(POLLING_INTERVAL / 1000));
-  }, [pwplIds]);
-
-  useEffect(() => {
     setPage(1);
   }, [pwplIds]);
 
@@ -407,59 +387,8 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
     void loadInitial();
   }, [loadInitial]);
 
-  useEffect(() => {
-    if (pwplIds.length === 0) {
-      return;
-    }
-
-    const startPolling = (): void => {
-      if (pollingTimerRef.current) {
-        window.clearInterval(pollingTimerRef.current);
-      }
-
-      pollingTimerRef.current = window.setInterval(() => {
-        void loadInitial();
-      }, POLLING_INTERVAL);
-    };
-
-    startPolling();
-
-    const handleVisibilityChange = (): void => {
-      if (document.visibilityState === 'visible') {
-        syncRealtimeRows();
-        void loadInitial();
-        startPolling();
-      }
-    };
-
-    window.addEventListener('focus', handleVisibilityChange);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      if (pollingTimerRef.current) {
-        window.clearInterval(pollingTimerRef.current);
-      }
-
-      window.removeEventListener('focus', handleVisibilityChange);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [loadInitial, pwplIds.length, syncRealtimeRows]);
-
-  useEffect(() => {
-    if (realtimeSyncTimerRef.current) {
-      window.clearInterval(realtimeSyncTimerRef.current);
-    }
-
-    realtimeSyncTimerRef.current = window.setInterval(() => {
-      syncRealtimeRows();
-    }, REALTIME_SYNC_INTERVAL);
-
-    return () => {
-      if (realtimeSyncTimerRef.current) {
-        window.clearInterval(realtimeSyncTimerRef.current);
-      }
-    };
-  }, [syncRealtimeRows]);
+  // 웹소켓이 실시간 데이터를 제공하므로 폴링 제거
+  // 초기 로드 후 웹소켓 데이터만 업데이트됨
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -487,7 +416,7 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
 
   const liveText = useMemo(() => {
     if (!lastUpdatedAt) {
-      return `${Math.floor(POLLING_INTERVAL / 1000)}초 후 갱신`;
+      return `60초 후 갱신`;
     }
 
     return `${elapsedSeconds}초 후 갱신`;

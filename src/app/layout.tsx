@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <body suppressHydrationWarning>
         <Providers>
           <Script
             src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=8f4fb41ba7be1b8154a0758cfcc34c80&autoload=false"
