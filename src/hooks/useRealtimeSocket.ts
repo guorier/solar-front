@@ -4,12 +4,15 @@ import { useEffect, useMemo, useRef } from 'react';
 import SockJS from 'sockjs-client';
 import { Client, type IMessage, type StompSubscription } from '@stomp/stompjs';
 
-type Props = {
-  mac: string | string[] | undefined;
-  onMessage: (json: unknown) => void;
+type SocketTarget = {
+  pwplId: string;
+  macAddr?: string;
 };
 
-const isPlantIdLike = (value: string) => /^P/i.test(value);
+type Props = {
+  targets: SocketTarget[];
+  onMessage: (json: unknown) => void;
+};
 
 const normalizeMac = (value: string | null | undefined) =>
   String(value ?? '')
@@ -17,50 +20,61 @@ const normalizeMac = (value: string | null | undefined) =>
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, '');
 
-export function useRealtimeSocket({ mac, onMessage }: Props) {
+export function useRealtimeSocket({ targets, onMessage }: Props) {
   const WS_URL = process.env.NEXT_PUBLIC_WS_SOLAR ?? '/ws';
   const WS_TOPIC = process.env.NEXT_PUBLIC_WS_SOLAR_TOPIC ?? '/topic/realtime-data';
 
   const clientRef = useRef<Client | null>(null);
-  const subscriptionRef = useRef<StompSubscription | null>(null);
+  const subscriptionsRef = useRef<StompSubscription[]>([]);
+  const noMessageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onMessageRef = useRef(onMessage);
 
   onMessageRef.current = onMessage;
 
-  const normalizedMacList = useMemo(() => {
-    if (!mac) return [];
+  const normalizedTargets = useMemo(
+    () =>
+      targets
+        .filter((target) => Boolean(target.pwplId))
+        .map((target) => ({
+          pwplId: target.pwplId,
+          macAddr: normalizeMac(target.macAddr),
+        })),
+    [targets],
+  );
 
-    if (Array.isArray(mac)) {
-      return mac
-        .filter((item) => !isPlantIdLike(item))
-        .map((item) => normalizeMac(item))
-        .filter(Boolean);
-    }
+  const subscribedTopics = useMemo(
+    () => normalizedTargets.map((target) => `${WS_TOPIC}/${target.pwplId}`),
+    [WS_TOPIC, normalizedTargets],
+  );
 
-    if (isPlantIdLike(mac)) return [];
-
-    const normalized = normalizeMac(mac);
-
-    return normalized ? [normalized] : [];
-  }, [mac]);
-
-  const macKey = useMemo(() => normalizedMacList.join(','), [normalizedMacList]);
+  const targetKey = useMemo(
+    () => normalizedTargets.map((target) => `${target.pwplId}:${target.macAddr}`).join(','),
+    [normalizedTargets],
+  );
 
   useEffect(() => {
-    console.log('🧪 useRealtimeSocket 실행', {
-      mac,
-      normalizedMacList,
-      macKey,
-      WS_URL,
-      WS_TOPIC,
-    });
+    // console.log('[Map Socket] init', {
+    //   WS_URL,
+    //   WS_TOPIC,
+    //   targetCount: normalizedTargets.length,
+    //   targets: normalizedTargets,
+    //   subscribedTopics,
+    // });
 
     if (!WS_URL) {
-      console.error('❌ WS_URL 없음', {
+      console.error('[Map Socket] missing WS_URL', {
         WS_URL,
         WS_TOPIC,
-        normalizedMacList,
+        normalizedTargets,
       });
+      return;
+    }
+
+    if (normalizedTargets.length === 0) {
+      // console.warn('[Map Socket] no targets', {
+      //   WS_TOPIC,
+      //   targets,
+      // });
       return;
     }
 
@@ -71,79 +85,105 @@ export function useRealtimeSocket({ mac, onMessage }: Props) {
       heartbeatOutgoing: 10000,
     });
 
-    client.debug = (str) => {
-      console.log('⚠️ STOMP:', str);
-    };
+    client.debug = () => {};
 
     client.onConnect = () => {
-      console.log('🟢 웹소켓 접속 완료', {
-        WS_URL,
-        WS_TOPIC,
-        macKey,
-      });
+      // console.log('[Map Socket] connected', {
+      //   WS_URL,
+      //   WS_TOPIC,
+      //   targetCount: normalizedTargets.length,
+      // });
 
-      console.log('📡 subscribe 시작', {
-        WS_TOPIC,
-        macKey,
-      });
-
-      if (subscriptionRef.current) {
-        subscriptionRef.current.unsubscribe();
-        subscriptionRef.current = null;
+      if (noMessageTimeoutRef.current) {
+        clearTimeout(noMessageTimeoutRef.current);
       }
 
-      const subscription = client.subscribe(WS_TOPIC, (message: IMessage) => {
-        console.log('🔥 웹소켓 값 도착:', message.body);
+      noMessageTimeoutRef.current = setTimeout(() => {
+        // console.warn('[Map Socket] no payload after subscribe', {
+        //   waitSeconds: 10,
+        //   subscribedTopics,
+        // });
+      }, 10000);
 
+      subscriptionsRef.current.forEach((subscription) => {
         try {
-          const json = JSON.parse(message.body) as {
-            header?: { mac?: string };
-          };
-
-          const targetMac = normalizeMac(json.header?.mac);
-
-          console.log('🧾 웹소켓 MAC 비교', {
-            rawTargetMac: json.header?.mac,
-            normalizedTargetMac: targetMac,
-            normalizedMacList,
-            hasMatch:
-              normalizedMacList.length === 0 ? true : normalizedMacList.includes(targetMac),
-          });
-
-          if (normalizedMacList.length > 0) {
-            if (!targetMac || !normalizedMacList.includes(targetMac)) return;
-          }
-
-          console.log('✅ onMessage 호출');
-          onMessageRef.current(json);
-        } catch (e) {
-          console.error('❌ JSON 파싱 오류', e);
+          subscription.unsubscribe();
+        } catch (error) {
+          console.error('[Map Socket] unsubscribe error', error);
         }
       });
+      subscriptionsRef.current = [];
 
-      subscriptionRef.current = subscription;
+      normalizedTargets.forEach((target) => {
+        const topic = `${WS_TOPIC}/${target.pwplId}`;
 
-      console.log('✅ subscribe 완료', {
-        WS_TOPIC,
-        subscriptionId: subscription.id,
+        // console.log('[Map Socket] subscribe try', {
+        //   topic,
+        //   pwplId: target.pwplId,
+        //   macAddr: target.macAddr,
+        // });
+
+        const subscription = client.subscribe(topic, (message: IMessage) => {
+          if (noMessageTimeoutRef.current) {
+            clearTimeout(noMessageTimeoutRef.current);
+            noMessageTimeoutRef.current = null;
+          }
+
+          // console.log('[Map Socket] raw payload', {
+          //   topic,
+          //   body: message.body,
+          // });
+
+          try {
+            const json = JSON.parse(message.body) as {
+              header?: { mac?: string };
+            };
+
+            // console.log('[Map Socket] parsed payload', {
+            //   topic,
+            //   payload: json,
+            // });
+
+            const targetMac = normalizeMac(json.header?.mac);
+
+            if (target.macAddr && targetMac && target.macAddr !== targetMac) {
+              // console.warn('[Map Socket] mac mismatch', {
+              //   topic,
+              //   expectedMac: target.macAddr,
+              //   receivedMac: targetMac,
+              // });
+            }
+
+            onMessageRef.current(json);
+          } catch (error) {
+            console.error('[Map Socket] JSON parse error', error);
+          }
+        });
+
+        subscriptionsRef.current.push(subscription);
+
+        // console.log('[Map Socket] subscribe done', {
+        //   topic,
+        //   subscriptionId: subscription.id,
+        // });
       });
     };
 
     client.onStompError = (frame) => {
-      console.error('❌ 웹소켓 STOMP 오류', {
+      console.error('[Map Socket] STOMP error', {
         command: frame.command,
         headers: frame.headers,
         body: frame.body,
         WS_URL,
         WS_TOPIC,
-        macKey,
+        targetKey,
       });
     };
 
     client.onWebSocketError = (event) => {
       const target = event.target;
 
-      console.error('❌ 웹소켓 연결 오류', {
+      console.error('[Map Socket] connection error', {
         event,
         type: event.type,
         url:
@@ -157,49 +197,59 @@ export function useRealtimeSocket({ mac, onMessage }: Props) {
           typeof target.readyState === 'number'
             ? target.readyState
             : null,
-        macKey,
+        targetKey,
       });
     };
 
-    client.onWebSocketClose = (event) => {
-      console.warn('❌ 웹소켓 종료', {
-        code: event.code,
-        reason: event.reason,
-        wasClean: event.wasClean,
-        type: event.type,
-        WS_URL,
-        WS_TOPIC,
-        macKey,
-      });
+    client.onWebSocketClose = () => {
+      // console.warn('[Map Socket] closed', {
+      //   code: event.code,
+      //   reason: event.reason,
+      //   wasClean: event.wasClean,
+      //   type: event.type,
+      //   WS_URL,
+      //   WS_TOPIC,
+      //   targetKey,
+      // });
     };
 
     client.onDisconnect = () => {
-      console.log('🔴 웹소켓 연결 종료', {
-        WS_URL,
-        WS_TOPIC,
-        macKey,
-      });
+      // console.log('[Map Socket] disconnected', {
+      //   WS_URL,
+      //   WS_TOPIC,
+      //   targetKey,
+      // });
     };
 
     client.activate();
     clientRef.current = client;
 
     return () => {
-      console.log('🧹 웹소켓 cleanup', {
-        macKey,
-      });
+      // console.log('[Map Socket] cleanup', {
+      //   targetCount: normalizedTargets.length,
+      //   subscribedTopics,
+      // });
 
-      if (subscriptionRef.current) {
-        subscriptionRef.current.unsubscribe();
-        subscriptionRef.current = null;
+      if (noMessageTimeoutRef.current) {
+        clearTimeout(noMessageTimeoutRef.current);
+        noMessageTimeoutRef.current = null;
       }
+
+      subscriptionsRef.current.forEach((subscription) => {
+        try {
+          subscription.unsubscribe();
+        } catch (error) {
+          console.error('[Map Socket] unsubscribe error', error);
+        }
+      });
+      subscriptionsRef.current = [];
 
       if (clientRef.current) {
         clientRef.current.deactivate();
         clientRef.current = null;
       }
     };
-  }, [WS_URL, WS_TOPIC, macKey, normalizedMacList, mac]);
+  }, [WS_URL, WS_TOPIC, normalizedTargets, subscribedTopics, targetKey, targets]);
 
   return null;
 }

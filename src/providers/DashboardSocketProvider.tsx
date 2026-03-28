@@ -5,37 +5,125 @@ import { ReactNode, useMemo, useEffect, useState, useCallback } from 'react';
 import { useGetPlantBaseCombo } from '@/services/plants/query';
 import { useDashboardSocket } from '@/hooks/useDashboardSocket';
 import { usePowerTrendSocket } from '@/hooks/usePowerTrendSocket';
+import { useDashboardChartSocket } from '@/hooks/useDashboardChartSocket';
 import { DashboardSocketContext } from './DashboardSocketContext';
-import type { PowerTrendChartItem, PowerTrendListItem } from './DashboardSocketContext';
+import type {
+  DashboardChartItem,
+  PowerTrendChartItem,
+  PowerTrendListItem,
+} from './DashboardSocketContext';
 
-const normalizeMac = (value: string | null | undefined) =>
-  String(value ?? '')
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '');
+const toNumber = (value: unknown): number | undefined => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const CHART_HISTORY_LIMIT = 48;
+
+const toChartItems = (payload: unknown, expectedPwplId: string): DashboardChartItem[] => {
+  const source = Array.isArray(payload)
+    ? payload
+    : payload && typeof payload === 'object'
+      ? ((payload as { data?: unknown; items?: unknown; chart?: unknown; list?: unknown }).data ??
+        (payload as { data?: unknown; items?: unknown; chart?: unknown; list?: unknown }).items ??
+        (payload as { data?: unknown; items?: unknown; chart?: unknown; list?: unknown }).chart ??
+        (payload as { data?: unknown; items?: unknown; chart?: unknown; list?: unknown }).list ??
+        payload)
+      : [];
+
+  if (!Array.isArray(source)) {
+    return [];
+  }
+
+  const items = source
+    .map((item) => {
+      if (!item || typeof item !== 'object') {
+        return null;
+      }
+
+      const row = item as Record<string, unknown>;
+      const rowPwplId =
+        (typeof row.targetPwplId === 'string' && row.targetPwplId) ||
+        (typeof row.pwplId === 'string' && row.pwplId) ||
+        expectedPwplId;
+
+      if (rowPwplId !== expectedPwplId) {
+        return null;
+      }
+
+      const label =
+        (typeof row.label === 'string' && row.label) ||
+        (typeof row.time === 'string' && row.time) ||
+        (typeof row.timeStampStr === 'string' && row.timeStampStr) ||
+        (typeof row.timeStamp === 'string' && row.timeStamp) ||
+        (typeof row.occurredAt === 'string' && row.occurredAt) ||
+        '';
+      const value =
+        toNumber(row.value) ??
+        toNumber(row.currentPowerKw) ??
+        toNumber(row.powerKw) ??
+        (typeof row.gridPowerW === 'number' ? row.gridPowerW / 1000 : undefined);
+
+      if (!label || value === undefined) {
+        return null;
+      }
+
+      return {
+        label,
+        value,
+        timestamp:
+          (typeof row.timeStampStr === 'string' && row.timeStampStr) ||
+          (typeof row.timeStamp === 'string' && row.timeStamp) ||
+          (typeof row.occurredAt === 'string' && row.occurredAt) ||
+          label,
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
+
+  const aggregatedMap = new Map<string, DashboardChartItem>();
+
+  items.forEach((item) => {
+    const key = `${expectedPwplId}__${item.timestamp ?? item.label}`;
+    const existing = aggregatedMap.get(key);
+
+    if (existing) {
+      aggregatedMap.set(key, {
+        ...existing,
+        value: existing.value + item.value,
+      });
+      return;
+    }
+
+    aggregatedMap.set(key, item);
+  });
+
+  return Array.from(aggregatedMap.values()).sort((a, b) =>
+    String(a.timestamp ?? a.label).localeCompare(String(b.timestamp ?? b.label)),
+  );
+};
+
+const mergeChartItems = (
+  previousItems: DashboardChartItem[],
+  nextItems: DashboardChartItem[],
+): DashboardChartItem[] => {
+  const mergedMap = new Map<string, DashboardChartItem>();
+
+  previousItems.forEach((item) => {
+    mergedMap.set(String(item.timestamp ?? item.label), item);
+  });
+
+  nextItems.forEach((item) => {
+    mergedMap.set(String(item.timestamp ?? item.label), item);
+  });
+
+  return Array.from(mergedMap.values())
+    .sort((a, b) => String(a.timestamp ?? a.label).localeCompare(String(b.timestamp ?? b.label)))
+    .slice(-CHART_HISTORY_LIMIT);
+};
 
 export function DashboardSocketProvider({ children }: { children: ReactNode }) {
   const { data: plantCombo } = useGetPlantBaseCombo();
 
-  // 환경변수 확인
-  useEffect(() => {
-    console.log('🔍 환경 변수 확인:', {
-      NEXT_PUBLIC_WS_SOLAR: process.env.NEXT_PUBLIC_WS_SOLAR,
-      NEXT_PUBLIC_WS_SOLAR_CHART_TOPIC: process.env.NEXT_PUBLIC_WS_SOLAR_CHART_TOPIC,
-      NEXT_PUBLIC_WS_SOLAR_LIST_TOPIC: process.env.NEXT_PUBLIC_WS_SOLAR_LIST_TOPIC,
-    });
-  }, []);
-
-  // 모든 발전소의 MAC 주소 리스트
-  const allMacAddrList = useMemo(() => {
-    return (
-      plantCombo
-        ?.map((plant) => plant.macAddr)
-        .filter((macAddr): macAddr is string => Boolean(macAddr)) ?? []
-    );
-  }, [plantCombo]);
-
-  // 모든 발전소의 ID 리스트
   const allPwplIds = useMemo(() => {
     return (
       plantCombo
@@ -44,56 +132,53 @@ export function DashboardSocketProvider({ children }: { children: ReactNode }) {
     );
   }, [plantCombo]);
 
-  // 현황 모니터링 (실시간 인버터 상태)
-  const realtimeData = useDashboardSocket(allMacAddrList);
+  const realtimeTargets = useMemo(
+    () =>
+      plantCombo?.map((plant) => ({
+        pwplId: plant.pwplId,
+        macAddr: plant.macAddr,
+      })) ?? [],
+    [plantCombo],
+  );
 
-  // 추이 목록 및 차트 데이터
+  const realtimeData = useDashboardSocket(realtimeTargets);
+
   const [powerTrendListData, setPowerTrendListData] = useState<PowerTrendListItem[]>([]);
   const [powerTrendChartData, setPowerTrendChartData] = useState<PowerTrendChartItem[]>([]);
+  const [dashboardChartDataMap, setDashboardChartDataMap] = useState<
+    Record<string, DashboardChartItem[]>
+  >({});
 
   const handlePowerTrendChartMessage = useCallback((json: unknown) => {
-    console.log('📊 [프로바이더] 추이 차트 데이터 수신:', json);
     setPowerTrendChartData(Array.isArray(json) ? json : [json]);
   }, []);
 
   const handlePowerTrendListMessage = useCallback((json: unknown) => {
-    console.log('📋 [프로바이더] 추이 목록 데이터 수신:', json);
     setPowerTrendListData(Array.isArray(json) ? json : [json]);
   }, []);
 
-  // 추이 데이터 웹소켓 구독
+  const handleDashboardChartMessage = useCallback((pwplId: string, json: unknown) => {
+    const nextItems = toChartItems(json, pwplId);
+
+    setDashboardChartDataMap((prev) => ({
+      ...prev,
+      [pwplId]: mergeChartItems(prev[pwplId] ?? [], nextItems),
+    }));
+  }, []);
+
   usePowerTrendSocket({
     pwplIds: allPwplIds,
     onChartMessage: handlePowerTrendChartMessage,
     onListMessage: handlePowerTrendListMessage,
   });
 
-  useEffect(() => {
-    console.log('[대시보드 소켓] 전체 MAC 주소 목록', allMacAddrList);
-  }, [allMacAddrList]);
-
-  useEffect(() => {
-    console.log('[대시보드 소켓] 전체 발전소 ID 목록', allPwplIds);
-  }, [allPwplIds]);
+  useDashboardChartSocket({
+    pwplIds: allPwplIds,
+    onMessage: handleDashboardChartMessage,
+  });
 
   useEffect(() => {
     console.log('[대시보드 소켓] 실시간 상태 맵', realtimeData);
-  }, [realtimeData]);
-
-  useEffect(() => {
-    console.log('[대시보드 소켓] 추이 목록 데이터', powerTrendListData);
-  }, [powerTrendListData]);
-
-  useEffect(() => {
-    const normalizedMap = Object.entries(realtimeData ?? {}).reduce<Record<string, unknown>>(
-      (acc, [key, value]) => {
-        acc[normalizeMac(key)] = value;
-        return acc;
-      },
-      {},
-    );
-
-    console.log('[대시보드 소켓] 정규화된 실시간 상태 맵', normalizedMap);
   }, [realtimeData]);
 
   return (
@@ -102,6 +187,7 @@ export function DashboardSocketProvider({ children }: { children: ReactNode }) {
         realtimeData,
         powerTrendListData,
         powerTrendChartData,
+        dashboardChartDataMap,
       }}
     >
       {children}

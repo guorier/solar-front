@@ -30,19 +30,24 @@ export type PowerTrendChartItem = {
   pwplNm?: string;
 };
 
+export type DashboardChartItem = {
+  label: string;
+  value: number;
+  timestamp?: string;
+};
+
 type DashboardSocketContextType = {
-  // 현황 모니터링 (실시간 인버터 상태)
   realtimeData: DashboardSocketMap;
-  // 추이 목록 (최신 발전 데이터)
   powerTrendListData: PowerTrendListItem[];
-  // 추이 차트 (차트용 데이터 - 시계열 발전량)
   powerTrendChartData: PowerTrendChartItem[];
+  dashboardChartDataMap: Record<string, DashboardChartItem[]>;
 };
 
 export const DashboardSocketContext = createContext<DashboardSocketContextType>({
   realtimeData: {},
   powerTrendListData: [],
   powerTrendChartData: [],
+  dashboardChartDataMap: {},
 });
 
 export function useDashboardSocketContext() {

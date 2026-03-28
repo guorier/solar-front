@@ -59,6 +59,24 @@ type KakaoWindow = Window &
     };
   };
 
+const roundToTwo = (value: number): number => Math.round(value * 100) / 100;
+
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+
+const formatKw = (value?: number): string => {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return '0';
+  }
+
+  return String(roundToTwo(value));
+};
+
 interface Props {
   plants: MapPlant[];
   onSelect: (plant: MapPlant) => void;
@@ -73,16 +91,6 @@ export default function KakaoMap({ plants, onSelect, selectedPlant }: Props) {
   const mapElement = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<KakaoMapInstance | null>(null);
   const overlayListRef = useRef<KakaoCustomOverlayInstance[]>([]);
-
-  const roundToTwo = (value: number): number => Math.round(value * 100) / 100;
-
-  const formatKw = (value?: number): string => {
-    if (typeof value !== 'number' || Number.isNaN(value)) {
-      return '0';
-    }
-
-    return String(roundToTwo(value));
-  };
 
   useEffect(() => {
     const { kakao } = window as KakaoWindow;
@@ -118,7 +126,8 @@ export default function KakaoMap({ plants, onSelect, selectedPlant }: Props) {
       plants.forEach((data) => {
         const markerPosition = new kakao.maps.LatLng(data.lat, data.lng);
         const displayCapacity = formatKw(data.capacity);
-        const displayOutput = formatKw(data.gridPowerW);
+        const displayOutput = formatKw(data.output ?? data.gridPowerW);
+        const displayTitle = escapeHtml(data.title || '-');
 
         bounds.extend(markerPosition);
 
@@ -172,6 +181,7 @@ export default function KakaoMap({ plants, onSelect, selectedPlant }: Props) {
 
         tooltipNode.innerHTML = `
               <div class="tooltip-box ${statusClass}">
+                <div class="tooltip-title">${displayTitle}</div>
                 <div class="flex items-center gap6 pb-8">
                   <div class="tooltip-img"><img src="${statusIcon}" /></div>
                   <div class="tooltip-status">${statusText}</div>
