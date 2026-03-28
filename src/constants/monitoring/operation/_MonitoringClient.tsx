@@ -302,7 +302,7 @@ export default function MonitoringClient({ pwplIds: initialPwplIds }: Monitoring
   // }, [data, pwplIds]);
 
   useRealtimeSocket({
-    mac: pwplIds.length === 1 ? pwplIds[0] : undefined,
+    targets: pwplIds.length === 1 ? [{ pwplId: pwplIds[0] }] : [],
 
     onMessage: (json) => {
       const data = json as {
@@ -327,12 +327,8 @@ export default function MonitoringClient({ pwplIds: initialPwplIds }: Monitoring
       // const status = data.inverter?.inverterStatus ?? '';
 
       // ★ 기존 콘솔 로그 유지
-      console.log('🔥 웹소켓 값 도착:', json);
-      // console.log('📦MAC:', mac);
-      // console.log('📦시간:', time);
-      // console.log('📦발전량(W):', powerW);
-      // console.log('📦온도:', temp);
-      // console.log('📦상태:', status);
+      // console.log('🔥 웹소켓 값 도착:', json);
+
 
       const todayData: GenTableItem = {
         label: '오늘',

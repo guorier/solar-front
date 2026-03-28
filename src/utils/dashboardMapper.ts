@@ -70,12 +70,12 @@ export const buildStatusData = (
     },
     {
       title: '전일 누적 발전량',
-      count: dashboardData?.summary.yesterdayGenerationMwh ?? 0,
+      count: '-',
       unit: 'kWh',
     },
     {
       title: '전일 발전금액',
-      count: dashboardData?.summary.yesterdayGenerationMwh ?? 0,
+      count: '-',
       unit: '원',
     },
   ];

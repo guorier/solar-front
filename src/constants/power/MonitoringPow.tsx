@@ -188,7 +188,7 @@ const convertWebSocketChartData = (
     const chartItems = items
       .map((item) => {
         const timeStr = item.timeStampStr ?? '';
-        console.log(`🔍 항목 변환: timeStampStr="${timeStr}" → time="${timeStr}"`);
+        // console.log(`🔍 항목 변환: timeStampStr="${timeStr}" → time="${timeStr}"`);
         return {
           time: timeStr,
           close: toNumber(item.gridPowerW),
@@ -236,7 +236,7 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
     
     // 웹소켓에서 받은 차트 데이터를 PowerTrendChartSeries로 변환 (필터링 포함)
     const convertedChartData = convertWebSocketChartData(powerTrendChartData, pwplIds);
-    console.log('🔄 필터링된 차트 데이터:', convertedChartData);
+    // console.log('🔄 필터링된 차트 데이터:', convertedChartData);
     
     return convertedChartData;
   }, [powerTrendChartData, pwplIds]);
@@ -246,7 +246,7 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
       return;
     }
 
-    console.log('📊 필터링된 차트 데이터 반영:', filteredChartData);
+    // console.log('📊 필터링된 차트 데이터 반영:', filteredChartData);
     
     // 웹소켓 차트 데이터로 업데이트 (기존 데이터와 merge)
     setChartData((prevChartData) => {
@@ -274,7 +274,7 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
       return;
     }
 
-    console.log('📋 Context 추이 목록 데이터 받음:', powerTrendListData, 'pwplIds:', pwplIds);
+    // console.log('📋 Context 추이 목록 데이터 받음:', powerTrendListData, 'pwplIds:', pwplIds);
 
     // 웹소켓에서 받은 목록 데이터를 행으로 변환
     const wsRows = convertWebSocketListToRows(powerTrendListData, pwplIds);
