@@ -1,11 +1,10 @@
-// src/constants/monitoring/operation/MonitoringOp.tsx
+// src\constants\monitoring\operation\OperationMonitor.tsx
 'use client';
 
 import { TitleComponent } from '@/components';
 import { useState, useEffect, useMemo } from 'react';
 import type { MonitorWeatherRes } from '@/services/monitoring/weather/type';
 import { useGetMonitorWeather } from '@/services/monitoring/weather/query';
-import { ModalPlantSelector } from '@/constants/monitoring/ModalPlantSelector';
 import type { BarChartData } from '@/components/monitoring/monitoring-barchart.component';
 import { useSearchParams } from 'next/navigation';
 import { useDashboardSocketContext } from '@/providers/DashboardSocketContext';
@@ -15,6 +14,7 @@ import { SidePieChartGroup } from './parts/PieCharts';
 import {
   aggregateRealtimeData,
   buildRealtimeMapFromSocketStatus,
+  buildOperationSocketInverterMap,
   buildSelectedInverterMap,
   getRestoredSelection,
   normalizeMac,
@@ -25,12 +25,12 @@ import {
   mergeSocketStatusMapWithCache,
 } from './parts/utils';
 import {
-  buildConnectionStatusChartData,
+  buildEfficiencyChartData,
   buildFrequencyChartData,
-  buildOperationStatusChartData,
+  buildInverterTotalEnergyChartData,
+  buildPowerChartData,
   buildPowerFactorChartData,
   buildTodayPowerChartData,
-  buildVoltageChartData,
 } from './parts/chartInverterMap';
 import type { DashboardSocketPlantStatus, GenTableItem, MonitoringOpProps } from './parts/types';
 
@@ -39,48 +39,45 @@ import type { DashboardSocketPlantStatus, GenTableItem, MonitoringOpProps } from
  * ========================= */
 export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpProps) {
   const searchParams = useSearchParams();
-  const socketStatusMap = useDashboardSocketContext() as Record<string, DashboardSocketPlantStatus>;
-
-  const restoredSelection = useMemo(
-    () => getRestoredSelection(searchParams, initialPwplIds),
-    [searchParams, initialPwplIds],
-  );
+  const { realtimeData: socketStatusMap, operationChartDataMap } = useDashboardSocketContext();
 
   /* =========================
-   * 상태값
+   * 상태값 — SSR 안전한 초기값 (모두 빈값)
    * ========================= */
-  const [pwplIds, setPwplIds] = useState<string[]>(restoredSelection.pwplIds);
-  const [selectedPlantNames, setSelectedPlantNames] = useState<string[]>(
-    restoredSelection.plantNames,
-  );
-  const [selectedMacAddrs, setSelectedMacAddrs] = useState<string[]>(restoredSelection.macAddrs);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [pwplIds, setPwplIds] = useState<string[]>(initialPwplIds);
+  const [selectedPlantNames, setSelectedPlantNames] = useState<string[]>([]);
+  const [selectedMacAddrs, setSelectedMacAddrs] = useState<string[]>([]);
   const [cachedSocketStatusMap, setCachedSocketStatusMap] = useState<
     Record<string, DashboardSocketPlantStatus>
-  >(() => {
-    if (typeof window === 'undefined') {
-      return {};
-    }
+  >({});
 
-    const initialCacheMap = readSocketCacheMap();
+  const [, setGenTableState] = useState<GenTableItem[]>([]);
+  const [, setChartDataState] = useState<BarChartData[]>([]);
 
-    return restoredSelection.macAddrs.reduce<Record<string, DashboardSocketPlantStatus>>(
+  /* =========================
+   * 마운트 후 localStorage 복원 (클라이언트 전용)
+   * ========================= */
+  useEffect(() => {
+    const restored = getRestoredSelection(searchParams, initialPwplIds);
+    setPwplIds(restored.pwplIds);
+    setSelectedPlantNames(restored.plantNames);
+    setSelectedMacAddrs(restored.macAddrs);
+
+    const cacheMap = readSocketCacheMap();
+    const filteredCacheMap = restored.macAddrs.reduce<Record<string, DashboardSocketPlantStatus>>(
       (acc, macAddr) => {
         const normalizedMacAddr = normalizeMac(macAddr);
-        const cachedItem = initialCacheMap[normalizedMacAddr];
-
+        const cachedItem = cacheMap[normalizedMacAddr];
         if (cachedItem) {
           acc[normalizedMacAddr] = cachedItem;
         }
-
         return acc;
       },
       {},
     );
-  });
-
-  const [, setGenTableState] = useState<GenTableItem[]>([]);
-  const [, setChartDataState] = useState<BarChartData[]>([]);
+    setCachedSocketStatusMap(filteredCacheMap);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* =========================
    * 파생값
@@ -101,31 +98,6 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
   );
 
   /* =========================
-   * 선택값 복원 effect
-   * ========================= */
-  useEffect(() => {
-    setPwplIds(restoredSelection.pwplIds);
-    setSelectedPlantNames(restoredSelection.plantNames);
-    setSelectedMacAddrs(restoredSelection.macAddrs);
-
-    const nextCacheMap = readSocketCacheMap();
-    const filteredCacheMap = restoredSelection.macAddrs.reduce<
-      Record<string, DashboardSocketPlantStatus>
-    >((acc, macAddr) => {
-      const normalizedMacAddr = normalizeMac(macAddr);
-      const cachedItem = nextCacheMap[normalizedMacAddr];
-
-      if (cachedItem) {
-        acc[normalizedMacAddr] = cachedItem;
-      }
-
-      return acc;
-    }, {});
-
-    setCachedSocketStatusMap(filteredCacheMap);
-  }, [restoredSelection]);
-
-  /* =========================
    * 선택 MAC 기준 캐시 재조회
    * ========================= */
   useEffect(() => {
@@ -139,16 +111,13 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
       (acc, macAddr) => {
         const normalizedMacAddr = normalizeMac(macAddr);
         const cachedItem = nextCacheMap[normalizedMacAddr];
-
         if (cachedItem) {
           acc[normalizedMacAddr] = cachedItem;
         }
-
         return acc;
       },
       {},
     );
-
     setCachedSocketStatusMap(filteredCacheMap);
   }, [selectedMacKey, selectedMacAddrs]);
 
@@ -156,19 +125,14 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
    * 실시간 소켓값 캐시 반영
    * ========================= */
   useEffect(() => {
-    if (selectedMacAddrs.length === 0) {
-      return;
-    }
+    if (selectedMacAddrs.length === 0) return;
 
     const normalizedLiveMap = normalizeSocketStatusMap(socketStatusMap);
-    const hasSelectedLiveData = selectedMacAddrs.some((macAddr) => {
-      const normalizedMacAddr = normalizeMac(macAddr);
-      return Boolean(normalizedLiveMap[normalizedMacAddr]);
-    });
+    const hasSelectedLiveData = selectedMacAddrs.some((macAddr) =>
+      Boolean(normalizedLiveMap[normalizeMac(macAddr)]),
+    );
 
-    if (!hasSelectedLiveData) {
-      return;
-    }
+    if (!hasSelectedLiveData) return;
 
     const currentCacheMap = readSocketCacheMap();
     const nextCacheMap = { ...currentCacheMap };
@@ -176,7 +140,6 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
     selectedMacAddrs.forEach((macAddr) => {
       const normalizedMacAddr = normalizeMac(macAddr);
       const liveItem = normalizedLiveMap[normalizedMacAddr];
-
       if (liveItem) {
         nextCacheMap[normalizedMacAddr] = liveItem;
       }
@@ -185,16 +148,13 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
     writeSocketCacheMap(nextCacheMap);
     setCachedSocketStatusMap((prev) => {
       const mergedMap = { ...prev };
-
       selectedMacAddrs.forEach((macAddr) => {
         const normalizedMacAddr = normalizeMac(macAddr);
         const liveItem = normalizedLiveMap[normalizedMacAddr];
-
         if (liveItem) {
           mergedMap[normalizedMacAddr] = liveItem;
         }
       });
-
       return mergedMap;
     });
   }, [socketStatusMap, selectedMacKey, selectedMacAddrs]);
@@ -217,46 +177,59 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
     [inverterRealtimeMap, selectedMacAddrs],
   );
 
-  const realtimeData = useMemo(
-    () => aggregateRealtimeData(selectedInverterMap),
-    [selectedInverterMap],
+  const operationSocketInverterMap = useMemo(
+    () => buildOperationSocketInverterMap(operationChartDataMap, pwplIds, selectedPlantNames),
+    [operationChartDataMap, pwplIds, selectedPlantNames],
   );
 
-  const averageVoltageChartData = useMemo(
-    () => buildVoltageChartData(selectedInverterMap),
-    [selectedInverterMap],
+  const effectiveSelectedInverterMap = useMemo(
+    () =>
+      Object.keys(operationSocketInverterMap).length > 0
+        ? operationSocketInverterMap
+        : selectedInverterMap,
+    [operationSocketInverterMap, selectedInverterMap],
+  );
+
+  const realtimeData = useMemo(
+    () => aggregateRealtimeData(effectiveSelectedInverterMap),
+    [effectiveSelectedInverterMap],
+  );
+
+  const powerChartData = useMemo(
+    () => buildPowerChartData(effectiveSelectedInverterMap),
+    [effectiveSelectedInverterMap],
   );
 
   const powerFactorChartData = useMemo(
-    () => buildPowerFactorChartData(selectedInverterMap),
-    [selectedInverterMap],
+    () => buildPowerFactorChartData(effectiveSelectedInverterMap),
+    [effectiveSelectedInverterMap],
   );
 
   const frequencyChartData = useMemo(
-    () => buildFrequencyChartData(selectedInverterMap),
-    [selectedInverterMap],
+    () => buildFrequencyChartData(effectiveSelectedInverterMap),
+    [effectiveSelectedInverterMap],
   );
 
   const todayPowerChartData = useMemo(
-    () => buildTodayPowerChartData(selectedInverterMap),
-    [selectedInverterMap],
+    () => buildTodayPowerChartData(effectiveSelectedInverterMap),
+    [effectiveSelectedInverterMap],
   );
 
-  const operationStatusChartData = useMemo(
-    () => buildOperationStatusChartData(selectedInverterMap),
-    [selectedInverterMap],
+  const efficiencyChartData = useMemo(
+    () => buildEfficiencyChartData(effectiveSelectedInverterMap),
+    [effectiveSelectedInverterMap],
   );
 
-  const connectionStatusChartData = useMemo(
-    () => buildConnectionStatusChartData(selectedInverterMap),
-    [selectedInverterMap],
+  const inverterTotalEnergyChartData = useMemo(
+    () => buildInverterTotalEnergyChartData(effectiveSelectedInverterMap),
+    [effectiveSelectedInverterMap],
   );
 
   /* =========================
    * 오늘 데이터 동기화
    * ========================= */
   useEffect(() => {
-    const totalGridPowerW = Object.values(selectedInverterMap).reduce(
+    const totalGridPowerW = Object.values(effectiveSelectedInverterMap).reduce(
       (sum, item) => sum + item.gridPowerW,
       0,
     );
@@ -271,62 +244,20 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
     };
 
     setGenTableState((prevTable) => {
-      if (prevTable.length === 0) {
-        return [todayData];
-      }
-
+      if (prevTable.length === 0) return [todayData];
       const hasToday = prevTable.some((row) => row.label === '오늘');
-
-      if (!hasToday) {
-        return [...prevTable, todayData];
-      }
-
-      return prevTable.map((row) =>
-        row.label === '오늘'
-          ? {
-              ...row,
-              genTimeH: todayData.genTimeH,
-              genMwh: todayData.genMwh,
-              invMwh: todayData.invMwh,
-              acdcRate: todayData.acdcRate,
-              co2Tco2: todayData.co2Tco2,
-            }
-          : row,
-      );
+      if (!hasToday) return [...prevTable, todayData];
+      return prevTable.map((row) => (row.label === '오늘' ? { ...row, ...todayData } : row));
     });
 
     setChartDataState((prevChart) => {
-      if (prevChart.length === 0) {
-        return [
-          {
-            category: '오늘',
-            value: safeToFixed(totalGridPowerW / 1000, 2),
-          },
-        ];
-      }
-
+      const value = safeToFixed(totalGridPowerW / 1000, 2);
+      if (prevChart.length === 0) return [{ category: '오늘', value }];
       const hasToday = prevChart.some((row) => row.category === '오늘');
-
-      if (!hasToday) {
-        return [
-          ...prevChart,
-          {
-            category: '오늘',
-            value: safeToFixed(totalGridPowerW / 1000, 2),
-          },
-        ];
-      }
-
-      return prevChart.map((row) =>
-        row.category === '오늘'
-          ? {
-              ...row,
-              value: safeToFixed(totalGridPowerW / 1000, 2),
-            }
-          : row,
-      );
+      if (!hasToday) return [...prevChart, { category: '오늘', value }];
+      return prevChart.map((row) => (row.category === '오늘' ? { ...row, value } : row));
     });
-  }, [selectedInverterMap]);
+  }, [effectiveSelectedInverterMap]);
 
   /* =========================
    * 선택 변경 시 상태 초기화
@@ -341,7 +272,7 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
    * ========================= */
   return (
     <>
-      <div className="title-group">
+      <div className="title-group" style={{ zIndex: 10 }}>
         <TitleComponent
           title="발전소 모니터링"
           subTitle={selectedPlantNameText}
@@ -352,7 +283,7 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
       <div className="flex flex-1">
         <SidePieChartGroup
           items={[
-            { centerText: '전압데이터', data: averageVoltageChartData },
+            { centerText: '현재 발전량', data: powerChartData },
             { centerText: '역률', data: powerFactorChartData },
             { centerText: 'GRID 주파수', data: frequencyChartData },
           ]}
@@ -366,63 +297,11 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
         <SidePieChartGroup
           items={[
             { centerText: '금일 발전량', data: todayPowerChartData },
-            { centerText: '일사량', data: operationStatusChartData },
-            { centerText: 'PV 모듈 온도', data: connectionStatusChartData },
+            { centerText: '일사량', data: efficiencyChartData },
+            { centerText: 'PV 모듈 온도', data: inverterTotalEnergyChartData },
           ]}
         />
       </div>
-
-      <ModalPlantSelector
-        isOpen={modalOpen}
-        onOpenChange={setModalOpen}
-        selectionMode="multiple"
-        onApplySingle={(plant) => {
-          const nextMacAddrs =
-            'macAddr' in plant && typeof plant.macAddr === 'string'
-              ? [normalizeMac(plant.macAddr)]
-              : [];
-
-          localStorage.setItem(
-            'pwplIds',
-            JSON.stringify([
-              {
-                pwplId: plant.pwplId,
-                macAddr: nextMacAddrs[0] ?? '',
-              },
-            ]),
-          );
-          localStorage.setItem('pwplNms', JSON.stringify([plant.pwplNm]));
-          localStorage.setItem('macAddrs', JSON.stringify(nextMacAddrs));
-          setPwplIds([plant.pwplId]);
-          setSelectedPlantNames([plant.pwplNm]);
-          setSelectedMacAddrs(nextMacAddrs);
-        }}
-        onApplyMulti={(plants) => {
-          const ids = plants.map((v) => v.pwplId);
-          const names = plants.map((v) => v.pwplNm);
-          const macAddrs = plants
-            .map((v) =>
-              'macAddr' in v && typeof v.macAddr === 'string' ? normalizeMac(v.macAddr) : '',
-            )
-            .filter(Boolean);
-
-          localStorage.setItem(
-            'pwplIds',
-            JSON.stringify(
-              plants.map((v) => ({
-                pwplId: v.pwplId,
-                macAddr:
-                  'macAddr' in v && typeof v.macAddr === 'string' ? normalizeMac(v.macAddr) : '',
-              })),
-            ),
-          );
-          localStorage.setItem('pwplNms', JSON.stringify(names));
-          localStorage.setItem('macAddrs', JSON.stringify(macAddrs));
-          setPwplIds(ids);
-          setSelectedPlantNames(names);
-          setSelectedMacAddrs(macAddrs);
-        }}
-      />
     </>
   );
 }

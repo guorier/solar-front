@@ -3,6 +3,7 @@ import { MONITORING_OPERATION_SOCKET_CACHE_KEY, PIE_COLORS } from './constants';
 import type {
   DashboardSocketPlantStatus,
   EnergyDisplay,
+  OperationChartSocketItem,
   PowerDisplay,
   RealtimeData,
   RealtimeInverterItem,
@@ -197,10 +198,12 @@ export const buildRealtimeMapFromSocketStatus = (
         gridFrequencyHz: safeToFixed(current.gridFrequencyHz, 2),
         gridPowerW: safeToFixed(getSocketCurrentPowerW(current), 2),
         todayPower: safeToFixed(getSocketTodayGeneration(current), 2),
+        efficiency: 0,
         inverterStatus: current.topLevel ?? current.inverterStatus ?? '',
         statusConnection: current.statusConnection ?? '0',
         inverterTotalEnergy: safeToFixed(current.inverterTotalEnergy, 2),
         modulePower: safeToFixed(current.modulePower ?? getSocketCurrentPowerW(current), 2),
+        predictionPowerW: safeToFixed(current.modulePower ?? getSocketCurrentPowerW(current), 2),
         irradianceWm2: safeToFixed(current.irradianceWm2, 2),
         temperatureC: safeToFixed(current.temperatureC, 2),
       },
@@ -225,6 +228,8 @@ export const buildSelectedInverterMap = (
         acc[deviceAddress] = {
           ...item,
           deviceAddresses: deviceAddress,
+          sourceDeviceAddresses: item.deviceAddresses,
+          displayName: `인버터 ${item.deviceAddresses}`,
         };
       });
 
@@ -232,6 +237,53 @@ export const buildSelectedInverterMap = (
     },
     {},
   );
+};
+
+export const buildOperationSocketInverterMap = (
+  operationChartDataMap: Record<string, OperationChartSocketItem[]>,
+  selectedPwplIds: string[],
+  selectedPlantNames: string[],
+): Record<number, RealtimeInverterItem> => {
+  const multiplePlants = selectedPwplIds.length > 1;
+
+  return selectedPwplIds.reduce<Record<number, RealtimeInverterItem>>((acc, pwplId, plantIndex) => {
+    const plantName = selectedPlantNames[plantIndex] ?? pwplId;
+    const inverterItems = operationChartDataMap[pwplId] ?? [];
+
+    inverterItems
+      .slice()
+      .sort((a, b) => a.deviceAddresses - b.deviceAddresses)
+      .forEach((item, inverterIndex) => {
+        const sourceDeviceAddress = item.deviceAddresses || inverterIndex + 1;
+        const uniqueDeviceAddress = plantIndex * 1000 + sourceDeviceAddress;
+        const displayName = multiplePlants
+          ? `${plantName} 인버터 ${sourceDeviceAddress}`
+          : `인버터 ${sourceDeviceAddress}`;
+
+        acc[uniqueDeviceAddress] = {
+          deviceAddresses: uniqueDeviceAddress,
+          sourceDeviceAddresses: sourceDeviceAddress,
+          displayName,
+          pwplId,
+          uuid: item.uuid,
+          averageVoltage: 0,
+          gridPowerFactor: safeToFixed(item.gridPowerFactor, 2),
+          gridFrequencyHz: safeToFixed(item.gridFrequencyHz, 2),
+          gridPowerW: safeToFixed(item.powerW, 2),
+          todayPower: safeToFixed(item.todayPower, 2),
+          efficiency: safeToFixed(item.statusConnection, 2),
+          inverterStatus: '',
+          statusConnection: String(item.statusConnection),
+          inverterTotalEnergy: safeToFixed(item.inverterTotalEnergy, 2),
+          modulePower: safeToFixed(item.predictionPowerW, 2),
+          predictionPowerW: safeToFixed(item.predictionPowerW, 2),
+          irradianceWm2: 0,
+          temperatureC: 0,
+        };
+      });
+
+    return acc;
+  }, {});
 };
 
 export const aggregateRealtimeData = (inverterMap: Record<number, RealtimeInverterItem>): RealtimeData => {
@@ -244,10 +296,12 @@ export const aggregateRealtimeData = (inverterMap: Record<number, RealtimeInvert
       gridFrequencyHz: 0,
       gridPowerW: 0,
       todayPower: 0,
+      efficiency: 0,
       inverterStatus: '',
       statusConnection: '',
       inverterTotalEnergy: 0,
       modulePower: 0,
+      predictionPowerW: 0,
       irradianceWm2: 0,
       temperatureC: 0,
     };
@@ -277,6 +331,10 @@ export const aggregateRealtimeData = (inverterMap: Record<number, RealtimeInvert
       values.reduce((sum, item) => sum + item.todayPower, 0),
       2,
     ),
+    efficiency: safeToFixed(
+      values.reduce((sum, item) => sum + item.efficiency, 0) / count,
+      2,
+    ),
     inverterStatus: lastItem.inverterStatus,
     statusConnection: lastItem.statusConnection,
     inverterTotalEnergy: safeToFixed(
@@ -285,6 +343,10 @@ export const aggregateRealtimeData = (inverterMap: Record<number, RealtimeInvert
     ),
     modulePower: safeToFixed(
       values.reduce((sum, item) => sum + item.modulePower, 0),
+      2,
+    ),
+    predictionPowerW: safeToFixed(
+      values.reduce((sum, item) => sum + item.predictionPowerW, 0),
       2,
     ),
     irradianceWm2: safeToFixed(
@@ -349,6 +411,12 @@ export const getRestoredSelection = (
         } else {
           const parsedPlantItems = parsedPwplIds as SavedPlantItem[];
           nextPwplIds = parsedPlantItems.map((item) => item.pwplId);
+          // macAddrs가 별도 키에 없을 경우 pwplIds 객체에서 추출
+          if (!savedMacAddrs) {
+            nextMacAddrs = parsedPlantItems
+              .map((item) => normalizeMac(item.macAddr))
+              .filter(Boolean);
+          }
         }
       }
     } catch {

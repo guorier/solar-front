@@ -44,7 +44,7 @@ export function PlantDetailSection({
   const currentPower =
     dashboardData?.plantDetail?.currentPowerKw ?? socketPower ?? data?.detail?.output ?? 0;
   const todayGeneration =
-    dashboardData?.plantDetail?.todayGenerationMwh ?? data?.detail?.todayGen ?? 0;
+    dashboardData?.plantDetail?.todayGenerationKwh ?? data?.detail?.todayGen ?? 0;
   const operationRate = dashboardData?.plantDetail?.operationRate ?? data?.detail?.rate ?? 0;
   const areaNm = dashboardData?.plantDetail?.areaNm ?? data?.detail?.region ?? '-';
   const pwplNm = dashboardData?.plantDetail?.pwplNm ?? data?.title ?? '';

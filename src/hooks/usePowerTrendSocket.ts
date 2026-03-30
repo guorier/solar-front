@@ -24,11 +24,14 @@ export function usePowerTrendSocket({ pwplIds, onChartMessage, onListMessage }: 
   onListMessageRef.current = onListMessage;
 
   useEffect(() => {
-    if (!WS_URL || pwplIds.length === 0) {
-      console.error('WS_URL 또는 pwplIds 없음', {
+    if (!WS_URL) {
+      console.error('WS_URL is missing.', {
         WS_URL,
-        pwplIds,
       });
+      return;
+    }
+
+    if (pwplIds.length === 0) {
       return;
     }
 
@@ -45,8 +48,8 @@ export function usePowerTrendSocket({ pwplIds, onChartMessage, onListMessage }: 
       subscriptionsRef.current.forEach((sub) => {
         try {
           sub.unsubscribe();
-        } catch (e) {
-          console.error('unsubscribe error:', e);
+        } catch (error) {
+          console.error('unsubscribe error:', error);
         }
       });
       subscriptionsRef.current = [];
@@ -58,13 +61,13 @@ export function usePowerTrendSocket({ pwplIds, onChartMessage, onListMessage }: 
             try {
               const json = JSON.parse(message.body);
               onChartMessageRef.current?.(json);
-            } catch (e) {
-              console.error('추이 차트 데이터 파싱 에러:', e);
+            } catch (error) {
+              console.error('Failed to parse power trend chart message:', error);
             }
           });
           subscriptionsRef.current.push(chartSub);
-        } catch (e) {
-          console.error('추이 차트 데이터 구독 에러:', e, { topic: chartTopic });
+        } catch (error) {
+          console.error('Failed to subscribe power trend chart topic:', error, { topic: chartTopic });
         }
 
         const listTopic = `${WS_LIST_TOPIC}/${pwplId}`;
@@ -73,26 +76,26 @@ export function usePowerTrendSocket({ pwplIds, onChartMessage, onListMessage }: 
             try {
               const json = JSON.parse(message.body);
               onListMessageRef.current?.(json);
-            } catch (e) {
-              console.error('추이 목록 데이터 파싱 에러:', e);
+            } catch (error) {
+              console.error('Failed to parse power trend list message:', error);
             }
           });
           subscriptionsRef.current.push(listSub);
-        } catch (e) {
-          console.error('추이 목록 데이터 구독 에러:', e, { topic: listTopic });
+        } catch (error) {
+          console.error('Failed to subscribe power trend list topic:', error, { topic: listTopic });
         }
       });
     };
 
     client.onStompError = (frame) => {
-      console.error('STOMP 에러:', frame);
-      console.error('에러 명령:', frame.command);
-      console.error('에러 헤더:', frame.headers);
-      console.error('에러 본문:', frame.body);
+      console.error('STOMP error:', frame);
+      console.error('STOMP command:', frame.command);
+      console.error('STOMP headers:', frame.headers);
+      console.error('STOMP body:', frame.body);
     };
 
     client.onDisconnect = () => {
-      console.warn('웹소켓 연결 종료 (PowerTrend)');
+      console.warn('PowerTrend socket disconnected.');
     };
 
     clientRef.current = client;
@@ -102,8 +105,8 @@ export function usePowerTrendSocket({ pwplIds, onChartMessage, onListMessage }: 
       subscriptionsRef.current.forEach((sub) => {
         try {
           sub.unsubscribe();
-        } catch (e) {
-          console.error('unsubscribe error:', e);
+        } catch (error) {
+          console.error('unsubscribe error:', error);
         }
       });
       subscriptionsRef.current = [];
@@ -111,8 +114,8 @@ export function usePowerTrendSocket({ pwplIds, onChartMessage, onListMessage }: 
       if (clientRef.current) {
         try {
           clientRef.current.deactivate();
-        } catch (e) {
-          console.error('client deactivate error:', e);
+        } catch (error) {
+          console.error('client deactivate error:', error);
         }
         clientRef.current = null;
       }

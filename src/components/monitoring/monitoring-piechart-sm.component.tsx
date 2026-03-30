@@ -1,8 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useMemo } from 'react';
-import * as echarts from 'echarts';
-
+import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import type { EChartsOption } from 'echarts';
 import type { CallbackDataParams } from 'echarts/types/dist/shared';
@@ -12,6 +10,8 @@ interface DonutDataItem {
   name: string;
   value: number;
   color: string;
+  rawValue?: number;
+  unit?: 'V' | '%' | 'Hz' | 'W' | 'Wh' | 'kWh';
 }
 
 interface PieChartProps {
@@ -30,20 +30,21 @@ const formatNumber = (value: number, digits: number = 1) => {
   }).format(value);
 };
 
-const getTooltipValueText = (centerText: string, value: number, name: string) => {
-  if (centerText === '전압데이터') {
-    return `${formatNumber(value, 1)} V`;
+const getTooltipValueText = (
+  centerText: string,
+  value: number,
+  name: string,
+  unit?: DonutDataItem['unit'],
+) => {
+  if (unit === 'W') {
+    if (value >= 1000) {
+      return `${formatNumber(value / 1000, 1)} kW`;
+    }
+
+    return `${formatNumber(value, 1)} W`;
   }
 
-  if (centerText === '역률') {
-    return `${formatNumber(value, 3)} %`;
-  }
-
-  if (centerText === 'GRID 주파수') {
-    return `${formatNumber(value, 1)} Hz`;
-  }
-
-  if (centerText === '금일 발전량') {
+  if (unit === 'Wh') {
     if (value >= 1000) {
       return `${formatNumber(value / 1000, 1)} kWh`;
     }
@@ -51,13 +52,28 @@ const getTooltipValueText = (centerText: string, value: number, name: string) =>
     return `${formatNumber(value, 1)} Wh`;
   }
 
-  if (centerText === '운영상태') {
-    const statusText = name.replace(/^인버터-\d+\s*/, '');
-    return statusText || '-';
+  if (unit === 'kWh') {
+    if (value >= 1000) {
+      return `${formatNumber(value / 1000, 1)} MWh`;
+    }
+
+    return `${formatNumber(value, 1)} kWh`;
   }
 
-  if (centerText === '통신 상태') {
-    const statusText = name.replace(/^인버터-\d+\s*/, '');
+  if (unit === 'Hz') {
+    return `${formatNumber(value, 1)} Hz`;
+  }
+
+  if (unit === 'V') {
+    return `${formatNumber(value, 1)} V`;
+  }
+
+  if (unit === '%') {
+    return `${formatNumber(value, 3)} %`;
+  }
+
+  if (centerText === '운영상태' || centerText === '통신 상태') {
+    const statusText = name.replace(/^인버터\s*\d+\s*/, '');
     return statusText || '-';
   }
 
@@ -71,24 +87,20 @@ export function PieChartSmComponent({
   width = 240,
   height = 240,
 }: PieChartProps) {
-  const chartRef = useRef<HTMLDivElement>(null);
-  const chartInstance = useRef<echarts.ECharts | null>(null);
-
   const chartData = useMemo(
     () =>
       data || [
-        { name: '인버터-1', value: 80, color: '#B43FAA' },
-        { name: '인버터-2', value: 20, color: '#F14B7F' },
-        { name: '인버터-3', value: 15, color: '#F17549' },
-        { name: '인버터-4', value: 15, color: '#DAAD3E' },
-        { name: '인버터-5', value: 15, color: '#8ED048' },
-        { name: '인버터-6', value: 15, color: '#20D99A' },
-        { name: '인버터-7', value: 15, color: '#23A2C3' },
+        { name: '인버터 1', value: 80, color: '#B43FAA' },
+        { name: '인버터 2', value: 20, color: '#F14B7F' },
+        { name: '인버터 3', value: 15, color: '#F17549' },
+        { name: '인버터 4', value: 15, color: '#DAAD3E' },
+        { name: '인버터 5', value: 15, color: '#8ED048' },
+        { name: '인버터 6', value: 15, color: '#20D99A' },
+        { name: '인버터 7', value: 15, color: '#23A2C3' },
       ],
     [data],
   );
 
-  // option
   const option: EChartsOption = useMemo(
     () => ({
       animation: true,
@@ -111,7 +123,15 @@ export function PieChartSmComponent({
             typeof item.value === 'number' || typeof item.value === 'string' ? item.value : 0,
           );
           const percent = Number(item.percent ?? 0);
-          const valueText = getTooltipValueText(centerText, value, String(item.name ?? ''));
+          const dataItem =
+            item.data && typeof item.data === 'object' ? (item.data as DonutDataItem) : undefined;
+          const rawValue = Number(dataItem?.rawValue ?? value);
+          const valueText = getTooltipValueText(
+            centerText,
+            rawValue,
+            String(item.name ?? ''),
+            dataItem?.unit,
+          );
 
           return `
             <div style="min-width:140px;">
@@ -164,6 +184,8 @@ export function PieChartSmComponent({
           data: chartData.map((item) => ({
             name: item.name,
             value: item.value,
+            rawValue: item.rawValue,
+            unit: item.unit,
             itemStyle: {
               color: item.color,
               shadowBlur: 8,
@@ -178,41 +200,8 @@ export function PieChartSmComponent({
     [chartData, centerText],
   );
 
-  useEffect(() => {
-    if (!chartRef.current) return;
-
-    if (!chartInstance.current) {
-      chartInstance.current = echarts.init(chartRef.current);
-    }
-
-    chartInstance.current.clear();
-
-    const timer = setTimeout(() => {
-      chartInstance.current?.setOption(option);
-    }, 100);
-
-    const handleResize = () => chartInstance.current?.resize();
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', handleResize);
-      chartInstance.current?.dispose();
-      chartInstance.current = null;
-    };
-  }, [option]);
-
   return (
     <div style={{ position: 'relative', width, height }}>
-      <div
-        ref={chartRef}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          pointerEvents: 'none',
-          opacity: 0,
-        }}
-      />
       <ReactECharts
         option={option}
         style={{ height: '100%', width: '100%' }}

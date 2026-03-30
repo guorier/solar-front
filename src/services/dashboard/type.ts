@@ -5,8 +5,8 @@ export type PwplDashboardSummary = {
   totalCapacityKw: number;
   currentPowerKw: number;
   avgOperationRate: number;
-  todayGenerationMwh: number;
-  yesterdayGenerationMwh: number;
+  todayGenerationKwh: number;
+  yesterdayGenerationKwh: number;
 };
 
 export type PwplDashboardChartItem = {
@@ -28,7 +28,7 @@ export type PwplDashboardPlantDetail = {
   pwplNm: string;
   capacityKw: number;
   currentPowerKw: number;
-  todayGenerationMwh: number;
+  todayGenerationKwh: number;
   operationRate: number;
   areaNm: string;
   pwplLat: number;

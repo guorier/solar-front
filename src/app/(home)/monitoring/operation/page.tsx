@@ -5,20 +5,45 @@ import { Suspense, useEffect, useState } from 'react';
 // import MonitoringClient from './MonitoringClient';
 import OperationMonitor from '@/constants/monitoring/operation/OperationMonitor';
 
+type StoredPlantItem = {
+  pwplId: string;
+  macAddr?: string;
+};
+
+const getStoredPwplIds = (value: string | null): string[] => {
+  if (!value) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(value) as Array<string | StoredPlantItem>;
+
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return [];
+    }
+
+    if (typeof parsed[0] === 'string') {
+      return parsed.filter((item): item is string => typeof item === 'string');
+    }
+
+    return parsed
+      .map((item) => (item && typeof item === 'object' ? item.pwplId : ''))
+      .filter(Boolean);
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+};
+
 export default function MonitoringPage() {
-  const [pwplIds, setPwplIds] = useState<string[]>([]);
+  const [pwplIds, setPwplIds] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    return getStoredPwplIds(localStorage.getItem('pwplIds'));
+  });
 
   useEffect(() => {
     const stored = localStorage.getItem('pwplIds');
-
-    if (stored) {
-      try {
-        const ids = JSON.parse(stored) as string[];
-        setPwplIds(ids);
-      } catch (error) {
-        console.error(error);
-      }
-    }
+    setPwplIds(getStoredPwplIds(stored));
   }, []);
 
   // useEffect(() => {

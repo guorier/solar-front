@@ -288,7 +288,7 @@ const mergeDashboardDataWithSocket = (
       pwplNm: socketStatus?.pwplNm ?? dashboardData.plantDetail.pwplNm,
       capacityKw: socketStatus?.capacityKw ?? dashboardData.plantDetail.capacityKw,
       currentPowerKw: socketCurrentPowerKw ?? dashboardData.plantDetail.currentPowerKw,
-      todayGenerationMwh: socketTodayGeneration ?? dashboardData.plantDetail.todayGenerationMwh,
+      todayGenerationKwh: socketTodayGeneration ?? dashboardData.plantDetail.todayGenerationKwh,
       operationRate: socketStatus?.operationRate ?? dashboardData.plantDetail.operationRate,
       areaNm: socketStatus?.areaNm ?? dashboardData.plantDetail.areaNm,
       pwplLat: socketStatus?.pwplLat ?? dashboardData.plantDetail.pwplLat,
@@ -533,8 +533,8 @@ export default function DashboardPage() {
             ...mergedDashboardData.plantDetail,
             capacityKw: toFixedTwoNumber(mergedDashboardData.plantDetail.capacityKw ?? 0),
             currentPowerKw: toFixedTwoNumber(mergedDashboardData.plantDetail.currentPowerKw ?? 0),
-            todayGenerationMwh: toFixedTwoNumber(
-              mergedDashboardData.plantDetail.todayGenerationMwh ?? 0,
+            todayGenerationKwh: toFixedTwoNumber(
+              mergedDashboardData.plantDetail.todayGenerationKwh ?? 0,
             ),
             operationRate: toFixedTwoNumber(mergedDashboardData.plantDetail.operationRate ?? 0),
           }
@@ -554,8 +554,8 @@ export default function DashboardPage() {
       currentPowerKw: toFixedTwoNumber(
         getSocketCurrentPowerKw(selectedSocketStatus) ?? plantDetail.currentPowerKw ?? 0,
       ),
-      todayGenerationMwh: toFixedTwoNumber(
-        getSocketTodayGenerationKwh(selectedSocketStatus) ?? plantDetail.todayGenerationMwh ?? 0,
+      todayGenerationKwh: toFixedTwoNumber(
+        getSocketTodayGenerationKwh(selectedSocketStatus) ?? plantDetail.todayGenerationKwh ?? 0,
       ),
       operationRate: toFixedTwoNumber(
         selectedSocketStatus?.operationRate ?? plantDetail.operationRate ?? 0,

@@ -65,12 +65,12 @@ export const buildStatusData = (
     },
     {
       title: '금일 발전량',
-      count: roundToTwo(dashboardData?.summary.todayGenerationMwh ?? 0),
+      count: roundToTwo(dashboardData?.summary.todayGenerationKwh ?? 0),
       unit: 'kWh',
     },
     {
       title: '전일 누적 발전량',
-      count: '-',
+      count: roundToTwo(dashboardData?.summary.yesterdayGenerationKwh ?? 0),
       unit: 'kWh',
     },
     {

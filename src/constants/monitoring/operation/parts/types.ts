@@ -12,6 +12,8 @@ export type DonutDataItem = {
   name: string;
   value: number;
   color: string;
+  rawValue?: number;
+  unit?: 'V' | '%' | 'Hz' | 'W' | 'Wh' | 'kWh';
 };
 
 export type RealtimeData = {
@@ -20,27 +22,48 @@ export type RealtimeData = {
   gridFrequencyHz: number;
   gridPowerW: number;
   todayPower: number;
+  efficiency: number;
   inverterStatus: string;
   statusConnection: string;
   inverterTotalEnergy: number;
   modulePower: number;
+  predictionPowerW: number;
   irradianceWm2: number;
   temperatureC: number;
 };
 
 export type RealtimeInverterItem = {
   deviceAddresses: number;
+  sourceDeviceAddresses?: number;
+  displayName?: string;
+  pwplId?: string;
+  uuid?: string;
   averageVoltage: number;
   gridPowerFactor: number;
   gridFrequencyHz: number;
   gridPowerW: number;
   todayPower: number;
+  efficiency: number;
   inverterStatus: string;
   statusConnection: string;
   inverterTotalEnergy: number;
   modulePower: number;
+  predictionPowerW: number;
   irradianceWm2: number;
   temperatureC: number;
+};
+
+export type OperationChartSocketItem = {
+  targetPwplId: string;
+  powerW: number;
+  todayPower: number;
+  statusConnection: number;
+  gridPowerFactor: number;
+  gridFrequencyHz: number;
+  inverterTotalEnergy: number;
+  uuid: string;
+  deviceAddresses: number;
+  predictionPowerW: number;
 };
 
 export type RealtimeMacMap = Record<string, Record<number, RealtimeInverterItem>>;

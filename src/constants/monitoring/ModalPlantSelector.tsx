@@ -11,6 +11,36 @@ import type { ColDef, ICellRendererParams } from 'ag-grid-community';
 import { Radio } from '@/components/radio';
 import { Checkbox } from '@/components/checkbox';
 
+type StoredPlantItem = {
+  pwplId: string;
+  macAddr?: string;
+};
+
+const getStoredPwplIds = (value: string | null): string[] => {
+  if (!value) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(value) as Array<string | StoredPlantItem>;
+
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return [];
+    }
+
+    if (typeof parsed[0] === 'string') {
+      return parsed.filter((item): item is string => typeof item === 'string');
+    }
+
+    return parsed
+      .map((item) => (item && typeof item === 'object' ? item.pwplId : ''))
+      .filter(Boolean);
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+};
+
 type PaginationRequest = {
   page: number;
   size: number;
@@ -68,18 +98,14 @@ export const ModalPlantSelector = ({
       const stored = localStorage.getItem('pwplIds');
 
       if (stored) {
-        try {
-          const ids = JSON.parse(stored) as string[];
+        const ids = getStoredPwplIds(stored);
 
-          if (selectionMode === 'single') {
-            const found = plants.find((v) => v.pwplId === ids[0]);
-            if (found) setSelected(found);
-          } else {
-            const foundList = plants.filter((v) => ids.includes(v.pwplId));
-            setSelectedList(foundList);
-          }
-        } catch (e) {
-          console.error(e);
+        if (selectionMode === 'single') {
+          const found = plants.find((v) => v.pwplId === ids[0]);
+          if (found) setSelected(found);
+        } else {
+          const foundList = plants.filter((v) => ids.includes(v.pwplId));
+          setSelectedList(foundList);
         }
       }
       // =================
@@ -187,13 +213,11 @@ export const ModalPlantSelector = ({
           if (!selected) return;
 
           // ✅ 덮어쓰기 (remove 없어도 동일)
-          localStorage.setItem('pwplIds', JSON.stringify([selected.pwplId]));
           onApplySingle(selected);
         } else {
           if (!selectedList.length) return;
 
           // ✅ 덮어쓰기
-          localStorage.setItem('pwplIds', JSON.stringify(selectedList.map((v) => v.pwplId)));
           onApplyMulti(selectedList);
         }
 

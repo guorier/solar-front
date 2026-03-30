@@ -2,6 +2,7 @@
 
 import { createContext, useContext } from 'react';
 import type { useDashboardSocket } from '@/hooks/useDashboardSocket';
+import type { OperationChartSocketItem } from '@/constants/monitoring/operation/parts/types';
 
 type DashboardSocketMap = ReturnType<typeof useDashboardSocket>;
 
@@ -41,6 +42,7 @@ type DashboardSocketContextType = {
   powerTrendListData: PowerTrendListItem[];
   powerTrendChartData: PowerTrendChartItem[];
   dashboardChartDataMap: Record<string, DashboardChartItem[]>;
+  operationChartDataMap: Record<string, OperationChartSocketItem[]>;
 };
 
 export const DashboardSocketContext = createContext<DashboardSocketContextType>({
@@ -48,6 +50,7 @@ export const DashboardSocketContext = createContext<DashboardSocketContextType>(
   powerTrendListData: [],
   powerTrendChartData: [],
   dashboardChartDataMap: {},
+  operationChartDataMap: {},
 });
 
 export function useDashboardSocketContext() {

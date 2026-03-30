@@ -2,10 +2,12 @@
 'use client';
 
 import { ReactNode, useMemo, useEffect, useState, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { useGetPlantBaseCombo } from '@/services/plants/query';
 import { useDashboardSocket } from '@/hooks/useDashboardSocket';
 import { usePowerTrendSocket } from '@/hooks/usePowerTrendSocket';
 import { useDashboardChartSocket } from '@/hooks/useDashboardChartSocket';
+import { useOperationChartSocket } from '@/hooks/useOperationChartSocket';
 import { DashboardSocketContext } from './DashboardSocketContext';
 import type {
   DashboardChartItem,
@@ -122,7 +124,12 @@ const mergeChartItems = (
 };
 
 export function DashboardSocketProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const { data: plantCombo } = useGetPlantBaseCombo();
+
+  const shouldUseRealtimeSocket = true;
+  const shouldUsePowerTrendSocket = pathname.startsWith('/monitoring/power');
+  const shouldUseDashboardChartSocket = pathname === '/';
 
   const allPwplIds = useMemo(() => {
     return (
@@ -141,7 +148,7 @@ export function DashboardSocketProvider({ children }: { children: ReactNode }) {
     [plantCombo],
   );
 
-  const realtimeData = useDashboardSocket(realtimeTargets);
+  const realtimeData = useDashboardSocket(shouldUseRealtimeSocket ? realtimeTargets : []);
 
   const [powerTrendListData, setPowerTrendListData] = useState<PowerTrendListItem[]>([]);
   const [powerTrendChartData, setPowerTrendChartData] = useState<PowerTrendChartItem[]>([]);
@@ -167,15 +174,17 @@ export function DashboardSocketProvider({ children }: { children: ReactNode }) {
   }, []);
 
   usePowerTrendSocket({
-    pwplIds: allPwplIds,
+    pwplIds: shouldUsePowerTrendSocket ? allPwplIds : [],
     onChartMessage: handlePowerTrendChartMessage,
     onListMessage: handlePowerTrendListMessage,
   });
 
   useDashboardChartSocket({
-    pwplIds: allPwplIds,
+    pwplIds: shouldUseDashboardChartSocket ? allPwplIds : [],
     onMessage: handleDashboardChartMessage,
   });
+
+  const operationChartDataMap = useOperationChartSocket({ pwplIds: allPwplIds });
 
   useEffect(() => {
     console.log('[대시보드 소켓] 실시간 상태 맵', realtimeData);
@@ -188,6 +197,7 @@ export function DashboardSocketProvider({ children }: { children: ReactNode }) {
         powerTrendListData,
         powerTrendChartData,
         dashboardChartDataMap,
+        operationChartDataMap,
       }}
     >
       {children}
