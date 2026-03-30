@@ -35,14 +35,6 @@ const formatPowerValue = (value: number): string => {
     return '0.00 kW';
   }
 
-  if (Math.abs(value) >= 1000) {
-    return `${(value / 1000).toFixed(2)} MW`;
-  }
-
-  if (Math.abs(value) < 1) {
-    return `${(value * 1000).toFixed(2)} W`;
-  }
-
   return `${value.toFixed(2)} kW`;
 };
 
@@ -202,6 +194,15 @@ export function LineChartComponent({ data, chart, series }: LineChartProps) {
                 : ''
               : '';
 
+          const firstRawValue =
+            firstItem && typeof firstItem === 'object'
+              ? 'data' in firstItem && typeof firstItem.data === 'number'
+                ? firstItem.data
+                : 'value' in firstItem && typeof firstItem.value === 'number'
+                  ? firstItem.value
+                  : null
+              : null;
+
           const lines = tooltipItems
             .map((item) => {
               if (!item || typeof item !== 'object') {
@@ -230,7 +231,11 @@ export function LineChartComponent({ data, chart, series }: LineChartProps) {
             })
             .filter(Boolean);
 
-          return [axisValueLabel, ...lines].join('<br/>');
+          if (tooltipItems.length === 1 && firstRawValue !== null) {
+            return `${axisValueLabel}: ${formatPowerValue(firstRawValue)}`;
+          }
+
+          return [`${axisValueLabel}:`, ...lines].join('<br/>');
         },
         axisPointer: {
           type: 'line',
@@ -251,8 +256,10 @@ export function LineChartComponent({ data, chart, series }: LineChartProps) {
         axisTick: { show: false },
         axisLabel: {
           color: '#615E83',
-          fontSize: 12,
+          fontSize: 11,
           margin: 15,
+          interval: 0,
+          hideOverlap: false,
         },
         splitLine: {
           show: true,
@@ -281,25 +288,28 @@ export function LineChartComponent({ data, chart, series }: LineChartProps) {
           data: xAxisLabels.map((label) => pointMap.get(label) ?? null),
           smooth: 0.35,
           connectNulls: false,
-          showSymbol: false,
+          showSymbol: true,
+          showAllSymbol: true,
           emphasis: {
             scale: true,
             itemStyle: {
-              color,
-              borderColor: '#FFFFFF',
+              color: '#FFFFFF',
+              borderColor: color,
               borderWidth: 2,
               shadowBlur: 8,
               shadowColor: 'rgba(0, 0, 0, 0.2)',
             },
           },
           symbol: 'circle',
-          symbolSize: isMultiSeries ? 10 : 15,
+          symbolSize: isMultiSeries ? 8 : 10,
           lineStyle: {
             width: isMultiSeries ? 2 : 1,
             color,
           },
           itemStyle: {
-            color,
+            color: '#FFFFFF',
+            borderColor: color,
+            borderWidth: 2,
           },
           areaStyle: isMultiSeries ? undefined : { color: getSingleAreaColor() },
         };

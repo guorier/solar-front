@@ -90,7 +90,7 @@ export const buildStatusData = (
       unit: 'kW',
     },
     {
-      title: '금일 발전량',
+      title: '금일 발전량 (전일)',
       count: formatCurrentPrevious(
         dashboardData?.summary.todayGenerationKwh ?? 0,
         dashboardData?.summary.yesterdayGenerationKwh ?? 0,
@@ -100,7 +100,7 @@ export const buildStatusData = (
       unit: 'kWh',
     },
     {
-      title: '금일 발전시간',
+      title: '금일 발전시간 (전일)',
       count: formatCurrentPrevious(
         dashboardData?.summary.todayGenerationTime ?? 0,
         dashboardData?.summary.yesterdayGenerationTime ?? 0,
@@ -110,7 +110,7 @@ export const buildStatusData = (
       unit: 'h',
     },
     {
-      title: '발전금액',
+      title: '발전금액 (전일)',
       count: formatCurrentPrevious(
         dashboardData?.summary.currentGenerationAmount ?? 0,
         dashboardData?.summary.yesterdayGenerationAmount ?? 0,

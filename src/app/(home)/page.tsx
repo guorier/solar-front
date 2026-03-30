@@ -24,7 +24,6 @@ import { PlantDetailSection } from '@/constants/dashboard/PlantDetailSection';
 
 import { buildStatusData } from '@/utils/dashboardMapper';
 import { useDashboardSocketContext } from '@/providers/DashboardSocketContext';
-import type { DashboardChartItem } from '@/providers/DashboardSocketContext';
 import type { PwplDashboardEntity } from '@/services/dashboard/type';
 
 type MapPlant = {
@@ -65,15 +64,6 @@ type DashboardSocketPlantStatus = {
   topLevel?: 'NORMAL' | 'MAJOR' | 'CRITICAL';
   topMessage?: string;
   criticalCount?: number;
-};
-
-type TodayPowerChartSeries = {
-  name: string;
-  data: Array<{
-    time: string;
-    value: number;
-    timestamp?: string;
-  }>;
 };
 
 export interface PlantData {
@@ -198,79 +188,6 @@ const getSocketTodayGenerationKwh = (
   return undefined;
 };
 
-const parseChartTimestamp = (value: string | undefined, now: Date): number | null => {
-  if (!value) return null;
-
-  const directParsed = new Date(value.replace(' ', 'T')).getTime();
-  if (Number.isFinite(directParsed)) {
-    return directParsed;
-  }
-
-  const timeMatch = value.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-  if (!timeMatch) {
-    return null;
-  }
-
-  const hours = Number(timeMatch[1]);
-  const minutes = Number(timeMatch[2]);
-  const seconds = Number(timeMatch[3] ?? '0');
-
-  const parsed = new Date(now);
-  parsed.setHours(hours, minutes, seconds, 0);
-
-  if (parsed.getTime() > now.getTime()) {
-    parsed.setDate(parsed.getDate() - 1);
-  }
-
-  return parsed.getTime();
-};
-
-const formatChartLabel = (timestamp: number): string => {
-  const date = new Date(timestamp);
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
-};
-
-const filterLastHourChart = (items: DashboardChartItem[]): DashboardChartItem[] => {
-  const now = new Date();
-  const oneHourAgo = now.getTime() - 60 * 60 * 1000;
-
-  const withTime = items
-    .map((item) => ({
-      ...item,
-      parsedTime: parseChartTimestamp(item.timestamp ?? item.label, now),
-    }))
-    .filter(
-      (item): item is DashboardChartItem & { parsedTime: number } => item.parsedTime !== null,
-    )
-    .filter((item) => item.parsedTime >= oneHourAgo && item.parsedTime <= now.getTime());
-
-  const aggregatedMap = new Map<number, DashboardChartItem & { parsedTime: number }>();
-
-  withTime.forEach((item) => {
-    const existing = aggregatedMap.get(item.parsedTime);
-
-    if (existing) {
-      aggregatedMap.set(item.parsedTime, {
-        ...existing,
-        value: existing.value + item.value,
-      });
-      return;
-    }
-
-    aggregatedMap.set(item.parsedTime, item);
-  });
-
-  return Array.from(aggregatedMap.values())
-    .sort((a, b) => a.parsedTime - b.parsedTime)
-    .map((item) => ({
-      label: formatChartLabel(item.parsedTime),
-      value: item.value,
-      timestamp: new Date(item.parsedTime).toISOString(),
-    }));
-};
-
 const mergeDashboardDataWithSocket = (
   dashboardData: PwplDashboardEntity | undefined,
   socketStatus: DashboardSocketPlantStatus | undefined,
@@ -344,7 +261,7 @@ export default function DashboardPage() {
     [toFixedTwo],
   );
 
-  const { realtimeData, dashboardChartDataMap } = useDashboardSocketContext();
+  const { realtimeData } = useDashboardSocketContext();
   const socketStatusMap = realtimeData as Record<string, DashboardSocketPlantStatus>;
 
   const { data: dashboardData } = usePostDashboardSelect({
@@ -576,23 +493,6 @@ const saveSelectedPlants = useCallback(
     };
   }, [roundedDashboardData, livePlantDetail]);
 
-  const todayPowerSeries = useMemo<TodayPowerChartSeries[]>(() => {
-    return selectedPlantCombo
-      .map((plant) => {
-        const filteredItems = filterLastHourChart(dashboardChartDataMap[plant.pwplId] ?? []);
-
-        return {
-          name: plant.pwplNm,
-          data: filteredItems.map((item) => ({
-            time: item.label,
-            value: item.value,
-            timestamp: item.timestamp,
-          })),
-        };
-      })
-      .filter(isNotNull);
-  }, [dashboardChartDataMap, selectedPlantCombo]);
-
   const STATUS_DATA = useMemo(() => {
     return buildStatusData(liveDashboardData, pwplIds, selectedPlantCombo);
   }, [liveDashboardData, pwplIds, selectedPlantCombo]);
@@ -799,7 +699,7 @@ const saveSelectedPlants = useCallback(
         </div>
 
         <div className="row-group" style={{ width: 440 }}>
-          <TodayPowerGeneration series={todayPowerSeries} />
+          <TodayPowerGeneration chart={liveDashboardData?.chart ?? []} />
 
           <WeatherInfoSection data={roundedSelectedPlant} dashboardData={liveDashboardData} />
 
