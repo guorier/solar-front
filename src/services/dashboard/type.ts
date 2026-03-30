@@ -7,6 +7,11 @@ export type PwplDashboardSummary = {
   avgOperationRate: number;
   todayGenerationKwh: number;
   yesterdayGenerationKwh: number;
+  todayGenerationTime: number;
+  yesterdayGenerationTime: number;
+  currentGenerationAmount: number;
+  yesterdayGenerationAmount: number;
+  totalGenerationKwh: number;
 };
 
 export type PwplDashboardChartItem = {
@@ -15,12 +20,20 @@ export type PwplDashboardChartItem = {
 };
 
 export type PwplDashboardWeatherInfo = {
+  pwplNm?: string;
   temperatureC: number;
   humidity: number;
   windSpeed: number;
   irradianceWm2: number;
+  predcIrradianceWm2?: number;
+  irradianceKwhM2?: number;
+  predcOtpt?: number;
+  predcEgqty?: number;
   pm10: number;
   pm25: number;
+  sunrise?: string;
+  sunset?: string;
+  pr?: number;
 };
 
 export type PwplDashboardPlantDetail = {
@@ -33,6 +46,7 @@ export type PwplDashboardPlantDetail = {
   areaNm: string;
   pwplLat: number;
   pwplLot: number;
+  occurredAt?: string;
 };
 
 export type PwplDashboardEntity = {
@@ -40,7 +54,6 @@ export type PwplDashboardEntity = {
   chart: PwplDashboardChartItem[];
   weatherInfo: PwplDashboardWeatherInfo;
   plantDetail: PwplDashboardPlantDetail;
-  occurredAt: string;
 };
 
 export type PwplDashboardSelectReq = {

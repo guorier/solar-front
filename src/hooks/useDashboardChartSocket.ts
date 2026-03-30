@@ -49,20 +49,20 @@ export function useDashboardChartSocket({ pwplIds, onMessage }: Props) {
 
         try {
           const subscription = client.subscribe(topic, (message: IMessage) => {
-            console.log('[Dashboard Chart Socket] raw payload', {
-              topic,
-              pwplId,
-              body: message.body,
-            });
+            // console.log('[Dashboard Chart Socket] raw payload', {
+            //   topic,
+            //   pwplId,
+            //   body: message.body,
+            // });
 
             try {
               const json = JSON.parse(message.body);
 
-              console.log('[Dashboard Chart Socket] parsed payload', {
-                topic,
-                pwplId,
-                payload: json,
-              });
+              // console.log('[Dashboard Chart Socket] parsed payload', {
+              //   topic,
+              //   pwplId,
+              //   payload: json,
+              // });
 
               onMessageRef.current(pwplId, json);
             } catch (error) {

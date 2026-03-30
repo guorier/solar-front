@@ -133,8 +133,12 @@ export const InfoBoxComponent: React.FC<InfoBoxProps> = ({
 }) => {
   const formatNumber = (value: number | string) => {
     if (value === undefined || value === null) return '';
-    const num = typeof value === 'string' ? Number(value.replace(/[^0-9.-]+/g, "")) : value;
-    return isNaN(num) ? value : num.toLocaleString();
+
+    if (typeof value === 'string') {
+      return value;
+    }
+
+    return Number.isFinite(value) ? value.toLocaleString() : '';
   };
 
   return (
@@ -146,9 +150,9 @@ export const InfoBoxComponent: React.FC<InfoBoxProps> = ({
             <span>{title}</span>
           </Title>
           <Count>
-            {tag && (<p>{tag}</p>)}
+            {tag && <p>{tag}</p>}
             {formatNumber(count)}
-            {(totalCount !== undefined && totalCount !== null) && (
+            {totalCount !== undefined && totalCount !== null && (
               <span>
                 <b>/</b>
                 {formatNumber(totalCount)}

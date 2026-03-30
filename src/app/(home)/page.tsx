@@ -344,7 +344,7 @@ export default function DashboardPage() {
     [toFixedTwo],
   );
 
-  const { realtimeData, dashboardChartDataMap, pwplAggSummaryMap } = useDashboardSocketContext();
+  const { realtimeData, dashboardChartDataMap } = useDashboardSocketContext();
   const socketStatusMap = realtimeData as Record<string, DashboardSocketPlantStatus>;
 
   const { data: dashboardData } = usePostDashboardSelect({
@@ -593,32 +593,9 @@ const saveSelectedPlants = useCallback(
       .filter(isNotNull);
   }, [dashboardChartDataMap, selectedPlantCombo]);
 
-  const selectedPwplAggSummary = useMemo(() => {
-    const ids = pwplIds.length > 0 ? pwplIds : (plantCombo?.map((v) => v.pwplId) ?? []);
-    let totalPowerKw = 0;
-    let totalTodayKwh = 0;
-    let totalEfficiency = 0;
-    let count = 0;
-    for (const id of ids) {
-      const agg = pwplAggSummaryMap[id];
-      if (agg) {
-        totalPowerKw += agg.currentPowerKw;
-        totalTodayKwh += agg.todayGenerationKwh;
-        totalEfficiency += agg.avgOperationRate;
-        count++;
-      }
-    }
-    if (count === 0) return undefined;
-    return {
-      currentPowerKw: totalPowerKw,
-      todayGenerationKwh: totalTodayKwh,
-      avgOperationRate: totalEfficiency / count,
-    };
-  }, [pwplIds, plantCombo, pwplAggSummaryMap]);
-
   const STATUS_DATA = useMemo(() => {
-    return buildStatusData(liveDashboardData, pwplIds, selectedPlantCombo, selectedPwplAggSummary);
-  }, [liveDashboardData, pwplIds, selectedPlantCombo, selectedPwplAggSummary]);
+    return buildStatusData(liveDashboardData, pwplIds, selectedPlantCombo);
+  }, [liveDashboardData, pwplIds, selectedPlantCombo]);
 
   // src/app/(home)/page.tsx
 
@@ -829,7 +806,6 @@ const saveSelectedPlants = useCallback(
           <PlantDetailSection
             data={roundedSelectedPlant}
             dashboardData={liveDashboardData}
-            socketPower={toFixedTwoNumber(getSocketCurrentPowerKw(selectedSocketStatus) ?? 0)}
             pwplIds={pwplIds}
           />
         </div>

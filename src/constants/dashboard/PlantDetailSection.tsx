@@ -26,31 +26,48 @@ const toFixedTwo = (value: number | string | null | undefined): string => {
   return numericValue.toFixed(2);
 };
 
+const formatOccurredAt = (value: string | null | undefined): string => {
+  if (!value) {
+    return '-';
+  }
+
+  const parsedDate = new Date(value);
+
+  if (!Number.isFinite(parsedDate.getTime())) {
+    return value.replace('T', ' ').slice(0, 16);
+  }
+
+  const year = parsedDate.getFullYear();
+  const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+  const day = String(parsedDate.getDate()).padStart(2, '0');
+  const hours = String(parsedDate.getHours()).padStart(2, '0');
+  const minutes = String(parsedDate.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+};
+
 export function PlantDetailSection({
   data,
   dashboardData,
-  socketPower,
   pwplIds,
 }: {
   data: PlantData;
   dashboardData?: PwplDashboardEntity;
-  socketPower?: number;
   pwplIds: string[];
 }) {
   const router = useRouter();
   const isSingleSelection = pwplIds.length === 1;
+  const plantDetail = dashboardData?.plantDetail;
 
-  const capacity = dashboardData?.plantDetail?.capacityKw ?? data?.detail?.capacity ?? 0;
-  const currentPower =
-    dashboardData?.plantDetail?.currentPowerKw ?? socketPower ?? data?.detail?.output ?? 0;
-  const todayGeneration =
-    dashboardData?.plantDetail?.todayGenerationKwh ?? data?.detail?.todayGen ?? 0;
-  const operationRate = dashboardData?.plantDetail?.operationRate ?? data?.detail?.rate ?? 0;
-  const areaNm = dashboardData?.plantDetail?.areaNm ?? data?.detail?.region ?? '-';
-  const pwplNm = dashboardData?.plantDetail?.pwplNm ?? data?.title ?? '';
-  const pwplLat = dashboardData?.plantDetail?.pwplLat ?? data?.lat;
-  const pwplLot = dashboardData?.plantDetail?.pwplLot ?? data?.lng;
-  const updateTime = data?.detail?.updateTime ?? '-';
+  const capacity = plantDetail?.capacityKw ?? data?.detail?.capacity ?? 0;
+  const currentPower = plantDetail?.currentPowerKw ?? data?.detail?.output ?? 0;
+  const todayGeneration = plantDetail?.todayGenerationKwh ?? data?.detail?.todayGen ?? 0;
+  const operationRate = plantDetail?.operationRate ?? data?.detail?.rate ?? 0;
+  const areaNm = plantDetail?.areaNm ?? data?.detail?.region ?? '-';
+  const pwplNm = plantDetail?.pwplNm ?? data?.title ?? '';
+  const pwplLat = plantDetail?.pwplLat ?? data?.lat;
+  const pwplLot = plantDetail?.pwplLot ?? data?.lng;
+  const updateTime = formatOccurredAt(plantDetail?.occurredAt) ?? data?.detail?.updateTime ?? '-';
   
   return (
     <InfoGroupComponent

@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { postDashboardSelect } from './request';
 import type { PwplDashboardSelectReq } from './type';
 
+const DASHBOARD_SELECT_POLLING_MS = 5 * 60 * 1000;
+
 export const usePostDashboardSelect = (body: PwplDashboardSelectReq) => {
   return useQuery({
     queryKey: [
@@ -15,5 +17,7 @@ export const usePostDashboardSelect = (body: PwplDashboardSelectReq) => {
     ],
     queryFn: () => postDashboardSelect(body),
     enabled: body.pwplIds.length > 0,
+    refetchInterval: body.pwplIds.length > 0 ? DASHBOARD_SELECT_POLLING_MS : false,
+    refetchIntervalInBackground: true,
   });
 };

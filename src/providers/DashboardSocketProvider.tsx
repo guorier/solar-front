@@ -210,9 +210,9 @@ export function DashboardSocketProvider({ children }: { children: ReactNode }) {
     pwplIds: shouldUseOperationChartSocket && operationPwplId ? [operationPwplId] : [],
   });
 
-  useEffect(() => {
-    console.log('[대시보드 소켓] 실시간 상태 맵', realtimeData);
-  }, [realtimeData]);
+  // useEffect(() => {
+  //   console.log('[대시보드 소켓] 실시간 상태 맵', realtimeData);
+  // }, [realtimeData]);
 
   return (
     <DashboardSocketContext.Provider
