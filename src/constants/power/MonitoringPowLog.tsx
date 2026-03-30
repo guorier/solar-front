@@ -70,7 +70,6 @@ const baseCellStyle: CSSProperties = {
 
 const inverterColumns: LogColumn[] = [
   { key: 'eventRegDt', label: '발생시간', width: '97px', isRowHeader: true },
-  { key: 'pwplId', label: '발전소 아이디', width: '10%' },
   { key: 'pwplNm', label: '발전소명', width: '12%' },
   { key: 'macAddr', label: 'MAC 주소', width: '12%' },
   { key: 'gridPowerW', label: '출력전력', width: '8%', align: 'right' },
@@ -86,12 +85,11 @@ const inverterColumns: LogColumn[] = [
 
 const weatherColumns: LogColumn[] = [
   { key: 'eventRegDt', label: '장비 발생 일시', width: '97px', isRowHeader: true },
-  { key: 'pwplId', label: '발전소 아이디', width: '10%' },
   { key: 'pwplNm', label: '발전소명', width: '12%' },
   { key: 'macAddr', label: 'RTU 장비 MAC 주소', width: '12%' },
   { key: 'deviceAddr', label: '장비 주소', width: '8%' },
   // { key: 'temperatureC', label: '기온 (섭씨)', width: '8%', align: 'right' },
-  // { key: 'irradianceWm2', label: '일사량 (W/m2)', width: '8%', align: 'right' },
+  { key: 'irradianceWm2', label: '일사량 (W/m2)', width: '8%', align: 'right' },
   { key: 'panelTemperatureC', label: '모듈 온도', width: '8%', align: 'right' },
   // { key: 'commModel', label: '통신 모델 코드', width: '8%' },
   // { key: 'equipmentCode', label: '장비 구분 코드', width: '8%' },
@@ -101,7 +99,6 @@ const weatherColumns: LogColumn[] = [
 
 const hexColumns: LogColumn[] = [
   { key: 'eventRegDt', label: '발생시간', width: '97px', isRowHeader: true },
-  { key: 'pwplId', label: '발전소 아이디', width: '10%' },
   { key: 'pwplNm', label: '발전소명', width: '12%' },
   // { key: 'macAddr', label: 'MAC 주소', width: '12%' },
   // { key: 'gridPowerW', label: '출력전력', width: '8%', align: 'right' },
@@ -162,6 +159,20 @@ const formatDisplayTime = (value: RowValue): string => {
   return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
 };
 
+const formatIntegerWithComma = (value: RowValue): string => {
+  if (value === null || value === undefined || value === '') {
+    return EMPTY_VALUE_LABEL;
+  }
+
+  const numericValue = Number(value);
+
+  if (!Number.isFinite(numericValue)) {
+    return toDisplayValue(value);
+  }
+
+  return Math.trunc(numericValue).toLocaleString('ko-KR');
+};
+
 const getRowDate = (value: RowValue): string => {
   if (typeof value !== 'string') {
     return '';
@@ -194,6 +205,10 @@ const getColumnDisplayValue = (row: LogRow, column: LogColumn): string => {
 
   if (column.key === 'eventRegDt') {
     return formatDisplayTime(rawValue);
+  }
+
+  if (column.key === 'inverterTotalEnergy') {
+    return formatIntegerWithComma(rawValue);
   }
 
   return toDisplayValue(rawValue);
@@ -549,6 +564,10 @@ const renderEmptyBody = (columns: LogColumn[]) => {
 
     if (column.key === 'eventRegDt') {
       return formatDisplayTime(rawValue);
+    }
+
+    if (column.key === 'inverterTotalEnergy') {
+      return formatIntegerWithComma(rawValue);
     }
 
     return toDisplayValue(rawValue);

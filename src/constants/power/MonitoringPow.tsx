@@ -21,7 +21,14 @@ type SavedPlantItem = {
   macAddr?: string;
 };
 
+type SelectedPlantStorageItem = {
+  pwplId: string;
+  pwplNm?: string;
+  macAddr?: string;
+};
+
 type LocalStorageRecord = Record<string, unknown>;
+const WS_REFRESH_SECONDS = 300;
 
 const isObjectRecord = (value: unknown): value is LocalStorageRecord => {
   return typeof value === 'object' && value !== null;
@@ -222,7 +229,7 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
-  const [elapsedSeconds, setElapsedSeconds] = useState<number>(60);
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(WS_REFRESH_SECONDS);
   const [refreshMotion, setRefreshMotion] = useState<boolean>(false);
 
   // 프로바이더에서 제공하는 웹소켓 데이터
@@ -303,7 +310,7 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
     });
 
     setLastUpdatedAt(Date.now());
-    setElapsedSeconds(60);
+    setElapsedSeconds(WS_REFRESH_SECONDS);
   }, [powerTrendListData, pwplIds, page]);
 
   const loadInitial = useCallback(async () => {
@@ -330,8 +337,6 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
       setChartData(response.chart);
       setRows(response.list);
       setHasMore(response.hasMore);
-      setLastUpdatedAt(Date.now());
-      setElapsedSeconds(60);
     } finally {
       setIsLoading(false);
 
@@ -410,13 +415,33 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
     setPage((prev) => prev + 1);
   }, []);
 
+  const saveSelectedPlants = useCallback((plants: SelectedPlantStorageItem[]) => {
+    localStorage.setItem(
+      'pwplIds',
+      JSON.stringify(
+        plants.map((plant) => ({
+          pwplId: plant.pwplId,
+          macAddr: plant.macAddr ?? '',
+        })),
+      ),
+    );
+    localStorage.setItem(
+      'pwplNms',
+      JSON.stringify(plants.map((plant) => plant.pwplNm ?? plant.pwplId)),
+    );
+    localStorage.setItem(
+      'macAddrs',
+      JSON.stringify(plants.map((plant) => plant.macAddr ?? '')),
+    );
+  }, []);
+
   const summaryText = useMemo(() => {
     return `${rows.length}건`;
   }, [rows.length]);
 
   const liveText = useMemo(() => {
     if (!lastUpdatedAt) {
-      return `60초 후 갱신`;
+      return `${WS_REFRESH_SECONDS}초 후 갱신`;
     }
 
     return `${elapsedSeconds}초 후 갱신`;
@@ -457,28 +482,24 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
         onOpenChange={setModalOpen}
         selectionMode="multiple"
         onApplySingle={(plant) => {
-          localStorage.setItem(
-            'pwplIds',
-            JSON.stringify([
-              {
-                pwplId: plant.pwplId,
-                macAddr:
-                  'macAddr' in plant && typeof plant.macAddr === 'string' ? plant.macAddr : '',
-              },
-            ]),
-          );
+          saveSelectedPlants([
+            {
+              pwplId: plant.pwplId,
+              pwplNm: 'pwplNm' in plant && typeof plant.pwplNm === 'string' ? plant.pwplNm : '',
+              macAddr:
+                'macAddr' in plant && typeof plant.macAddr === 'string' ? plant.macAddr : '',
+            },
+          ]);
           setPwplIds([plant.pwplId]);
         }}
         onApplyMulti={(plants) => {
           const ids = plants.map((item) => item.pwplId);
-          localStorage.setItem(
-            'pwplIds',
-            JSON.stringify(
-              plants.map((item) => ({
-                pwplId: item.pwplId,
-                macAddr: 'macAddr' in item && typeof item.macAddr === 'string' ? item.macAddr : '',
-              })),
-            ),
+          saveSelectedPlants(
+            plants.map((item) => ({
+              pwplId: item.pwplId,
+              pwplNm: 'pwplNm' in item && typeof item.pwplNm === 'string' ? item.pwplNm : '',
+              macAddr: 'macAddr' in item && typeof item.macAddr === 'string' ? item.macAddr : '',
+            })),
           );
           setPwplIds(ids);
         }}
