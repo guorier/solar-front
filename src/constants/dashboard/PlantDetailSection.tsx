@@ -120,11 +120,16 @@ export function PlantDetailSection({
           variant="contained"
           icon={<Icons iName="link" color="#fff" />}
           onClick={() => {
-            console.log('저장전 pwplIds', pwplIds);
-
-            localStorage.setItem('pwplIds', JSON.stringify(pwplIds));
-            console.log('저장후', localStorage.getItem('pwplIds'));
-
+            localStorage.setItem(
+              'pwplIds',
+              JSON.stringify([
+                {
+                  pwplId: data.pwplId,
+                  pwplNm: data.title,
+                  macAddr: data.macAddr,
+                },
+              ]),
+            );
             router.push('/monitoring/operation');
           }}
         >

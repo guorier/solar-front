@@ -35,13 +35,15 @@ const parseItem = (
     targetPwplId,
     powerW: toNumber(row.powerW),
     todayPower: toNumber(row.todayPower),
-    statusConnection: toNumber(row.statusConnection),
+    statusConnection: typeof row.statusConnection === 'string' ? row.statusConnection : String(row.statusConnection ?? ''),
     gridPowerFactor: toNumber(row.gridPowerFactor),
     gridFrequencyHz: toNumber(row.gridFrequencyHz),
     inverterTotalEnergy: toNumber(row.inverterTotalEnergy),
     uuid,
     deviceAddresses,
     predictionPowerW: toNumber(row.predictionPowerW),
+    irradianceWm2: toNumber(row.irradianceWm2),
+    temperatureC: toNumber(row.temperatureC),
   };
 };
 

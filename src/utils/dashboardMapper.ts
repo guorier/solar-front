@@ -9,10 +9,17 @@ interface StatusItem {
   titleCountUnit?: string;
 }
 
+type SocketSummary = {
+  currentPowerKw?: number;
+  todayGenerationKwh?: number;
+  avgOperationRate?: number;
+};
+
 export const buildStatusData = (
   dashboardData?: PwplDashboardEntity,
   pwplIds: string[] = [],
   plantCombo?: PlantBaseComboItem[],
+  socketSummary?: SocketSummary,
 ): StatusItem[] => {
   const roundToTwo = (value: number) => Math.round(value * 100) / 100;
 
@@ -55,17 +62,17 @@ export const buildStatusData = (
     },
     {
       title: '현재 출력',
-      count: roundToTwo(dashboardData?.summary.currentPowerKw ?? 0),
+      count: roundToTwo(socketSummary?.currentPowerKw ?? dashboardData?.summary.currentPowerKw ?? 0),
       unit: 'kW',
     },
     {
       title: '출력률 (설비용량 대비)',
-      count: dashboardData?.summary.avgOperationRate ?? 0,
+      count: roundToTwo(socketSummary?.avgOperationRate ?? dashboardData?.summary.avgOperationRate ?? 0),
       unit: '%',
     },
     {
       title: '금일 발전량',
-      count: roundToTwo(dashboardData?.summary.todayGenerationKwh ?? 0),
+      count: roundToTwo(socketSummary?.todayGenerationKwh ?? dashboardData?.summary.todayGenerationKwh ?? 0),
       unit: 'kWh',
     },
     {

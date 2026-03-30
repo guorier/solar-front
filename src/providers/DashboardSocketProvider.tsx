@@ -130,6 +130,7 @@ export function DashboardSocketProvider({ children }: { children: ReactNode }) {
   const shouldUseRealtimeSocket = true;
   const shouldUsePowerTrendSocket = pathname.startsWith('/monitoring/power');
   const shouldUseDashboardChartSocket = pathname === '/';
+  const shouldUseOperationChartSocket = pathname.startsWith('/monitoring/operation');
 
   const allPwplIds = useMemo(() => {
     return (
@@ -148,7 +149,9 @@ export function DashboardSocketProvider({ children }: { children: ReactNode }) {
     [plantCombo],
   );
 
-  const realtimeData = useDashboardSocket(shouldUseRealtimeSocket ? realtimeTargets : []);
+  const { socketStatusMap: realtimeData, pwplAggMap: pwplAggSummaryMap } = useDashboardSocket(
+    shouldUseRealtimeSocket ? realtimeTargets : [],
+  );
 
   const [powerTrendListData, setPowerTrendListData] = useState<PowerTrendListItem[]>([]);
   const [powerTrendChartData, setPowerTrendChartData] = useState<PowerTrendChartItem[]>([]);
@@ -184,7 +187,28 @@ export function DashboardSocketProvider({ children }: { children: ReactNode }) {
     onMessage: handleDashboardChartMessage,
   });
 
-  const operationChartDataMap = useOperationChartSocket({ pwplIds: allPwplIds });
+  const [operationPwplId, setOperationPwplId] = useState('');
+
+  useEffect(() => {
+    if (!shouldUseOperationChartSocket) {
+      setOperationPwplId('');
+      return;
+    }
+    try {
+      const raw = localStorage.getItem('pwplIds');
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as string[] | Array<{ pwplId: string }>;
+      if (!Array.isArray(parsed) || parsed.length === 0) return;
+      const first = parsed[0];
+      setOperationPwplId(typeof first === 'string' ? first : (first.pwplId ?? ''));
+    } catch {
+      // ignore
+    }
+  }, [shouldUseOperationChartSocket]);
+
+  const operationChartDataMap = useOperationChartSocket({
+    pwplIds: shouldUseOperationChartSocket && operationPwplId ? [operationPwplId] : [],
+  });
 
   useEffect(() => {
     console.log('[대시보드 소켓] 실시간 상태 맵', realtimeData);
@@ -194,6 +218,7 @@ export function DashboardSocketProvider({ children }: { children: ReactNode }) {
     <DashboardSocketContext.Provider
       value={{
         realtimeData,
+        pwplAggSummaryMap,
         powerTrendListData,
         powerTrendChartData,
         dashboardChartDataMap,

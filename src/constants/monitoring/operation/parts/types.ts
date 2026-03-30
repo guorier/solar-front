@@ -57,13 +57,15 @@ export type OperationChartSocketItem = {
   targetPwplId: string;
   powerW: number;
   todayPower: number;
-  statusConnection: number;
+  statusConnection: string;
   gridPowerFactor: number;
   gridFrequencyHz: number;
   inverterTotalEnergy: number;
   uuid: string;
   deviceAddresses: number;
   predictionPowerW: number;
+  irradianceWm2: number;
+  temperatureC: number;
 };
 
 export type RealtimeMacMap = Record<string, Record<number, RealtimeInverterItem>>;
@@ -108,6 +110,7 @@ export type EnergyDisplay = {
 
 export type SavedPlantItem = {
   pwplId: string;
+  pwplNm?: string;
   macAddr?: string;
 };
 

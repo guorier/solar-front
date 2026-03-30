@@ -411,12 +411,15 @@ export const getRestoredSelection = (
         } else {
           const parsedPlantItems = parsedPwplIds as SavedPlantItem[];
           nextPwplIds = parsedPlantItems.map((item) => item.pwplId);
-          // macAddrs가 별도 키에 없을 경우 pwplIds 객체에서 추출
-          if (!savedMacAddrs) {
-            nextMacAddrs = parsedPlantItems
-              .map((item) => normalizeMac(item.macAddr))
-              .filter(Boolean);
-          }
+
+          // 객체 안의 값 우선 사용 (별도 키보다 항상 우선)
+          const itemNames = parsedPlantItems.map((item) => item.pwplNm ?? '').filter(Boolean);
+          const itemMacs = parsedPlantItems
+            .map((item) => normalizeMac(item.macAddr))
+            .filter(Boolean);
+
+          if (itemNames.length > 0) nextPlantNames = itemNames;
+          if (itemMacs.length > 0) nextMacAddrs = itemMacs;
         }
       }
     } catch {

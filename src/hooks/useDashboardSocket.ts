@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRealtimeSocket } from '@/hooks/useRealtimeSocket';
 
 type AlarmLevel = 'NORMAL' | 'MAJOR' | 'CRITICAL';
@@ -45,6 +45,26 @@ type SocketTarget = {
   macAddr?: string;
 };
 
+type FlatDeviceMessage = {
+  targetPwplId?: string;
+  deviceAddresses?: string | number;
+  powerW?: number | string;
+  todayPower?: number | string;
+  conversionEfficiency?: number | string;
+};
+
+type DeviceData = {
+  powerW: number;
+  todayPower: number;
+  conversionEfficiency: number;
+};
+
+export type PlantAggSummary = {
+  currentPowerKw: number;
+  todayGenerationKwh: number;
+  avgOperationRate: number;
+};
+
 type DashboardSocketState = {
   topLevel?: AlarmLevel;
   topMessage?: string;
@@ -82,10 +102,32 @@ const pickFirstString = (...values: Array<string | undefined>): string | undefin
 
 export function useDashboardSocket(targets: SocketTarget[]) {
   const [socketStatusMap, setSocketStatusMap] = useState<Record<string, DashboardSocketState>>({});
+  const [deviceDataByPlant, setDeviceDataByPlant] = useState<
+    Record<string, Record<string, DeviceData>>
+  >({});
 
   useRealtimeSocket({
     targets,
     onMessage: (json) => {
+      // 새 flat 포맷: { targetPwplId, deviceAddresses, powerW, todayPower, conversionEfficiency }
+      const flat = json as FlatDeviceMessage;
+      if (flat.targetPwplId) {
+        const pwplId = flat.targetPwplId;
+        const deviceAddr = String(flat.deviceAddresses ?? '_');
+        setDeviceDataByPlant((prev) => ({
+          ...prev,
+          [pwplId]: {
+            ...(prev[pwplId] ?? {}),
+            [deviceAddr]: {
+              powerW: Number(flat.powerW ?? 0),
+              todayPower: Number(flat.todayPower ?? 0),
+              conversionEfficiency: Number(flat.conversionEfficiency ?? 0),
+            },
+          },
+        }));
+        return;
+      }
+
       const data = json as SocketMessage;
       const macKey = normalizeMac(data.header?.mac);
 
@@ -236,5 +278,20 @@ export function useDashboardSocket(targets: SocketTarget[]) {
     },
   });
 
-  return socketStatusMap;
+  const pwplAggMap = useMemo<Record<string, PlantAggSummary>>(() => {
+    const result: Record<string, PlantAggSummary> = {};
+    for (const [pwplId, devices] of Object.entries(deviceDataByPlant)) {
+      const deviceList = Object.values(devices);
+      if (deviceList.length === 0) continue;
+      result[pwplId] = {
+        currentPowerKw: deviceList.reduce((sum, d) => sum + d.powerW, 0) / 1000,
+        todayGenerationKwh: deviceList.reduce((sum, d) => sum + d.todayPower, 0) / 1000,
+        avgOperationRate:
+          deviceList.reduce((sum, d) => sum + d.conversionEfficiency, 0) / deviceList.length,
+      };
+    }
+    return result;
+  }, [deviceDataByPlant]);
+
+  return { socketStatusMap, pwplAggMap };
 }

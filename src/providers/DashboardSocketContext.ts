@@ -6,6 +6,8 @@ import type { OperationChartSocketItem } from '@/constants/monitoring/operation/
 
 type DashboardSocketMap = ReturnType<typeof useDashboardSocket>;
 
+export type { PlantAggSummary } from '@/hooks/useDashboardSocket';
+
 export type PowerTrendListItem = {
   deviceAddresses?: number | string;
   equipmentType?: string;
@@ -38,7 +40,8 @@ export type DashboardChartItem = {
 };
 
 type DashboardSocketContextType = {
-  realtimeData: DashboardSocketMap;
+  realtimeData: DashboardSocketMap['socketStatusMap'];
+  pwplAggSummaryMap: DashboardSocketMap['pwplAggMap'];
   powerTrendListData: PowerTrendListItem[];
   powerTrendChartData: PowerTrendChartItem[];
   dashboardChartDataMap: Record<string, DashboardChartItem[]>;
@@ -47,6 +50,7 @@ type DashboardSocketContextType = {
 
 export const DashboardSocketContext = createContext<DashboardSocketContextType>({
   realtimeData: {},
+  pwplAggSummaryMap: {},
   powerTrendListData: [],
   powerTrendChartData: [],
   dashboardChartDataMap: {},
