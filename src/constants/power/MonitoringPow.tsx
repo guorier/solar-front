@@ -1,4 +1,4 @@
-// power/MonitoringPow.tsx
+// src\constants\power\MonitoringPow.tsx
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -150,6 +150,7 @@ type WebSocketChartItem = {
   targetPwplId?: string;
   timeStampStr?: string;
   pwplNm?: string;
+  deviceAddresses?: number | string;
 };
 
 const convertWebSocketChartData = (
@@ -160,7 +161,7 @@ const convertWebSocketChartData = (
     return [];
   }
 
-  // targetPwplId별로 그룹화
+  // targetPwplId + deviceAddresses별로 그룹화
   const groupedMap = new Map<string, WebSocketChartItem[]>();
 
   data.forEach((item) => {
@@ -180,22 +181,30 @@ const convertWebSocketChartData = (
       return;
     }
 
-    if (!groupedMap.has(pwplId)) {
-      groupedMap.set(pwplId, []);
+    const deviceAddr = wsItem.deviceAddresses;
+    const key = deviceAddr != null ? `${pwplId}__${deviceAddr}` : pwplId;
+
+    if (!groupedMap.has(key)) {
+      groupedMap.set(key, []);
     }
 
-    groupedMap.get(pwplId)!.push(wsItem);
+    groupedMap.get(key)!.push(wsItem);
   });
 
-  // 각 발전소별 차트 시리즈 생성
+  // 각 발전소 + 인버터별 차트 시리즈 생성
   const chartSeries: PowerTrendChartSeries[] = [];
 
-  groupedMap.forEach((items, pwplId) => {
-    const plantName = items[0]?.pwplNm ?? pwplId;
+  groupedMap.forEach((items, key) => {
+    const firstItem = items[0];
+    const pwplId = firstItem?.targetPwplId ?? key;
+    const plantName = firstItem?.pwplNm ?? pwplId;
+    const deviceAddr = firstItem?.deviceAddresses;
+    const inverterId = deviceAddr != null ? String(deviceAddr) : '전체';
+    const inverterName = deviceAddr != null ? `${deviceAddr}호` : '전체 발전량';
+
     const chartItems = items
       .map((item) => {
         const timeStr = item.timeStampStr ?? '';
-        // console.log(`🔍 항목 변환: timeStampStr="${timeStr}" → time="${timeStr}"`);
         return {
           time: timeStr,
           close: toNumber(item.gridPowerW),
@@ -208,8 +217,8 @@ const convertWebSocketChartData = (
       chartSeries.push({
         plantId: pwplId,
         plantName,
-        inverterId: '전체',
-        inverterName: '전체 발전량',
+        inverterId,
+        inverterName,
         data: chartItems,
       });
     }
@@ -221,7 +230,21 @@ const convertWebSocketChartData = (
 export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPowProps) {
   const searchParams = useSearchParams();
 
-  const [pwplIds, setPwplIds] = useState<string[]>(parsePwplIds(initialPwplIds));
+  const [pwplIds, setPwplIds] = useState<string[]>(() => {
+    const fromProps = parsePwplIds(initialPwplIds);
+    if (fromProps.length > 0) return fromProps;
+
+    try {
+      const saved = localStorage.getItem('pwplIds');
+      if (!saved) return [];
+      const parsed = JSON.parse(saved) as Array<string | SavedPlantItem>;
+      if (!Array.isArray(parsed) || parsed.length === 0) return [];
+      if (typeof parsed[0] === 'string') return parsed as string[];
+      return (parsed as SavedPlantItem[]).map((item) => item.pwplId);
+    } catch {
+      return [];
+    }
+  });
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [chartData, setChartData] = useState<PowerTrendChartSeries[]>([]);
   const [rows, setRows] = useState<PowerTrendRow[]>([]);
@@ -348,32 +371,6 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
 
   useEffect(() => {
     setPwplIds(parsePwplIds(initialPwplIds));
-  }, [initialPwplIds]);
-
-  useEffect(() => {
-    const savedPwplIds = localStorage.getItem('pwplIds');
-
-    if (!savedPwplIds) {
-      return;
-    }
-
-    try {
-      const parsedPwplIds = JSON.parse(savedPwplIds) as Array<string | SavedPlantItem>;
-
-      if (!Array.isArray(parsedPwplIds) || parsedPwplIds.length === 0) {
-        return;
-      }
-
-      if (typeof parsedPwplIds[0] === 'string') {
-        setPwplIds(parsedPwplIds as string[]);
-        return;
-      }
-
-      const parsedPlantItems = parsedPwplIds as SavedPlantItem[];
-      setPwplIds(parsedPlantItems.map((item) => item.pwplId));
-    } catch {
-      setPwplIds(parsePwplIds(initialPwplIds));
-    }
   }, [initialPwplIds]);
 
   useEffect(() => {
