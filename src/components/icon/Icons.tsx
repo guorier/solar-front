@@ -53,6 +53,7 @@ const IconSource = [
   { name: 'clock', src: '/icons/icon_time.svg' },
   { name: 'calendar', src: '/icons/icon_date_g.svg' },
   { name: 'thunder', src: '/icons/icon_thunder.svg' },
+  { name: 'refresh', src: '/icons/icon_refresh.svg' },
 ] as const;
 
 export type iName = (typeof IconSource)[number]['name'];
@@ -72,11 +73,12 @@ const Icons = ({
   iName,
   original,
   background,
-  color = "#374957",
+  color = '#374957',
   size = 24,
   className,
   style,
-  onClick }: IconProps) => {
+  onClick,
+}: IconProps) => {
   const icon = IconSource.find((item) => item.name === iName);
 
   const iconStyle = !original
@@ -101,6 +103,6 @@ const Icons = ({
         backgroundColor: color,
       };
 
-  return <i className={className} style={{...iconStyle, ...style}} onClick={() => onClick?.()} />;
+  return <i className={className} style={{ ...iconStyle, ...style }} onClick={() => onClick?.()} />;
 };
 export default Icons;

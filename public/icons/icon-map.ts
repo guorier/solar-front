@@ -48,6 +48,7 @@ import IconNormal from "public/icons/icon_normal.svg";
 import IconOffline from "public/icons/icon_offline.svg";
 import IconPlus from "public/icons/icon_plus.svg";
 import IconPower from "public/icons/icon_power.svg";
+import IconRefresh from "public/icons/icon_refresh.svg";
 import IconSave from "public/icons/icon_save.svg";
 import IconSearch from "public/icons/icon_search.svg";
 import IconSolar from "public/icons/icon_solar.svg";
@@ -110,6 +111,7 @@ export const ICON_MAP = {
   offline: IconOffline,
   plus: IconPlus,
   power: IconPower,
+  refresh: IconRefresh,
   save: IconSave,
   search: IconSearch,
   solar: IconSolar,

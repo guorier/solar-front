@@ -208,6 +208,7 @@ export const buildRealtimeMapFromSocketStatus = (
         predictionPowerW: safeToFixed(current.modulePower ?? getSocketCurrentPowerW(current), 2),
         irradianceWm2: safeToFixed(current.irradianceWm2, 2),
         temperatureC: safeToFixed(current.temperatureC, 2),
+        formattedAvgVoltage: 0,
       },
     };
 
@@ -268,7 +269,8 @@ export const buildOperationSocketInverterMap = (
           displayName,
           pwplId,
           uuid: item.uuid,
-          averageVoltage: 0,
+          averageVoltage: safeToFixed(item.formattedAvgVoltage, 2),
+          formattedAvgVoltage: safeToFixed(item.formattedAvgVoltage, 2),
           gridPowerFactor: safeToFixed(item.gridPowerFactor, 2),
           gridFrequencyHz: safeToFixed(item.gridFrequencyHz, 2),
           gridPowerW: safeToFixed(item.powerW, 2),

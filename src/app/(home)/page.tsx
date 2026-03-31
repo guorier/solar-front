@@ -14,10 +14,11 @@ import {
 } from '@/components';
 import KakaoMap from '@/components/kakaoMap/KakaoMap';
 import { ModalPlantSelector } from '@/constants/monitoring/ModalPlantSelector';
-import { usePostDashboardSelect } from '@/services/dashboard/query';
+import { usePostDashboardSelect, DASHBOARD_SELECT_POLLING_MS } from '@/services/dashboard/query';
 import { useGetPlantBaseCombo } from '@/services/plants/query';
 
 import { PlantSelector } from '@/constants/dashboard/PlantSelector';
+import { PollingCountdown } from '@/constants/dashboard/PollingCountdown';
 import { TodayPowerGeneration } from '@/constants/dashboard/TodayPowerGeneration';
 import { WeatherInfoSection } from '@/constants/dashboard/WeatherInfoSection';
 import { PlantDetailSection } from '@/constants/dashboard/PlantDetailSection';
@@ -264,7 +265,7 @@ export default function DashboardPage() {
   const { realtimeData } = useDashboardSocketContext();
   const socketStatusMap = realtimeData as Record<string, DashboardSocketPlantStatus>;
 
-  const { data: dashboardData } = usePostDashboardSelect({
+  const { data: dashboardData, dataUpdatedAt } = usePostDashboardSelect({
     pwplIds,
     chartType: 'TIME',
     weatherPwplId: firstSelectedPwplId,
@@ -273,23 +274,23 @@ export default function DashboardPage() {
 
   const { data: plantCombo } = useGetPlantBaseCombo();
 
-const saveSelectedPlants = useCallback(
-  (plants: { pwplId: string; macAddr: string; pwplNm: string }[]) => {
-    localStorage.setItem(
-      'pwplIds',
-      JSON.stringify(
-        plants.map((v) => ({
-          pwplId: v.pwplId,
-          pwplNm: v.pwplNm,
-          macAddr: v.macAddr,
-        })),
-      ),
-    );
-    // localStorage.setItem('pwplNms', JSON.stringify(plants.map((v) => v.pwplNm)));
-    // localStorage.setItem('macAddrs', JSON.stringify(plants.map((v) => v.macAddr)));
-  },
-  [],
-);
+  const saveSelectedPlants = useCallback(
+    (plants: { pwplId: string; macAddr: string; pwplNm: string }[]) => {
+      localStorage.setItem(
+        'pwplIds',
+        JSON.stringify(
+          plants.map((v) => ({
+            pwplId: v.pwplId,
+            pwplNm: v.pwplNm,
+            macAddr: v.macAddr,
+          })),
+        ),
+      );
+      // localStorage.setItem('pwplNms', JSON.stringify(plants.map((v) => v.pwplNm)));
+      // localStorage.setItem('macAddrs', JSON.stringify(plants.map((v) => v.macAddr)));
+    },
+    [],
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -620,7 +621,15 @@ const saveSelectedPlants = useCallback(
           title="발전소 현황"
           desc="실시간 전국 발전소별 모니터링 대시보드 화면 입니다"
         />
-        <PlantSelector onOpen={() => setModalOpen(true)} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {dataUpdatedAt > 0 && (
+            <PollingCountdown
+              intervalMs={DASHBOARD_SELECT_POLLING_MS}
+              lastUpdatedAt={dataUpdatedAt}
+            />
+          )}
+          <PlantSelector onOpen={() => setModalOpen(true)} />
+        </div>
       </div>
 
       <TopBoxComponent>

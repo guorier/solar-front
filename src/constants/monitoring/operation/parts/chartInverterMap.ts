@@ -23,6 +23,10 @@ export const buildPowerChartData = (
   inverterMap: Record<number, RealtimeInverterItem>,
 ): DonutDataItem[] => mapChartData(inverterMap, (item) => item.gridPowerW, 'W');
 
+export const buildVoltageChartData = (
+  inverterMap: Record<number, RealtimeInverterItem>,
+): DonutDataItem[] => mapChartData(inverterMap, (item) => item.formattedAvgVoltage, 'W');
+
 export const buildPowerFactorChartData = (
   inverterMap: Record<number, RealtimeInverterItem>,
 ): DonutDataItem[] => mapChartData(inverterMap, (item) => item.gridPowerFactor, '%');

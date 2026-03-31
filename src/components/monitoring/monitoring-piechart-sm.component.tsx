@@ -23,7 +23,7 @@ interface PieChartProps {
   height?: string | number;
 }
 
-const formatNumber = (value: number, digits: number = 1) => {
+const formatNumber = (value: number, digits: number = 2) => {
   return new Intl.NumberFormat('ko-KR', {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
@@ -38,38 +38,38 @@ const getTooltipValueText = (
 ) => {
   if (unit === 'W') {
     if (value >= 1000) {
-      return `${formatNumber(value / 1000, 1)} kW`;
+      return `${formatNumber(value / 1000, 2)} kW`;
     }
 
-    return `${formatNumber(value, 1)} W`;
+    return `${formatNumber(value, 2)} W`;
   }
 
   if (unit === 'Wh') {
     if (value >= 1000) {
-      return `${formatNumber(value / 1000, 1)} kWh`;
+      return `${formatNumber(value / 1000, 2)} kWh`;
     }
 
-    return `${formatNumber(value, 1)} Wh`;
+    return `${formatNumber(value, 2)} Wh`;
   }
 
   if (unit === 'kWh') {
     if (value >= 1000) {
-      return `${formatNumber(value / 1000, 1)} MWh`;
+      return `${formatNumber(value / 1000, 2)} MWh`;
     }
 
-    return `${formatNumber(value, 1)} kWh`;
+    return `${formatNumber(value, 2)} kWh`;
   }
 
   if (unit === 'Hz') {
-    return `${formatNumber(value, 1)} Hz`;
+    return `${formatNumber(value, 2)} Hz`;
   }
 
   if (unit === 'V') {
-    return `${formatNumber(value, 1)} V`;
+    return `${formatNumber(value, 2)} V`;
   }
 
   if (unit === '%') {
-    return `${formatNumber(value, 3)} %`;
+    return `${formatNumber(value, 2)} %`;
   }
 
   if (centerText === '운영상태' || centerText === '통신 상태') {
@@ -77,7 +77,7 @@ const getTooltipValueText = (
     return statusText || '-';
   }
 
-  return formatNumber(value, 1);
+  return formatNumber(value, 2);
 };
 
 export function PieChartSmComponent({
@@ -88,16 +88,7 @@ export function PieChartSmComponent({
   height = 240,
 }: PieChartProps) {
   const echartsRef = useRef<ReactECharts>(null);
-
-  useEffect(() => {
-    const chart = echartsRef.current;
-    return () => {
-      const instance = chart?.getEchartsInstance();
-      if (instance && !instance.isDisposed()) {
-        instance.clear();
-      }
-    };
-  }, []);
+  const unmountedRef = useRef(false);
 
   const chartData = useMemo(
     () =>
@@ -210,6 +201,19 @@ export function PieChartSmComponent({
     [chartData, centerText],
   );
 
+  useEffect(() => {
+    return () => {
+      unmountedRef.current = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (unmountedRef.current) return;
+    const instance = echartsRef.current?.getEchartsInstance();
+    if (!instance || instance.isDisposed()) return;
+    instance.setOption(option, { notMerge: true });
+  }, [option]);
+
   return (
     <div style={{ position: 'relative', width, height }}>
       <ReactECharts
@@ -218,6 +222,7 @@ export function PieChartSmComponent({
         style={{ height: '100%', width: '100%' }}
         opts={{ renderer: 'svg' }}
         notMerge={true}
+        shouldSetOption={() => false}
       />
       <div
         style={{

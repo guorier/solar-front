@@ -36,10 +36,7 @@ const getStoredPwplIds = (value: string | null): string[] => {
 };
 
 export default function MonitoringPage() {
-  const [pwplIds, setPwplIds] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return [];
-    return getStoredPwplIds(localStorage.getItem('pwplIds'));
-  });
+  const [pwplIds, setPwplIds] = useState<string[]>([]);
 
   useEffect(() => {
     const stored = localStorage.getItem('pwplIds');

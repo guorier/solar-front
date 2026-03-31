@@ -28,14 +28,16 @@ const parseItem = (
   if (!targetPwplId) return null;
 
   const deviceAddresses = toNumber(row.deviceAddresses ?? row.deviceAddr ?? 1);
-  const uuid =
-    (typeof row.uuid === 'string' && row.uuid) || `${targetPwplId}-${deviceAddresses}`;
+  const uuid = (typeof row.uuid === 'string' && row.uuid) || `${targetPwplId}-${deviceAddresses}`;
 
   return {
     targetPwplId,
     powerW: toNumber(row.powerW),
     todayPower: toNumber(row.todayPower),
-    statusConnection: typeof row.statusConnection === 'string' ? row.statusConnection : String(row.statusConnection ?? ''),
+    statusConnection:
+      typeof row.statusConnection === 'string'
+        ? row.statusConnection
+        : String(row.statusConnection ?? ''),
     gridPowerFactor: toNumber(row.gridPowerFactor),
     gridFrequencyHz: toNumber(row.gridFrequencyHz),
     inverterTotalEnergy: toNumber(row.inverterTotalEnergy),
@@ -44,6 +46,7 @@ const parseItem = (
     predictionPowerW: toNumber(row.predictionPowerW),
     irradianceWm2: toNumber(row.irradianceWm2),
     temperatureC: toNumber(row.temperatureC),
+    formattedAvgVoltage: toNumber(row.formattedAvgVoltage),
   };
 };
 
@@ -103,7 +106,11 @@ export function useOperationChartSocket({ pwplIds }: Props) {
       console.log(`[운영차트 소켓] 연결됨 → 구독 시작 (발전소: ${pwplIdsKey})`);
 
       subscriptionsRef.current.forEach((s) => {
-        try { s.unsubscribe(); } catch (e) { void e; }
+        try {
+          s.unsubscribe();
+        } catch (e) {
+          void e;
+        }
       });
       subscriptionsRef.current = [];
 
@@ -162,7 +169,11 @@ export function useOperationChartSocket({ pwplIds }: Props) {
       console.log(`[운영차트 소켓] 정리 — 구독 해제 및 연결 종료 (발전소: ${pwplIdsKey})`);
 
       subscriptionsRef.current.forEach((s) => {
-        try { s.unsubscribe(); } catch (e) { void e; }
+        try {
+          s.unsubscribe();
+        } catch (e) {
+          void e;
+        }
       });
       subscriptionsRef.current = [];
 

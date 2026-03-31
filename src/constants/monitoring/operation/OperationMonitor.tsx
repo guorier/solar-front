@@ -28,10 +28,10 @@ import {
 import {
   buildFrequencyChartData,
   buildIrradianceChartData,
-  buildPowerChartData,
   buildPowerFactorChartData,
   buildTemperatureChartData,
   buildTodayPowerChartData,
+  buildVoltageChartData,
 } from './parts/chartInverterMap';
 import type { DashboardSocketPlantStatus, GenTableItem, MonitoringOpProps } from './parts/types';
 
@@ -210,8 +210,8 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
     [effectiveSelectedInverterMap],
   );
 
-  const powerChartData = useMemo(
-    () => buildPowerChartData(effectiveSelectedInverterMap),
+  const formattedAvgVoltage = useMemo(
+    () => buildVoltageChartData(effectiveSelectedInverterMap),
     [effectiveSelectedInverterMap],
   );
 
@@ -298,7 +298,7 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
       <div className="flex flex-1">
         <SidePieChartGroup
           items={[
-            { centerText: '현재 발전량', data: powerChartData },
+            { centerText: 'GRID 전압', data: formattedAvgVoltage },
             { centerText: '역률', data: powerFactorChartData },
             { centerText: 'GRID 주파수', data: frequencyChartData },
           ]}

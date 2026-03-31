@@ -51,6 +51,7 @@ export type RealtimeInverterItem = {
   predictionPowerW: number;
   irradianceWm2: number;
   temperatureC: number;
+  formattedAvgVoltage: number;
 };
 
 export type OperationChartSocketItem = {
@@ -66,6 +67,7 @@ export type OperationChartSocketItem = {
   predictionPowerW: number;
   irradianceWm2: number;
   temperatureC: number;
+  formattedAvgVoltage: number;
 };
 
 export type RealtimeMacMap = Record<string, Record<number, RealtimeInverterItem>>;
