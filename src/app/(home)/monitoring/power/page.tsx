@@ -1,5 +1,5 @@
 // src\app\(home)\monitoring\power\page.tsx
-import MonitoringPow from '@/constants/power/MonitoringPow';
+import MonitoringPow from '@/constants/monitoring/power/MonitoringPow';
 
 type PageProps = {
   searchParams?: Promise<{

@@ -1,5 +1,5 @@
 // app/(home)/monitoring/power/[id]/page.tsx
-import MonitoringPowLog from '@/constants/power/MonitoringPowLog';
+import MonitoringPowLog from '@/constants/monitoring/power/MonitoringPowLog';
 
 type PageProps = {
   params: Promise<{
