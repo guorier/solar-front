@@ -13,7 +13,7 @@ import {
   // TabPanel,
 } from '@/components';
 import KakaoMap from '@/components/kakaoMap/KakaoMap';
-import { ModalPlantSelector } from '@/constants/monitoring/ModalPlantSelector';
+import { ModalPlantSelector } from '@/constants/dashboard/ModalPlantSelector';
 import { usePostDashboardSelect, DASHBOARD_SELECT_POLLING_MS } from '@/services/dashboard/query';
 import { useGetPlantBaseCombo } from '@/services/plants/query';
 

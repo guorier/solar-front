@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ButtonComponent, TitleComponent } from '@/components';
-import { ModalPlantSelector } from '@/constants/monitoring/ModalPlantSelector';
+import { ModalPlantSelector } from '@/constants/dashboard/ModalPlantSelector';
 import MonitoringPowChart from './components/MonitoringPowChart';
 import MonitoringPowTable from './components/MonitoringPowTable';
 import { getPowerTrendHistory, PAGE_SIZE, parsePwplIds } from './monitoringPowMock';
@@ -263,11 +263,11 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
     if (!Array.isArray(powerTrendChartData) || powerTrendChartData.length === 0) {
       return [];
     }
-    
+
     // 웹소켓에서 받은 차트 데이터를 PowerTrendChartSeries로 변환 (필터링 포함)
     const convertedChartData = convertWebSocketChartData(powerTrendChartData, pwplIds);
     // console.log('🔄 필터링된 차트 데이터:', convertedChartData);
-    
+
     return convertedChartData;
   }, [powerTrendChartData, pwplIds]);
 
@@ -277,23 +277,23 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
     }
 
     // console.log('📊 필터링된 차트 데이터 반영:', filteredChartData);
-    
+
     // 웹소켓 차트 데이터로 업데이트 (기존 데이터와 merge)
     setChartData((prevChartData) => {
       const mergedMap = new Map<string, PowerTrendChartSeries>();
-      
+
       // 기존 차트 데이터 추가
       prevChartData.forEach((series) => {
         const key = `${series.plantId}__${series.inverterId}`;
         mergedMap.set(key, series);
       });
-      
+
       // 웹소켓 데이터로 업데이트 (같은 plant + inverter는 덮어씌움)
       filteredChartData.forEach((series) => {
         const key = `${series.plantId}__${series.inverterId}`;
         mergedMap.set(key, series);
       });
-      
+
       return Array.from(mergedMap.values());
     });
   }, [filteredChartData]);
@@ -426,10 +426,7 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
       'pwplNms',
       JSON.stringify(plants.map((plant) => plant.pwplNm ?? plant.pwplId)),
     );
-    localStorage.setItem(
-      'macAddrs',
-      JSON.stringify(plants.map((plant) => plant.macAddr ?? '')),
-    );
+    localStorage.setItem('macAddrs', JSON.stringify(plants.map((plant) => plant.macAddr ?? '')));
   }, []);
 
   const summaryText = useMemo(() => {
@@ -483,8 +480,7 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
             {
               pwplId: plant.pwplId,
               pwplNm: 'pwplNm' in plant && typeof plant.pwplNm === 'string' ? plant.pwplNm : '',
-              macAddr:
-                'macAddr' in plant && typeof plant.macAddr === 'string' ? plant.macAddr : '',
+              macAddr: 'macAddr' in plant && typeof plant.macAddr === 'string' ? plant.macAddr : '',
             },
           ]);
           setPwplIds([plant.pwplId]);
