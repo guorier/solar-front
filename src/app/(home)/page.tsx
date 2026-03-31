@@ -707,7 +707,7 @@ export default function DashboardPage() {
           */}
         </div>
 
-        <div className="row-group" style={{ width: 440 }}>
+        <div className="row-group" style={{ width: "500px" }}>
           <TodayPowerGeneration chart={liveDashboardData?.chart ?? []} />
 
           <WeatherInfoSection data={roundedSelectedPlant} dashboardData={liveDashboardData} />
