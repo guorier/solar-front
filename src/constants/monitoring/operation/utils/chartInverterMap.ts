@@ -1,4 +1,5 @@
-import { getInverterColor, safeToFixed, toChartValue } from './utils';
+import { safeToFixed, toChartValue } from './utils';
+import { getInverterColor } from './socketUtils';
 import type { DonutDataItem, RealtimeInverterItem } from './types';
 
 const getInverterLabel = (item: RealtimeInverterItem) =>

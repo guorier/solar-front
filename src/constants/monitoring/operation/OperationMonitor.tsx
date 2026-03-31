@@ -10,22 +10,22 @@ import { useSearchParams } from 'next/navigation';
 import { useDashboardSocketContext } from '@/providers/DashboardSocketContext';
 import { useGetPlantBaseCombo } from '@/services/plants/query';
 
-import { TopDashboardSection } from './parts/TopPanel';
-import { SidePieChartGroup } from './parts/PieCharts';
-import './parts/OperationSkeleton.scss';
+import { TopDashboardSection } from './components/TopPanel';
+import { SidePieChartGroup } from './components/PieCharts';
+import './OperationSkeleton.scss';
+import { safeToFixed } from './utils/utils';
 import {
   aggregateRealtimeData,
   buildRealtimeMapFromSocketStatus,
   buildOperationSocketInverterMap,
   buildSelectedInverterMap,
-  getRestoredSelection,
   normalizeMac,
   normalizeSocketStatusMap,
   readSocketCacheMap,
-  safeToFixed,
   writeSocketCacheMap,
   mergeSocketStatusMapWithCache,
-} from './parts/utils';
+} from './utils/socketUtils';
+import { getRestoredSelection } from './utils/selectionUtils';
 import {
   buildFrequencyChartData,
   buildIrradianceChartData,
@@ -33,8 +33,8 @@ import {
   buildTemperatureChartData,
   buildTodayPowerChartData,
   buildVoltageChartData,
-} from './parts/chartInverterMap';
-import type { DashboardSocketPlantStatus, GenTableItem, MonitoringOpProps } from './parts/types';
+} from './utils/chartInverterMap';
+import type { DashboardSocketPlantStatus, GenTableItem, MonitoringOpProps } from './utils/types';
 
 /* =========================
  * 메인 컴포넌트

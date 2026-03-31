@@ -10,9 +10,9 @@ import {
 import AnimatedWaveGauge from '@/components/chart/AnimatedWaveGauge';
 import type { MonitorWeatherRes } from '@/services/monitoring/weather/type';
 import { CircleGlowBackground } from './GlowBg';
-import { INVERTER_TOTAL_ENERGY_MAX_KWH, MODULE_POWER_MAX_W } from './constants';
-import { formatEnergyDisplay, getProgressPercent, safeToFixed } from './utils';
-import type { RealtimeData } from './types';
+import { INVERTER_TOTAL_ENERGY_MAX_KWH, MODULE_POWER_MAX_W } from '../utils/constants';
+import { formatEnergyDisplay, getProgressPercent, safeToFixed } from '../utils/utils';
+import type { RealtimeData } from '../utils/types';
 
 export const TopDashboardSection = ({
   realtimeData,

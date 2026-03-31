@@ -1,7 +1,7 @@
 'use client';
 
 import { PieChartSmComponent } from '@/components';
-import type { DonutDataItem } from './types';
+import type { DonutDataItem } from '../utils/types';
 
 export const SidePieChartGroup = ({
   items,
@@ -12,7 +12,10 @@ export const SidePieChartGroup = ({
   }>;
 }) => {
   return (
-    <div className="row-group" style={{ width: 280, alignItems: 'center', padding: '40px 20px',zIndex:10 }}>
+    <div
+      className="row-group"
+      style={{ width: 280, alignItems: 'center', padding: '40px 20px', zIndex: 10 }}
+    >
       {items.map((item) => (
         <div className="flex-1" key={item.centerText}>
           <PieChartSmComponent centerText={item.centerText} data={item.data} />
