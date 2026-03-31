@@ -84,7 +84,7 @@ const ACCUMULATED_SUMMARY_ITEMS: readonly SummaryMetricItem[] = [
 const TRADE_ROWS: readonly TradeRow[] = [
   {
     id: 'trade-01',
-    tradeDate: '2025-12-15',
+    tradeDate: '2026-03-31',
     plantName: '와이어블 1호기',
     tradeVolume: 1252,
     smpPrice: 150,
@@ -93,7 +93,7 @@ const TRADE_ROWS: readonly TradeRow[] = [
   },
   {
     id: 'trade-02',
-    tradeDate: '2025-12-15',
+    tradeDate: '2026-03-30',
     plantName: '와이어블 2호기',
     tradeVolume: 1410,
     smpPrice: 152,
@@ -102,7 +102,7 @@ const TRADE_ROWS: readonly TradeRow[] = [
   },
   {
     id: 'trade-03',
-    tradeDate: '2025-12-14',
+    tradeDate: '2026-03-29',
     plantName: '와이어블 1호기',
     tradeVolume: 1180,
     smpPrice: 148,
@@ -111,7 +111,7 @@ const TRADE_ROWS: readonly TradeRow[] = [
   },
   {
     id: 'trade-04',
-    tradeDate: '2025-12-13',
+    tradeDate: '2026-03-27',
     plantName: '와이어블 3호기',
     tradeVolume: 1340,
     smpPrice: 153,
@@ -120,7 +120,7 @@ const TRADE_ROWS: readonly TradeRow[] = [
   },
   {
     id: 'trade-05',
-    tradeDate: '2025-12-12',
+    tradeDate: '2026-03-24',
     plantName: '와이어블 2호기',
     tradeVolume: 1090,
     smpPrice: 145,
@@ -129,7 +129,7 @@ const TRADE_ROWS: readonly TradeRow[] = [
   },
   {
     id: 'trade-06',
-    tradeDate: '2025-12-11',
+    tradeDate: '2026-03-22',
     plantName: '와이어블 1호기',
     tradeVolume: 1420,
     smpPrice: 155,
@@ -138,7 +138,7 @@ const TRADE_ROWS: readonly TradeRow[] = [
   },
   {
     id: 'trade-07',
-    tradeDate: '2025-11-27',
+    tradeDate: '2026-03-18',
     plantName: '와이어블 3호기',
     tradeVolume: 950,
     smpPrice: 147,
@@ -147,7 +147,7 @@ const TRADE_ROWS: readonly TradeRow[] = [
   },
   {
     id: 'trade-08',
-    tradeDate: '2025-11-21',
+    tradeDate: '2026-03-15',
     plantName: '와이어블 1호기',
     tradeVolume: 890,
     smpPrice: 144,
@@ -156,7 +156,7 @@ const TRADE_ROWS: readonly TradeRow[] = [
   },
   {
     id: 'trade-09',
-    tradeDate: '2025-11-13',
+    tradeDate: '2026-03-10',
     plantName: '와이어블 2호기',
     tradeVolume: 1045,
     smpPrice: 146,
@@ -165,7 +165,7 @@ const TRADE_ROWS: readonly TradeRow[] = [
   },
   {
     id: 'trade-10',
-    tradeDate: '2025-11-04',
+    tradeDate: '2026-03-04',
     plantName: '와이어블 4호기',
     tradeVolume: 860,
     smpPrice: 142,
@@ -427,14 +427,14 @@ function SummarySection({
 }
 
 export default function TradingPerformancePage() {
-  const [startDate, setStartDate] = useState('2025-11-01');
-  const [endDate, setEndDate] = useState('2025-12-31');
+  const [startDate, setStartDate] = useState('2026-03-01');
+  const [endDate, setEndDate] = useState('2026-03-31');
   const startMonthInput = startDate.slice(0, 7);
   const endMonthInput = endDate.slice(0, 7);
   const hasInvalidRange = startDate > endDate;
   const [appliedRange, setAppliedRange] = useState({
-    startMonth: '2025-11',
-    endMonth: '2025-12',
+    startMonth: '2026-03',
+    endMonth: '2026-03',
   });
 
   const filteredRows = useMemo(

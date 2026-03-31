@@ -1,21 +1,20 @@
-// // src/app/(home)/monitoring/operation/MonitoringClient.tsx
 // 'use client';
 
 // import {
-//   // BarChartComponent,
+//   BarChartComponent,
 //   Cell,
 //   Column,
-//   // GaugeChartComponent,
+//   GaugeChartComponent,
 //   InfoBoxComponent,
 //   InfoBoxGroup,
 //   InfoGroupComponent,
-//   // PieChartComponent,
+//   PieChartComponent,
 //   Row,
 //   Table,
 //   TableBody,
 //   TableHeader,
-//   // TextBoxComponent,
-//   // TextBoxGroup,
+//   TextBoxComponent,
+//   TextBoxGroup,
 //   TitleComponent,
 //   TopInfoBoxComponent,
 //   ButtonComponent,
@@ -23,11 +22,11 @@
 // import { Heading } from 'react-aria-components';
 // import type { iName } from '@/components/icon/Icons';
 // import { useState, useEffect } from 'react';
-// // import { useQuery } from '@tanstack/react-query';
+// import { useQuery } from '@tanstack/react-query';
 // import type { MonitorOprateRes } from '@/services/monitoring/oprate/type';
-// // import { getMonitorOprate } from '@/services/monitoring/oprate/request';
+// import { getMonitorOprate } from '@/services/monitoring/oprate/request';
 // import { ModalPlantSelector } from '@/constants/monitoring/ModalPlantSelector';
-// // import type { BarChartData } from '@/components/monitoring/monitoring-barchart.component';
+// import type { BarChartData } from '@/components/monitoring/monitoring-barchart.component';
 // import { useRealtimeSocket } from '@/hooks';
 // import { useSearchParams } from 'next/navigation';
 
@@ -35,12 +34,12 @@
 //   pwplIds: string[];
 // };
 
-// // type WeatherItem = {
-// //   icon: iName;
-// //   title: string;
-// //   count: number;
-// //   unit: string;
-// // };
+// type WeatherItem = {
+//   icon: iName;
+//   title: string;
+//   count: number;
+//   unit: string;
+// };
 
 // type PlantSummaryItem = {
 //   icon: iName;
@@ -58,14 +57,14 @@
 //   Number((value ?? 0).toFixed(digits));
 
 // const TopDashboardSection = ({ pwplIds }: { pwplIds: string[] }) => {
-//   // const { data } = useQuery({
-//   //   queryKey: ['monitor', 'oprate', pwplIds.join(',')],
-//   //   queryFn: () =>
-//   //     getMonitorOprate({
-//   //       pwplIds,
-//   //     }),
-//   //   enabled: pwplIds.length > 0,
-//   // });
+//   const { data } = useQuery({
+//     queryKey: ['monitor', 'oprate', pwplIds.join(',')],
+//     queryFn: () =>
+//       getMonitorOprate({
+//         pwplIds,
+//       }),
+//     enabled: pwplIds.length > 0,
+//   });
 
 //   const plantCount = pwplIds.length;
 
@@ -76,14 +75,14 @@
 //   let totalEquip = 0;
 //   let avgEfficiency = 0;
 
-//   // if (data) {
-//   //   currentPowerKw = data.plantSummary.currentPowerKw ?? 0;
-//   //   capacityKw = data.plantSummary.capacityKw ?? 0;
-//   //   operationRate = data.plantSummary.operationRate ?? 0;
-//   //   normalEquip = data.plantSummary.normalEquip ?? 0;
-//   //   totalEquip = data.plantSummary.totalEquip ?? 0;
-//   //   avgEfficiency = data.plantSummary.avgEfficiency ?? 0;
-//   // }
+//   if (data) {
+//     currentPowerKw = data.plantSummary.currentPowerKw ?? 0;
+//     capacityKw = data.plantSummary.capacityKw ?? 0;
+//     operationRate = data.plantSummary.operationRate ?? 0;
+//     normalEquip = data.plantSummary.normalEquip ?? 0;
+//     totalEquip = data.plantSummary.totalEquip ?? 0;
+//     avgEfficiency = data.plantSummary.avgEfficiency ?? 0;
+//   }
 
 //   if (plantCount > 0) {
 //     currentPowerKw = safeToFixed(currentPowerKw / plantCount, 1);
@@ -95,44 +94,44 @@
 //   normalEquip = safeToFixed(normalEquip, 1);
 //   totalEquip = safeToFixed(totalEquip, 1);
 
-//   // const WEATHER_DATA_RUNTIME: readonly WeatherItem[] = [
-//   //   {
-//   //     icon: 'temp',
-//   //     title: '온도',
-//   //     count: safeToFixed(data?.weatherSummary.temperatureC, 1),
-//   //     unit: '℃',
-//   //   },
-//   //   {
-//   //     icon: 'humidity',
-//   //     title: '습도',
-//   //     count: safeToFixed(data?.weatherSummary.humidity, 1),
-//   //     unit: '%',
-//   //   },
-//   //   {
-//   //     icon: 'wind',
-//   //     title: '풍속',
-//   //     count: safeToFixed(data?.weatherSummary.windSpeed, 1),
-//   //     unit: 'm/s',
-//   //   },
-//   //   {
-//   //     icon: 'solar',
-//   //     title: '일사량',
-//   //     count: safeToFixed(data?.weatherSummary.irradianceWm2, 1),
-//   //     unit: 'W/m²',
-//   //   },
-//   //   {
-//   //     icon: 'dust',
-//   //     title: 'PM10',
-//   //     count: safeToFixed(data?.weatherSummary.pm10, 1),
-//   //     unit: 'μg/m³',
-//   //   },
-//   //   {
-//   //     icon: 'dust',
-//   //     title: 'PM2.5',
-//   //     count: safeToFixed(data?.weatherSummary.pm25, 1),
-//   //     unit: 'μg/m³',
-//   //   },
-//   // ];
+//   const WEATHER_DATA_RUNTIME: readonly WeatherItem[] = [
+//     {
+//       icon: 'temp',
+//       title: '온도',
+//       count: safeToFixed(data?.weatherSummary.temperatureC, 1),
+//       unit: '℃',
+//     },
+//     {
+//       icon: 'humidity',
+//       title: '습도',
+//       count: safeToFixed(data?.weatherSummary.humidity, 1),
+//       unit: '%',
+//     },
+//     {
+//       icon: 'wind',
+//       title: '풍속',
+//       count: safeToFixed(data?.weatherSummary.windSpeed, 1),
+//       unit: 'm/s',
+//     },
+//     {
+//       icon: 'solar',
+//       title: '일사량',
+//       count: safeToFixed(data?.weatherSummary.irradianceWm2, 1),
+//       unit: 'W/m²',
+//     },
+//     {
+//       icon: 'dust',
+//       title: 'PM10',
+//       count: safeToFixed(data?.weatherSummary.pm10, 1),
+//       unit: 'μg/m³',
+//     },
+//     {
+//       icon: 'dust',
+//       title: 'PM2.5',
+//       count: safeToFixed(data?.weatherSummary.pm25, 1),
+//       unit: 'μg/m³',
+//     },
+//   ];
 
 //   const PLANT_SUMMARY_RUNTIME: readonly PlantSummaryItem[] = [
 //     {
@@ -380,9 +379,9 @@
 //       <div className="group flex-1">
 //         <div className="row-group" style={{ width: 400 }}>
 //           <InfoGroupComponent title="현재 장비 상태">
-//             {/* <PieChartComponent data={pieData} total={data?.equipStatus.total ?? 0} /> */}
+//             <PieChartComponent data={pieData} total={data?.equipStatus.total ?? 0} />
 
-//             {/* <TextBoxGroup $gap={2}>
+//             <TextBoxGroup $gap={2}>
 //               <TextBoxComponent
 //                 width="100%"
 //                 title={<span className="dot normal">정상</span>}
@@ -398,17 +397,17 @@
 //                 title={<span className="dot error">오류</span>}
 //                 content={`${data?.equipStatus.error ?? 0}건`}
 //               />
-//             </TextBoxGroup> */}
+//             </TextBoxGroup>
 //           </InfoGroupComponent>
 
-//           {/* <InfoGroupComponent flex={1} title="발전소별 성능">
+//           <InfoGroupComponent flex={1} title="발전소별 성능">
 //             <BarChartComponent key={pwplIds.join(',')} data={chartDataState} />
-//           </InfoGroupComponent> */}
+//           </InfoGroupComponent>
 //         </div>
 
 //         <div className="row-group flex-1">
 //           <InfoGroupComponent title="발전소 발전량">
-//             {/* <div
+//             <div
 //               style={{ display: 'flex', padding: '16px 0 20px', justifyContent: 'space-around' }}
 //             >
 //               <GaugeChartComponent
@@ -427,7 +426,7 @@
 //                 title="현재 발전량"
 //                 value={safeToFixed(data?.genGauge.currentMwh, 1)}
 //               />
-//             </div> */}
+//             </div>
 //           </InfoGroupComponent>
 
 //           <InfoGroupComponent flex={1} title="발전 현황 표">

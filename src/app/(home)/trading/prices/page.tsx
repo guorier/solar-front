@@ -68,8 +68,8 @@ export type RecChartItem = {
 const summaryCards: PriceSummaryCard[] = [
   { key: 'smp-prev', label: 'SMP 전일 단가', value: '145.87', unit: '원 / kWh' },
   { key: 'smp-today', label: 'SMP 금일 단가', value: '45,117', unit: '원 / REC' },
-  { key: 'rec-base1', label: 'REC 2026-03-24 기준 단가', value: '145.87', unit: '원 / kWh' },
-  { key: 'rec-base2', label: 'REC 2026-03-26 기준 단가', value: '14,287', unit: '원 / REC' },
+  { key: 'rec-base1', label: 'REC 2026-03-30 기준 단가', value: '145.87', unit: '원 / kWh' },
+  { key: 'rec-base2', label: 'REC 2026-03-31 기준 단가', value: '14,287', unit: '원 / REC' },
 ];
 
 // SMP 차트 더미 데이터 (30일)
@@ -129,15 +129,15 @@ const REC_CHART_DUMMY: RecChartItem[] = [
 const smpRows: SmpPriceRow[] = [
   {
     id: '1',
-    date: '2025-12-31',
+    date: '2026-03-31',
     time: '09:00 12:11',
-    inlandForecastDemand: '12,123',
+    inlandForecastDemand: '12,123 ',
     totalForecastDemand: '32,291 원',
     smp: '14.93원',
   },
   {
     id: '2',
-    date: '2025-12-30',
+    date: '2026-03-30',
     time: '09:00 12:00',
     inlandForecastDemand: '12,243',
     totalForecastDemand: '34,491 원',
@@ -145,7 +145,7 @@ const smpRows: SmpPriceRow[] = [
   },
   {
     id: '3',
-    date: '2025-12-29',
+    date: '2026-03-29',
     time: '09:00 11:56',
     inlandForecastDemand: '11,123',
     totalForecastDemand: '31,902 원',
@@ -153,7 +153,7 @@ const smpRows: SmpPriceRow[] = [
   },
   {
     id: '4',
-    date: '2025-12-28',
+    date: '2026-03-28',
     time: '09:00 11:48',
     inlandForecastDemand: '12,845',
     totalForecastDemand: '33,102 원',
@@ -161,7 +161,7 @@ const smpRows: SmpPriceRow[] = [
   },
   {
     id: '5',
-    date: '2025-12-27',
+    date: '2026-03-27',
     time: '09:00 11:31',
     inlandForecastDemand: '12,551',
     totalForecastDemand: '32,448 원',
@@ -173,7 +173,7 @@ const smpRows: SmpPriceRow[] = [
 const recRows: RecPriceRow[] = [
   {
     id: '1',
-    date: '2025-12-31',
+    date: '2026-03-31',
     time: '09:00 12:11',
     avgPrice: '12,123 원',
     highPrice: '10,921 원',
@@ -181,7 +181,7 @@ const recRows: RecPriceRow[] = [
   },
   {
     id: '2',
-    date: '2025-12-30',
+    date: '2026-03-30',
     time: '09:00 12:00',
     avgPrice: '12,243 원',
     highPrice: '11,971 원',
@@ -189,7 +189,7 @@ const recRows: RecPriceRow[] = [
   },
   {
     id: '3',
-    date: '2025-12-29',
+    date: '2026-03-29',
     time: '09:00 11:56',
     avgPrice: '11,123 원',
     highPrice: '11,962 원',
@@ -197,7 +197,7 @@ const recRows: RecPriceRow[] = [
   },
   {
     id: '4',
-    date: '2025-12-28',
+    date: '2026-03-28',
     time: '09:00 11:48',
     avgPrice: '12,845 원',
     highPrice: '10,884 원',
@@ -205,7 +205,7 @@ const recRows: RecPriceRow[] = [
   },
   {
     id: '5',
-    date: '2025-12-27',
+    date: '2026-03-27',
     time: '09:00 11:31',
     avgPrice: '12,551 원',
     highPrice: '10,337 원',
@@ -247,6 +247,8 @@ const recColumns: {
 // 스타일 상수
 // ─────────────────────────────────────────────
 
+const dateStyle: CSSProperties = { width: "120px" };
+// const cellLefttStyle: CSSProperties = { textAlign: 'left', paddingLeft: '20px' };
 const cellRightStyle: CSSProperties = { textAlign: 'right', paddingRight: '20px' };
 const tableWrapStyle: CSSProperties = {
   width: '100%',
@@ -289,7 +291,7 @@ function SmpStackedLineChart({ data = SMP_CHART_DUMMY }: { data?: SmpChartItem[]
             const val =
               'value' in p && typeof p.value === 'number' ? p.value.toLocaleString() : '-';
             const marker = 'marker' in p && typeof p.marker === 'string' ? p.marker : '';
-            const unit = name === 'SMP' ? ' 원/kWh' : ' MW';
+            const unit = ' 원';
             return `${marker}${name}: ${val}${unit}`;
           });
           return [date, ...lines].join('<br/>');
@@ -314,14 +316,14 @@ function SmpStackedLineChart({ data = SMP_CHART_DUMMY }: { data?: SmpChartItem[]
       yAxis: [
         {
           type: 'value',
-          name: 'MW',
+          name: '원',
           nameTextStyle: { color: '#615E83', fontSize: 10 },
           axisLabel: { color: '#615E83', fontSize: 11 },
           splitLine: { lineStyle: { type: 'dashed', color: '#EDF2F7' } },
         },
         {
           type: 'value',
-          name: '원/kWh',
+          name: '원',
           nameTextStyle: { color: '#615E83', fontSize: 10 },
           axisLabel: { color: '#615E83', fontSize: 11 },
           splitLine: { show: false },
@@ -549,11 +551,11 @@ function SmpTable({ rows }: { rows: SmpPriceRow[] }) {
         <TableBody>
           {rows.map((item) => (
             <Row key={item.id}>
-              <Cell>{item.date}</Cell>
-              <Cell>{item.time}</Cell>
-              <Cell style={cellRightStyle}>{item.inlandForecastDemand}</Cell>
-              <Cell style={cellRightStyle}>{item.totalForecastDemand}</Cell>
-              <Cell style={cellRightStyle}>{item.smp}</Cell>
+              <Cell style={dateStyle}>{item.date}</Cell>
+              <Cell style={dateStyle}>{item.time}</Cell>
+              <Cell style={cellRightStyle}>{item.inlandForecastDemand} 원</Cell>
+              <Cell style={cellRightStyle}>{item.totalForecastDemand} 원</Cell>
+              <Cell style={cellRightStyle}>{item.smp.replace(/원/g, '').trim()} 원</Cell>
             </Row>
           ))}
         </TableBody>
