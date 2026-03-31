@@ -8,6 +8,7 @@ import { useGetMonitorWeather } from '@/services/monitoring/weather/query';
 import type { BarChartData } from '@/components/monitoring/monitoring-barchart.component';
 import { useSearchParams } from 'next/navigation';
 import { useDashboardSocketContext } from '@/providers/DashboardSocketContext';
+import { useGetPlantBaseCombo } from '@/services/plants/query';
 
 import { TopDashboardSection } from './parts/TopPanel';
 import { SidePieChartGroup } from './parts/PieCharts';
@@ -25,11 +26,11 @@ import {
   mergeSocketStatusMapWithCache,
 } from './parts/utils';
 import {
-  buildEfficiencyChartData,
   buildFrequencyChartData,
-  buildInverterTotalEnergyChartData,
+  buildIrradianceChartData,
   buildPowerChartData,
   buildPowerFactorChartData,
+  buildTemperatureChartData,
   buildTodayPowerChartData,
 } from './parts/chartInverterMap';
 import type { DashboardSocketPlantStatus, GenTableItem, MonitoringOpProps } from './parts/types';
@@ -44,6 +45,8 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
   /* =========================
    * 상태값 — SSR 안전한 초기값 (모두 빈값)
    * ========================= */
+  const { data: plantCombo } = useGetPlantBaseCombo();
+
   const [pwplIds, setPwplIds] = useState<string[]>(initialPwplIds);
   const [selectedPlantNames, setSelectedPlantNames] = useState<string[]>([]);
   const [selectedMacAddrs, setSelectedMacAddrs] = useState<string[]>([]);
@@ -76,8 +79,8 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
       {},
     );
     setCachedSocketStatusMap(filteredCacheMap);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   /* =========================
    * 파생값
@@ -88,9 +91,21 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
     return selectedPlantNames.join(', ');
   }, [selectedPlantNames]);
 
+  // selectedMacAddrs가 비어있으면 plantCombo에서 pwplIds 기준으로 MAC 자동 파생
+  const effectiveMacAddrs = useMemo(() => {
+    if (selectedMacAddrs.length > 0) return selectedMacAddrs;
+    if (!plantCombo || pwplIds.length === 0) return [];
+    return pwplIds
+      .map((id) => {
+        const plant = plantCombo.find((p) => p.pwplId === id);
+        return plant?.macAddr ? normalizeMac(plant.macAddr) : '';
+      })
+      .filter(Boolean);
+  }, [selectedMacAddrs, plantCombo, pwplIds]);
+
   const weatherPwplId = useMemo(() => pwplIds[0] ?? '', [pwplIds]);
   const pwplIdsKey = useMemo(() => pwplIds.join(','), [pwplIds]);
-  const selectedMacKey = useMemo(() => selectedMacAddrs.join(','), [selectedMacAddrs]);
+  const selectedMacKey = useMemo(() => effectiveMacAddrs.join(','), [effectiveMacAddrs]);
 
   const { data: weatherData } = useGetMonitorWeather(
     { pwplId: weatherPwplId },
@@ -101,13 +116,13 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
    * 선택 MAC 기준 캐시 재조회
    * ========================= */
   useEffect(() => {
-    if (selectedMacAddrs.length === 0) {
+    if (effectiveMacAddrs.length === 0) {
       setCachedSocketStatusMap({});
       return;
     }
 
     const nextCacheMap = readSocketCacheMap();
-    const filteredCacheMap = selectedMacAddrs.reduce<Record<string, DashboardSocketPlantStatus>>(
+    const filteredCacheMap = effectiveMacAddrs.reduce<Record<string, DashboardSocketPlantStatus>>(
       (acc, macAddr) => {
         const normalizedMacAddr = normalizeMac(macAddr);
         const cachedItem = nextCacheMap[normalizedMacAddr];
@@ -119,16 +134,16 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
       {},
     );
     setCachedSocketStatusMap(filteredCacheMap);
-  }, [selectedMacKey, selectedMacAddrs]);
+  }, [selectedMacKey, effectiveMacAddrs]);
 
   /* =========================
    * 실시간 소켓값 캐시 반영
    * ========================= */
   useEffect(() => {
-    if (selectedMacAddrs.length === 0) return;
+    if (effectiveMacAddrs.length === 0) return;
 
     const normalizedLiveMap = normalizeSocketStatusMap(socketStatusMap);
-    const hasSelectedLiveData = selectedMacAddrs.some((macAddr) =>
+    const hasSelectedLiveData = effectiveMacAddrs.some((macAddr) =>
       Boolean(normalizedLiveMap[normalizeMac(macAddr)]),
     );
 
@@ -137,7 +152,7 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
     const currentCacheMap = readSocketCacheMap();
     const nextCacheMap = { ...currentCacheMap };
 
-    selectedMacAddrs.forEach((macAddr) => {
+    effectiveMacAddrs.forEach((macAddr) => {
       const normalizedMacAddr = normalizeMac(macAddr);
       const liveItem = normalizedLiveMap[normalizedMacAddr];
       if (liveItem) {
@@ -148,7 +163,7 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
     writeSocketCacheMap(nextCacheMap);
     setCachedSocketStatusMap((prev) => {
       const mergedMap = { ...prev };
-      selectedMacAddrs.forEach((macAddr) => {
+      effectiveMacAddrs.forEach((macAddr) => {
         const normalizedMacAddr = normalizeMac(macAddr);
         const liveItem = normalizedLiveMap[normalizedMacAddr];
         if (liveItem) {
@@ -157,24 +172,24 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
       });
       return mergedMap;
     });
-  }, [socketStatusMap, selectedMacKey, selectedMacAddrs]);
+  }, [socketStatusMap, selectedMacKey, effectiveMacAddrs]);
 
   /* =========================
    * 실시간 데이터 메모
    * ========================= */
   const effectiveSocketStatusMap = useMemo(
-    () => mergeSocketStatusMapWithCache(socketStatusMap, cachedSocketStatusMap, selectedMacAddrs),
-    [socketStatusMap, cachedSocketStatusMap, selectedMacAddrs],
+    () => mergeSocketStatusMapWithCache(socketStatusMap, cachedSocketStatusMap, effectiveMacAddrs),
+    [socketStatusMap, cachedSocketStatusMap, effectiveMacAddrs],
   );
 
   const inverterRealtimeMap = useMemo(
-    () => buildRealtimeMapFromSocketStatus(effectiveSocketStatusMap, selectedMacAddrs),
-    [effectiveSocketStatusMap, selectedMacAddrs],
+    () => buildRealtimeMapFromSocketStatus(effectiveSocketStatusMap, effectiveMacAddrs),
+    [effectiveSocketStatusMap, effectiveMacAddrs],
   );
 
   const selectedInverterMap = useMemo(
-    () => buildSelectedInverterMap(inverterRealtimeMap, selectedMacAddrs),
-    [inverterRealtimeMap, selectedMacAddrs],
+    () => buildSelectedInverterMap(inverterRealtimeMap, effectiveMacAddrs),
+    [inverterRealtimeMap, effectiveMacAddrs],
   );
 
   const operationSocketInverterMap = useMemo(
@@ -215,13 +230,13 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
     [effectiveSelectedInverterMap],
   );
 
-  const efficiencyChartData = useMemo(
-    () => buildEfficiencyChartData(effectiveSelectedInverterMap),
+  const irradianceChartData = useMemo(
+    () => buildIrradianceChartData(effectiveSelectedInverterMap),
     [effectiveSelectedInverterMap],
   );
 
-  const inverterTotalEnergyChartData = useMemo(
-    () => buildInverterTotalEnergyChartData(effectiveSelectedInverterMap),
+  const temperatureChartData = useMemo(
+    () => buildTemperatureChartData(effectiveSelectedInverterMap),
     [effectiveSelectedInverterMap],
   );
 
@@ -297,8 +312,8 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
         <SidePieChartGroup
           items={[
             { centerText: '금일 발전량', data: todayPowerChartData },
-            { centerText: '일사량', data: efficiencyChartData },
-            { centerText: 'PV 모듈 온도', data: inverterTotalEnergyChartData },
+            { centerText: '일사량', data: irradianceChartData },
+            { centerText: 'PV 모듈 온도', data: temperatureChartData },
           ]}
         />
       </div>

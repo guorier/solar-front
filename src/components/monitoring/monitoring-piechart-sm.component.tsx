@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
 import type { EChartsOption } from 'echarts';
 import type { CallbackDataParams } from 'echarts/types/dist/shared';
@@ -87,6 +87,18 @@ export function PieChartSmComponent({
   width = 240,
   height = 240,
 }: PieChartProps) {
+  const echartsRef = useRef<ReactECharts>(null);
+
+  useEffect(() => {
+    const chart = echartsRef.current;
+    return () => {
+      const instance = chart?.getEchartsInstance();
+      if (instance && !instance.isDisposed()) {
+        instance.clear();
+      }
+    };
+  }, []);
+
   const chartData = useMemo(
     () =>
       data || [
@@ -122,7 +134,6 @@ export function PieChartSmComponent({
           const value = Number(
             typeof item.value === 'number' || typeof item.value === 'string' ? item.value : 0,
           );
-          const percent = Number(item.percent ?? 0);
           const dataItem =
             item.data && typeof item.data === 'object' ? (item.data as DonutDataItem) : undefined;
           const rawValue = Number(dataItem?.rawValue ?? value);
@@ -139,8 +150,7 @@ export function PieChartSmComponent({
                 ${item.marker ?? ''}
                 <span>${item.name ?? '-'}</span>
               </div>
-              <div style="padding-left:14px;">값: ${valueText}</div>
-              <div style="padding-left:14px;">비율: ${formatNumber(percent, 1)}%</div>
+              <div style="padding-left:14px;">${valueText}</div>
             </div>
           `;
         },
@@ -203,6 +213,7 @@ export function PieChartSmComponent({
   return (
     <div style={{ position: 'relative', width, height }}>
       <ReactECharts
+        ref={echartsRef}
         option={option}
         style={{ height: '100%', width: '100%' }}
         opts={{ renderer: 'svg' }}

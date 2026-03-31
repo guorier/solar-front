@@ -12,8 +12,10 @@ import type {
   SavedPlantItem,
 } from './types';
 
-export const safeToFixed = (value: number | string | null | undefined, digits: number) =>
-  Number(Number(value ?? 0).toFixed(digits));
+export const safeToFixed = (value: number | string | null | undefined, digits: number) => {
+  const num = Number(value ?? 0);
+  return Number((Number.isFinite(num) ? num : 0).toFixed(digits));
+};
 
 export const toChartValue = (value: number) => (value > 0 ? safeToFixed(value, 2) : 0.0001);
 
@@ -277,8 +279,8 @@ export const buildOperationSocketInverterMap = (
           inverterTotalEnergy: safeToFixed(item.inverterTotalEnergy, 2),
           modulePower: safeToFixed(item.predictionPowerW, 2),
           predictionPowerW: safeToFixed(item.predictionPowerW, 2),
-          irradianceWm2: 0,
-          temperatureC: 0,
+          irradianceWm2: safeToFixed(item.irradianceWm2, 2),
+          temperatureC: safeToFixed(item.temperatureC, 2),
         };
       });
 
@@ -286,7 +288,9 @@ export const buildOperationSocketInverterMap = (
   }, {});
 };
 
-export const aggregateRealtimeData = (inverterMap: Record<number, RealtimeInverterItem>): RealtimeData => {
+export const aggregateRealtimeData = (
+  inverterMap: Record<number, RealtimeInverterItem>,
+): RealtimeData => {
   const values = Object.values(inverterMap);
 
   if (values.length === 0) {
@@ -331,10 +335,7 @@ export const aggregateRealtimeData = (inverterMap: Record<number, RealtimeInvert
       values.reduce((sum, item) => sum + item.todayPower, 0),
       2,
     ),
-    efficiency: safeToFixed(
-      values.reduce((sum, item) => sum + item.efficiency, 0) / count,
-      2,
-    ),
+    efficiency: safeToFixed(values.reduce((sum, item) => sum + item.efficiency, 0) / count, 2),
     inverterStatus: lastItem.inverterStatus,
     statusConnection: lastItem.statusConnection,
     inverterTotalEnergy: safeToFixed(
@@ -353,10 +354,7 @@ export const aggregateRealtimeData = (inverterMap: Record<number, RealtimeInvert
       values.reduce((sum, item) => sum + item.irradianceWm2, 0) / count,
       2,
     ),
-    temperatureC: safeToFixed(
-      values.reduce((sum, item) => sum + item.temperatureC, 0) / count,
-      2,
-    ),
+    temperatureC: safeToFixed(values.reduce((sum, item) => sum + item.temperatureC, 0) / count, 2),
   };
 };
 

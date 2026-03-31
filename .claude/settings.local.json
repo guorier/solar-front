@@ -1,7 +1,23 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Edit",
+      "Write"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"try{const d=JSON.parse(require('fs').readFileSync(0,'utf8'));const f=d.tool_input&&d.tool_input.file_path;if(f&&/\\.(ts|tsx|js|jsx|json|css|scss)$/.test(f)){require('child_process').execSync('npx prettier --write '+JSON.stringify(f),{stdio:'inherit'})}}catch(e){}\" 2>/dev/null || true",
+            "statusMessage": "Prettier 포맷팅 중..."
+          }
+        ]
+      }
     ]
   }
 }

@@ -42,3 +42,15 @@ export const buildEfficiencyChartData = (
 export const buildInverterTotalEnergyChartData = (
   inverterMap: Record<number, RealtimeInverterItem>,
 ): DonutDataItem[] => mapChartData(inverterMap, (item) => item.inverterTotalEnergy, 'kWh');
+
+export const buildIrradianceChartData = (
+  inverterMap: Record<number, RealtimeInverterItem>,
+): DonutDataItem[] => mapChartData(inverterMap, (item) => item.irradianceWm2, 'W');
+
+export const buildTemperatureChartData = (
+  inverterMap: Record<number, RealtimeInverterItem>,
+): DonutDataItem[] => mapChartData(inverterMap, (item) => item.temperatureC, '%');
+
+export const buildPredictionPowerChartData = (
+  inverterMap: Record<number, RealtimeInverterItem>,
+): DonutDataItem[] => mapChartData(inverterMap, (item) => item.predictionPowerW, 'W');

@@ -130,7 +130,6 @@ export function DashboardSocketProvider({ children }: { children: ReactNode }) {
   const shouldUseRealtimeSocket = true;
   const shouldUsePowerTrendSocket = pathname.startsWith('/monitoring/power');
   const shouldUseDashboardChartSocket = pathname === '/';
-  const shouldUseOperationChartSocket = pathname.startsWith('/monitoring/operation');
 
   const allPwplIds = useMemo(() => {
     return (
@@ -190,24 +189,23 @@ export function DashboardSocketProvider({ children }: { children: ReactNode }) {
   const [operationPwplId, setOperationPwplId] = useState('');
 
   useEffect(() => {
-    if (!shouldUseOperationChartSocket) {
-      setOperationPwplId('');
-      return;
-    }
+    // operation 페이지 진입 시 최신 선택 발전소로 갱신 (이탈 시에는 기존 값 유지 → 소켓 유지)
+    if (!pathname.startsWith('/monitoring/operation')) return;
     try {
       const raw = localStorage.getItem('pwplIds');
       if (!raw) return;
       const parsed = JSON.parse(raw) as string[] | Array<{ pwplId: string }>;
       if (!Array.isArray(parsed) || parsed.length === 0) return;
       const first = parsed[0];
-      setOperationPwplId(typeof first === 'string' ? first : (first.pwplId ?? ''));
+      const nextId = typeof first === 'string' ? first : (first.pwplId ?? '');
+      if (nextId) setOperationPwplId(nextId);
     } catch {
       // ignore
     }
-  }, [shouldUseOperationChartSocket]);
+  }, [pathname]);
 
   const operationChartDataMap = useOperationChartSocket({
-    pwplIds: shouldUseOperationChartSocket && operationPwplId ? [operationPwplId] : [],
+    pwplIds: operationPwplId ? [operationPwplId] : [],
   });
 
   // useEffect(() => {

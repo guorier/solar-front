@@ -22,7 +22,6 @@ export const TopDashboardSection = ({
   weatherData?: MonitorWeatherRes;
 }) => {
   const inverterTotalEnergyDisplay = formatEnergyDisplay(realtimeData.inverterTotalEnergy);
-  const modulePowerDisplay = formatPowerDisplay(realtimeData.modulePower);
 
   return (
     <div
@@ -90,14 +89,14 @@ export const TopDashboardSection = ({
           </ProgressbarComponent>
 
           <ProgressbarComponent
-            title="예상 발전량"
-            count={modulePowerDisplay.value}
-            unit={modulePowerDisplay.unit}
+            title="예측 발전량"
+            count={formatPowerDisplay(realtimeData.predictionPowerW).value}
+            unit={formatPowerDisplay(realtimeData.predictionPowerW).unit}
             rightSide
           >
             <Progressbar
-              aria-label="예상 발전량"
-              value={getProgressPercent(realtimeData.modulePower, MODULE_POWER_MAX_W)}
+              aria-label="예측 발전량"
+              value={getProgressPercent(realtimeData.predictionPowerW, MODULE_POWER_MAX_W)}
               fillColor="#DB5F00"
               trackColor="#ece8eb"
               height={18}
