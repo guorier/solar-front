@@ -24,6 +24,7 @@ interface ProgressbarProps {
   rightSide?: ReactNode;
   children?: ReactNode;
   direction?: string;
+  fractionDigits?: number;
 }
 
 //style
@@ -150,11 +151,19 @@ export const ProgressbarComponent: React.FC<ProgressbarProps> = ({
   tag,
   rightSide,
   children,
+  fractionDigits,
 }) => {
   const formatNumber = (value: number | string) => {
     if (value === undefined || value === null) return '';
     const num = typeof value === 'string' ? Number(value.replace(/[^0-9.-]+/g, '')) : value;
-    return Number.isNaN(num) ? value : num.toLocaleString(undefined, { maximumFractionDigits: 1 });
+    return Number.isNaN(num)
+      ? value
+      : num.toLocaleString(
+          undefined,
+          fractionDigits !== undefined
+            ? { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits }
+            : { maximumFractionDigits: 1 },
+        );
   };
 
   return (

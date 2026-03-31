@@ -11,7 +11,7 @@ import AnimatedWaveGauge from '@/components/chart/AnimatedWaveGauge';
 import type { MonitorWeatherRes } from '@/services/monitoring/weather/type';
 import { CircleGlowBackground } from './GlowBg';
 import { INVERTER_TOTAL_ENERGY_MAX_KWH, MODULE_POWER_MAX_W } from './constants';
-import { formatEnergyDisplay, formatPowerDisplay, getProgressPercent, safeToFixed } from './utils';
+import { formatEnergyDisplay, getProgressPercent, safeToFixed } from './utils';
 import type { RealtimeData } from './types';
 
 export const TopDashboardSection = ({
@@ -73,6 +73,7 @@ export const TopDashboardSection = ({
             title="인버터 누적 발전량"
             count={inverterTotalEnergyDisplay.value}
             unit={inverterTotalEnergyDisplay.unit}
+            fractionDigits={2}
             rightSide
           >
             <Progressbar
@@ -90,8 +91,9 @@ export const TopDashboardSection = ({
 
           <ProgressbarComponent
             title="예측 발전량"
-            count={formatPowerDisplay(realtimeData.predictionPowerW).value}
-            unit={formatPowerDisplay(realtimeData.predictionPowerW).unit}
+            count={safeToFixed(realtimeData.predictionPowerW / 1000, 2)}
+            unit="kW"
+            fractionDigits={2}
             rightSide
           >
             <Progressbar
