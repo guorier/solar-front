@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import { Badge } from './Badge';
 import type { PwplDashboardEntity } from '@/services/dashboard/type';
 import type { PlantData } from '@/app/(home)/page';
+import { useDashboardSocketContext } from '@/providers/DashboardSocketContext';
 
 const toFixedTwo = (value: number | string | null | undefined): string => {
   const numericValue = Number(value ?? 0);
@@ -56,6 +57,7 @@ export function PlantDetailSection({
   pwplIds: string[];
 }) {
   const router = useRouter();
+  const { setOperationPwplId } = useDashboardSocketContext();
   const isSingleSelection = pwplIds.length === 1;
   const plantDetail = dashboardData?.plantDetail;
 
@@ -68,7 +70,7 @@ export function PlantDetailSection({
   const pwplLat = plantDetail?.pwplLat ?? data?.lat;
   const pwplLot = plantDetail?.pwplLot ?? data?.lng;
   const updateTime = formatOccurredAt(plantDetail?.occurredAt) ?? data?.detail?.updateTime ?? '-';
-  
+
   return (
     <InfoGroupComponent
       isCollapsible
@@ -147,6 +149,7 @@ export function PlantDetailSection({
                 },
               ]),
             );
+            setOperationPwplId(data.pwplId);
             router.push('/monitoring/operation');
           }}
         >

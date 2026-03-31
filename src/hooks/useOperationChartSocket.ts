@@ -50,6 +50,12 @@ const parseItem = (
   };
 };
 
+// 초기 데이터: { targetPwplId, operateData: [...] } 형태
+type InitialPlantNode = {
+  targetPwplId: string;
+  operateData: Record<string, unknown>[];
+};
+
 export function useOperationChartSocket({ pwplIds }: Props) {
   const WS_URL = process.env.NEXT_PUBLIC_WS_SOLAR ?? '/ws';
   const WS_OPERATION_CHART_TOPIC =
@@ -83,6 +89,8 @@ export function useOperationChartSocket({ pwplIds }: Props) {
 
     inverterMapRef.current = {};
 
+    const channelId = `operate-dash-${Date.now()}`;
+
     const flushState = () => {
       const next: Record<string, OperationChartSocketItem[]> = {};
       Object.entries(inverterMapRef.current).forEach(([pwplId, deviceMap]) => {
@@ -91,6 +99,18 @@ export function useOperationChartSocket({ pwplIds }: Props) {
         );
       });
       setOperationChartDataMap(next);
+    };
+
+    const applyList = (list: Record<string, unknown>[], fallbackPwplId: string) => {
+      list.forEach((row) => {
+        const item = parseItem(row, fallbackPwplId);
+        if (!item) return;
+
+        if (!inverterMapRef.current[item.targetPwplId]) {
+          inverterMapRef.current[item.targetPwplId] = {};
+        }
+        inverterMapRef.current[item.targetPwplId][String(item.deviceAddresses)] = item;
+      });
     };
 
     const client = new Client({
@@ -114,40 +134,60 @@ export function useOperationChartSocket({ pwplIds }: Props) {
       });
       subscriptionsRef.current = [];
 
+      // ── 구독 1: 초기 10분치 데이터 ──────────────────────────────────
+      const initialTopic = `/topic/operate-monitor-initial/${channelId}`;
+      try {
+        const initialSub = client.subscribe(initialTopic, (message: IMessage) => {
+          console.log(`[운영차트 소켓] 초기 데이터 수신 — ${initialTopic}`);
+          try {
+            const json = JSON.parse(message.body) as InitialPlantNode[];
+            json.forEach((plantNode) => {
+              applyList(plantNode.operateData ?? [], plantNode.targetPwplId);
+            });
+            flushState();
+          } catch (e) {
+            console.error('[운영차트 소켓] 초기 데이터 파싱 오류', e);
+          }
+        });
+        subscriptionsRef.current.push(initialSub);
+        console.log(`[운영차트 소켓] 초기 구독 완료 → ${initialTopic}`);
+      } catch (e) {
+        console.error(`[운영차트 소켓] 초기 구독 실패 — ${initialTopic}`, e);
+      }
+
+      // ── 구독 2: 실시간 갱신 ─────────────────────────────────────────
       currentPwplIds.forEach((pwplId) => {
         const topic = `${WS_OPERATION_CHART_TOPIC}/${pwplId}`;
-
         try {
           const subscription = client.subscribe(topic, (message: IMessage) => {
             console.log(`[운영차트 소켓] ★ 메시지 수신 — ${topic}`);
             try {
               const json = JSON.parse(message.body);
               const list: Record<string, unknown>[] = Array.isArray(json) ? json : [json];
-
               console.log(`[운영차트 소켓] 데이터 ${list.length}건:`, list);
-
-              list.forEach((row) => {
-                const item = parseItem(row, pwplId);
-                if (!item) return;
-
-                if (!inverterMapRef.current[item.targetPwplId]) {
-                  inverterMapRef.current[item.targetPwplId] = {};
-                }
-                inverterMapRef.current[item.targetPwplId][String(item.deviceAddresses)] = item;
-              });
-
+              applyList(list, pwplId);
               flushState();
             } catch (e) {
               console.error('[운영차트 소켓] 파싱 오류', e);
             }
           });
-
           subscriptionsRef.current.push(subscription);
           console.log(`[운영차트 소켓] 구독 완료 → ${topic}`);
         } catch (e) {
           console.error(`[운영차트 소켓] 구독 실패 — ${topic}`, e);
         }
       });
+
+      // ── 요청: 초기 데이터 달라고 서버에 발송 ───────────────────────
+      try {
+        client.publish({
+          destination: '/app/request-operate-monitor',
+          body: JSON.stringify({ targetPwplIds: currentPwplIds, channelId }),
+        });
+        console.log(`[운영차트 소켓] 초기 데이터 요청 발송 → channelId: ${channelId}`);
+      } catch (e) {
+        console.error('[운영차트 소켓] 초기 데이터 요청 실패', e);
+      }
     };
 
     client.onStompError = (frame) => {

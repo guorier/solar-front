@@ -2,7 +2,7 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-// import MonitoringClient from './MonitoringClient';
+import { useRouter } from 'next/navigation';
 import OperationMonitor from '@/constants/monitoring/operation/OperationMonitor';
 
 type StoredPlantItem = {
@@ -36,17 +36,21 @@ const getStoredPwplIds = (value: string | null): string[] => {
 };
 
 export default function MonitoringPage() {
+  const router = useRouter();
   const [pwplIds, setPwplIds] = useState<string[]>([]);
 
   useEffect(() => {
     const stored = localStorage.getItem('pwplIds');
-    setPwplIds(getStoredPwplIds(stored));
-  }, []);
+    const ids = getStoredPwplIds(stored);
 
-  // useEffect(() => {
-  //   console.log('operation storage', localStorage.getItem('pwplIds'));
-  //   console.log('operation state', pwplIds);
-  // }, [pwplIds]);
+    if (ids.length !== 1) {
+      alert('발전소를 1개만 선택해야 합니다.\n발전소를 선택해 주세요.');
+      router.replace('/');
+      return;
+    }
+
+    setPwplIds(ids);
+  }, [router]);
 
   return (
     <Suspense fallback={null}>

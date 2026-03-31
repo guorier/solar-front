@@ -46,6 +46,7 @@ type DashboardSocketContextType = {
   powerTrendChartData: PowerTrendChartItem[];
   dashboardChartDataMap: Record<string, DashboardChartItem[]>;
   operationChartDataMap: Record<string, OperationChartSocketItem[]>;
+  setOperationPwplId: (id: string) => void;
 };
 
 export const DashboardSocketContext = createContext<DashboardSocketContextType>({
@@ -55,6 +56,7 @@ export const DashboardSocketContext = createContext<DashboardSocketContextType>(
   powerTrendChartData: [],
   dashboardChartDataMap: {},
   operationChartDataMap: {},
+  setOperationPwplId: () => {},
 });
 
 export function useDashboardSocketContext() {

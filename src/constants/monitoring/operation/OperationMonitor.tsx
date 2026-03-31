@@ -12,6 +12,7 @@ import { useGetPlantBaseCombo } from '@/services/plants/query';
 
 import { TopDashboardSection } from './parts/TopPanel';
 import { SidePieChartGroup } from './parts/PieCharts';
+import './parts/OperationSkeleton.scss';
 import {
   aggregateRealtimeData,
   buildRealtimeMapFromSocketStatus,
@@ -56,6 +57,7 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
 
   const [, setGenTableState] = useState<GenTableItem[]>([]);
   const [, setChartDataState] = useState<BarChartData[]>([]);
+  const [isSocketReady, setIsSocketReady] = useState(false);
 
   /* =========================
    * 마운트 후 localStorage 복원 (클라이언트 전용)
@@ -280,7 +282,19 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
   useEffect(() => {
     setGenTableState([]);
     setChartDataState([]);
+    setIsSocketReady(false);
   }, [pwplIdsKey, selectedMacKey]);
+
+  /* =========================
+   * 소켓 첫 데이터 도착 감지
+   * ========================= */
+  useEffect(() => {
+    if (isSocketReady) return;
+    const hasData = Object.keys(operationChartDataMap).some(
+      (key) => operationChartDataMap[key].length > 0,
+    );
+    if (hasData) setIsSocketReady(true);
+  }, [operationChartDataMap, isSocketReady]);
 
   /* =========================
    * 렌더
@@ -295,7 +309,14 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
         />
       </div>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1" style={{ position: 'relative' }}>
+        {!isSocketReady && (
+          <div className="operation-skeleton-overlay">
+            <div className="operation-skeleton-spinner" />
+            <div className="operation-skeleton-bar" />
+            <span className="operation-skeleton-text">실시간 데이터 수신 중...</span>
+          </div>
+        )}
         <SidePieChartGroup
           items={[
             { centerText: 'GRID 전압', data: formattedAvgVoltage },

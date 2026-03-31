@@ -4,12 +4,22 @@
 import { InfoGroupComponent, LineChartComponent } from '@/components';
 import type { PwplDashboardChartItem } from '@/services/dashboard/type';
 
-export function TodayPowerGeneration({
-  chart,
-}: {
-  chart: PwplDashboardChartItem[];
-}) {
-  const isEmpty = !chart || chart.length === 0;
+const filterLastHour = (chart: PwplDashboardChartItem[]): PwplDashboardChartItem[] => {
+  const now = new Date();
+  const cutoff = new Date(now.getTime() - 60 * 60 * 1000);
+  const cutoffMinutes = cutoff.getHours() * 60 + cutoff.getMinutes();
+
+  return chart.filter((item) => {
+    const [h, m] = item.label.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return false;
+    const itemMinutes = h * 60 + m;
+    return itemMinutes >= cutoffMinutes;
+  });
+};
+
+export function TodayPowerGeneration({ chart }: { chart: PwplDashboardChartItem[] }) {
+  const filtered = filterLastHour(chart);
+  const isEmpty = filtered.length === 0;
 
   return (
     <InfoGroupComponent flex={1} minHeight={247} title="실시간 출력량">
@@ -28,7 +38,7 @@ export function TodayPowerGeneration({
           표시할 출력량 데이터가 없습니다
         </div>
       ) : (
-        <LineChartComponent chart={chart} />
+        <LineChartComponent chart={filtered} />
       )}
     </InfoGroupComponent>
   );

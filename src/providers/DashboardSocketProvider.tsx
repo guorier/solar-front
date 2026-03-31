@@ -221,6 +221,7 @@ export function DashboardSocketProvider({ children }: { children: ReactNode }) {
         powerTrendChartData,
         dashboardChartDataMap,
         operationChartDataMap,
+        setOperationPwplId,
       }}
     >
       {children}

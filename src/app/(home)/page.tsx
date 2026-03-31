@@ -262,7 +262,7 @@ export default function DashboardPage() {
     [toFixedTwo],
   );
 
-  const { realtimeData } = useDashboardSocketContext();
+  const { realtimeData, setOperationPwplId } = useDashboardSocketContext();
   const socketStatusMap = realtimeData as Record<string, DashboardSocketPlantStatus>;
 
   const { data: dashboardData, dataUpdatedAt } = usePostDashboardSelect({
@@ -707,7 +707,7 @@ export default function DashboardPage() {
           */}
         </div>
 
-        <div className="row-group" style={{ width: "500px" }}>
+        <div className="row-group" style={{ width: '500px' }}>
           <TodayPowerGeneration chart={liveDashboardData?.chart ?? []} />
 
           <WeatherInfoSection data={roundedSelectedPlant} dashboardData={liveDashboardData} />
@@ -761,6 +761,10 @@ export default function DashboardPage() {
             if (target) {
               setSelectedPlant((prev) => buildNextSelectedPlant(prev, target));
               setFirstSelectedPwplId(target.pwplId);
+            }
+
+            if (plants.length === 1) {
+              setOperationPwplId(first.pwplId);
             }
           }
         }}
