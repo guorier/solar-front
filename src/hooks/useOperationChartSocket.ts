@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import SockJS from 'sockjs-client';
 import { Client, type IMessage, type StompSubscription } from '@stomp/stompjs';
-import type { OperationChartSocketItem } from '@/constants/monitoring/operation/parts/types';
+import type { OperationChartSocketItem } from '@/constants/monitoring/operation/utils/types';
 
 type Props = {
   pwplIds: string[];

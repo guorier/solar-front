@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from 'react';
 import type { useDashboardSocket } from '@/hooks/useDashboardSocket';
-import type { OperationChartSocketItem } from '@/constants/monitoring/operation/parts/types';
+import type { OperationChartSocketItem } from '@/constants/monitoring/operation/utils/types';
 
 type DashboardSocketMap = ReturnType<typeof useDashboardSocket>;
 
