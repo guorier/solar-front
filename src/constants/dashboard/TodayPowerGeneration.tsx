@@ -6,14 +6,19 @@ import type { PwplDashboardChartItem } from '@/services/dashboard/type';
 
 const filterLastHour = (chart: PwplDashboardChartItem[]): PwplDashboardChartItem[] => {
   const now = new Date();
-  const cutoff = new Date(now.getTime() - 60 * 60 * 1000);
-  const cutoffMinutes = cutoff.getHours() * 60 + cutoff.getMinutes();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const cutoffMinutes = nowMinutes - 60;
 
   return chart.filter((item) => {
     const [h, m] = item.label.split(':').map(Number);
     if (isNaN(h) || isNaN(m)) return false;
     const itemMinutes = h * 60 + m;
-    return itemMinutes >= cutoffMinutes;
+
+    if (cutoffMinutes < 0) {
+      // 자정 넘어가는 경우 (예: 현재 00:30 → cutoff 23:30)
+      return itemMinutes >= cutoffMinutes + 1440 || itemMinutes <= nowMinutes;
+    }
+    return itemMinutes >= cutoffMinutes && itemMinutes <= nowMinutes;
   });
 };
 

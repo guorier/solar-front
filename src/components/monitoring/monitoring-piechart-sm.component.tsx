@@ -11,7 +11,7 @@ interface DonutDataItem {
   value: number;
   color: string;
   rawValue?: number;
-  unit?: 'V' | '%' | 'Hz' | 'W' | 'Wh' | 'kWh';
+  unit?: 'V' | '%' | 'Hz' | 'W' | 'Wh' | 'kWh' | 'W/m²' | '℃';
 }
 
 interface PieChartProps {
@@ -70,6 +70,14 @@ const getTooltipValueText = (
 
   if (unit === '%') {
     return `${formatNumber(value, 2)} %`;
+  }
+
+  if (unit === 'W/m²') {
+    return `${formatNumber(value, 2)} W/m²`;
+  }
+
+  if (unit === '℃') {
+    return `${formatNumber(value, 2)} ℃`;
   }
 
   if (centerText === '운영상태' || centerText === '통신 상태') {
