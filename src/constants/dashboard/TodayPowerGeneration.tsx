@@ -4,22 +4,9 @@
 import { InfoGroupComponent, LineChartComponent } from '@/components';
 import type { PwplDashboardChartItem } from '@/services/dashboard/type';
 
+// API 배열의 마지막 항목을 현재 시간 기준으로 삼아 과거 1시간치(13포인트) 슬라이싱
 const filterLastHour = (chart: PwplDashboardChartItem[]): PwplDashboardChartItem[] => {
-  const now = new Date();
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const cutoffMinutes = nowMinutes - 60;
-
-  return chart.filter((item) => {
-    const [h, m] = item.label.split(':').map(Number);
-    if (isNaN(h) || isNaN(m)) return false;
-    const itemMinutes = h * 60 + m;
-
-    if (cutoffMinutes < 0) {
-      // 자정 넘어가는 경우 (예: 현재 00:30 → cutoff 23:30)
-      return itemMinutes >= cutoffMinutes + 1440 || itemMinutes <= nowMinutes;
-    }
-    return itemMinutes >= cutoffMinutes && itemMinutes <= nowMinutes;
-  });
+  return chart.slice(-13);
 };
 
 export function TodayPowerGeneration({ chart }: { chart: PwplDashboardChartItem[] }) {

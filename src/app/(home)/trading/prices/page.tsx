@@ -5,6 +5,7 @@ import { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import * as echarts from 'echarts';
 import type { EChartsOption } from 'echarts';
 import {
+  Pagination,
   Cell,
   Column,
   Row,
@@ -15,6 +16,8 @@ import {
   Icons,
 } from '@/components';
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'react-aria-components';
+
+const PAGE_SIZE = 20;
 
 // ─────────────────────────────────────────────
 // 타입 정의
@@ -126,7 +129,7 @@ const REC_CHART_DUMMY: RecChartItem[] = [
 ];
 
 // SMP 테이블 더미 데이터
-const smpRows: SmpPriceRow[] = [
+const legacySmpRows: SmpPriceRow[] = [
   {
     id: '1',
     date: '2026-03-31',
@@ -170,7 +173,7 @@ const smpRows: SmpPriceRow[] = [
 ];
 
 // REC 테이블 더미 데이터
-const recRows: RecPriceRow[] = [
+const legacyRecRows: RecPriceRow[] = [
   {
     id: '1',
     date: '2026-03-31',
@@ -217,6 +220,46 @@ const recRows: RecPriceRow[] = [
 // 테이블 컬럼 정의
 // ─────────────────────────────────────────────
 
+const smpRows: SmpPriceRow[] = Array.from({ length: 20 }, (_, index) => {
+  const day = 31 - index;
+  const inlandForecastDemand = 12123 + index * 94;
+  const totalForecastDemand = 32291 + index * 173;
+  const smp = (14.93 + index * 0.07).toFixed(2);
+
+  return {
+    id: String(index + 1),
+    date: `2026-03-${String(day).padStart(2, '0')}`,
+    time: `09:00 ${String(12 - Math.floor(index / 3)).padStart(2, '0')}:${String((11 + index * 7) % 60).padStart(2, '0')}`,
+    inlandForecastDemand: inlandForecastDemand.toLocaleString('ko-KR'),
+    totalForecastDemand: `${totalForecastDemand.toLocaleString('ko-KR')} MW`,
+    smp: `${smp}원`,
+  };
+});
+
+const recRows: RecPriceRow[] = Array.from({ length: 20 }, (_, index) => {
+  const day = 31 - index;
+  const avgPrice = 12123 + index * 118;
+  const highPrice = 10921 + index * 103;
+  const lowPriceValue = 9820 + index * 97;
+
+  return {
+    id: String(index + 1),
+    date: `2026-03-${String(day).padStart(2, '0')}`,
+    time: `09:00 ${String(12 - Math.floor(index / 3)).padStart(2, '0')}:${String((11 + index * 5) % 60).padStart(2, '0')}`,
+    avgPrice: `${avgPrice.toLocaleString('ko-KR')} 원`,
+    highPrice: `${highPrice.toLocaleString('ko-KR')} 원`,
+    lowPrice:
+      index % 6 === 0
+        ? '?꾨Ъ媛'
+        : index % 5 === 0
+          ? '?낆같媛'
+          : `${lowPriceValue.toLocaleString('ko-KR')} 원`,
+  };
+});
+
+void legacySmpRows;
+void legacyRecRows;
+
 const smpColumns: {
   key: keyof SmpPriceRow;
   label: string;
@@ -247,11 +290,12 @@ const recColumns: {
 // 스타일 상수
 // ─────────────────────────────────────────────
 
-const dateStyle: CSSProperties = { width: "120px" };
+const dateStyle: CSSProperties = { width: '120px' };
 // const cellLefttStyle: CSSProperties = { textAlign: 'left', paddingLeft: '20px' };
 const cellRightStyle: CSSProperties = { textAlign: 'right', paddingRight: '20px' };
 const tableWrapStyle: CSSProperties = {
   width: '100%',
+  height: 'calc(89vh - 816px)',
   overflow: 'auto',
   border: '1px solid #d9dde5',
   background: '#ffffff',
@@ -607,6 +651,18 @@ function RecTable({ rows }: { rows: RecPriceRow[] }) {
 
 export default function Page() {
   const [selectedTab, setSelectedTab] = useState<string>('smp');
+  const [smpPage, setSmpPage] = useState(1);
+  const [recPage, setRecPage] = useState(1);
+
+  const pagedSmpRows = useMemo(() => {
+    const start = (smpPage - 1) * PAGE_SIZE;
+    return smpRows.slice(start, start + PAGE_SIZE);
+  }, [smpPage]);
+
+  const pagedRecRows = useMemo(() => {
+    const start = (recPage - 1) * PAGE_SIZE;
+    return recRows.slice(start, start + PAGE_SIZE);
+  }, [recPage]);
 
   return (
     <div>
@@ -618,7 +674,6 @@ export default function Page() {
         />
       </div>
 
-      {/* 상단 요약 카드 */}
       <div
         style={{
           display: 'grid',
@@ -631,7 +686,6 @@ export default function Page() {
           <SummaryCard key={item.key} item={item} />
         ))}
       </div>
-
       <Tabs
         aria-label="SMP REC 관리"
         selectedKey={selectedTab}
@@ -644,7 +698,7 @@ export default function Page() {
 
         <TabPanels aria-label="SMP REC 패널">
           <TabPanel id="smp">
-            <div style={{ display: 'grid', gap: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%' }}>
               <div>
                 <div
                   style={{
@@ -660,14 +714,13 @@ export default function Page() {
                 <SmpStackedLineChart />
               </div>
 
-              <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: '12px',
-                    marginBottom: '12px',
                   }}
                 >
                   <div style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
@@ -676,8 +729,16 @@ export default function Page() {
                   <div style={{ fontSize: '13px', color: '#6b7280' }}>{smpRows.length}건</div>
                 </div>
                 {/* TODO: API 연결 시 → <SmpTable rows={apiRows} /> */}
-                <SmpTable rows={smpRows} />
+                <SmpTable rows={pagedSmpRows} />
               </div>
+              <Pagination
+                data={{
+                  page: smpPage,
+                  size: PAGE_SIZE,
+                  total: smpRows.length,
+                }}
+                onChange={setSmpPage}
+              />
             </div>
           </TabPanel>
 
@@ -714,7 +775,17 @@ export default function Page() {
                   <div style={{ fontSize: '13px', color: '#6b7280' }}>{recRows.length}건</div>
                 </div>
                 {/* TODO: API 연결 시 → <RecTable rows={apiRows} /> */}
-                <RecTable rows={recRows} />
+                <RecTable rows={pagedRecRows} />
+                <div style={{ marginTop: '16px' }}>
+                  <Pagination
+                    data={{
+                      page: recPage,
+                      size: PAGE_SIZE,
+                      total: recRows.length,
+                    }}
+                    onChange={setRecPage}
+                  />
+                </div>
               </div>
             </div>
           </TabPanel>

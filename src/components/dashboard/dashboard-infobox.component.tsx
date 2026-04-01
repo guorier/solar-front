@@ -78,6 +78,7 @@ const HeaderRow = styled.div<HeaderRowProps>`
 
 const Title = styled.div`
   display: flex;
+  gap:4px;
   color: var(--gray-100);
 `;
 

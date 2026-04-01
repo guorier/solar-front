@@ -54,6 +54,12 @@ const IconSource = [
   { name: 'calendar', src: '/icons/icon_date_g.svg' },
   { name: 'thunder', src: '/icons/icon_thunder.svg' },
   { name: 'refresh', src: '/icons/icon_refresh.svg' },
+  { name: 'offline', src: '/icons/icon_offline.svg' },
+  { name: 'error', src: '/icons/icon_error.svg' },
+  { name: 'factory_w', src: '/icons/icon_factory_w.svg' },
+  { name: 'member', src: '/icons/icon_member.svg' },
+  { name: 'normal', src: '/icons/icon_normal.svg' },
+  { name: 'warning', src: '/icons/icon_warning.svg' },
 ] as const;
 
 export type iName = (typeof IconSource)[number]['name'];
