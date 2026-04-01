@@ -1,6 +1,8 @@
+// src\app\(home)\trading\rec\requests\page.tsx
 'use client';
 
 import { useMemo, useState, type CSSProperties } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   BottomGroupComponent,
   ButtonComponent,
@@ -136,6 +138,7 @@ const searchConfig: SearchFieldConfig[] = [
 ];
 
 export default function RecRequestsPage() {
+  const router = useRouter();
   const [draftSearch, setDraftSearch] = useState<RecRequestSearchState>(initialSearchState);
   const [queryState, setQueryState] = useState<RecRequestPageState>({
     ...initialSearchState,
@@ -251,7 +254,7 @@ export default function RecRequestsPage() {
                   variant="contained"
                   icon={<Icons iName="plus" size={16} color="#fff" />}
                   iconPosition="left"
-                  onPress={() => undefined}
+                  onPress={() => router.push('/trading/rec/requests/create')}
                 >
                   등록
                 </ButtonComponent>
