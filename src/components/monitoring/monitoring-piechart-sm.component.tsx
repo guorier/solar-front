@@ -11,7 +11,7 @@ interface DonutDataItem {
   value: number;
   color: string;
   rawValue?: number;
-  unit?: 'V' | '%' | 'Hz' | 'W' | 'Wh' | 'kWh' | 'W/m²' | '℃';
+  unit?: 'V' | '%' | 'Hz' | 'W' | 'kW' | 'Wh' | 'kWh' | 'W/m²' | '℃';
 }
 
 interface PieChartProps {
@@ -163,8 +163,14 @@ export function PieChartSmComponent({
         itemWidth: 8,
         itemHeight: 8,
         itemGap: 8,
-        formatter: (name) => {
-          return `{space|} ${name}`;
+        formatter: (name: string) => {
+          const match = name.match(/(\d+)$/);
+          const num = match ? match[1] : name;
+          const item = chartData.find((d) => d.name === name);
+          const rawVal = item?.rawValue ?? Number(item?.value ?? 0);
+          const unit = item?.unit ?? '';
+          const valueText = unit ? `${formatNumber(rawVal, 2)} ${unit}` : formatNumber(rawVal, 2);
+          return `{space|} ${num}호  (${valueText})`;
         },
         textStyle: {
           color: '#555',
