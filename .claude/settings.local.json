@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npm run:*)",
       "Edit",
-      "Write"
+      "Write",
+      "WebFetch(domain:skills.sh)",
+      "Bash(npx skills:*)"
     ]
   },
   "hooks": {

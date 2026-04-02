@@ -13,7 +13,7 @@ export type DonutDataItem = {
   value: number;
   color: string;
   rawValue?: number;
-  unit?: 'V' | '%' | 'Hz' | 'W' | 'Wh' | 'kWh' | 'W/m²' | '℃';
+  unit?: 'V' | '%' | 'Hz' | 'W' | 'kW' | 'Wh' | 'kWh' | 'W/m²' | '℃';
 };
 
 export type RealtimeData = {

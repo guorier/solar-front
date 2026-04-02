@@ -59,7 +59,20 @@ export default function RecCreatePage() {
     certFile: null,
   });
 
-  const [histories] = useState<RecHistoryItem[]>([]);
+  const [histories] = useState<RecHistoryItem[]>([
+    {
+      type: 'submit',
+      date: '2025-12-04 12:32',
+      description: '발급 신청이 정상적으로 접수 되었습니다.',
+      submitter: 'xxx',
+    },
+    {
+      type: 'issued',
+      date: '2025-12-05 13:30',
+      description: 'REC 인증서가 정상적으로 발급 되었습니다.',
+      submitter: 'xxx',
+    },
+  ]);
 
   const setValue = <K extends keyof RecForm>(key: K, value: RecForm[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -323,28 +336,39 @@ export default function RecCreatePage() {
           {/* 처리 이력 */}
           <div>
             <Heading level={3}>처리 이력</Heading>
-            {histories.length === 0 ? null : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {histories.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
                 {histories.map((h, idx) => (
                   <div
                     key={idx}
                     style={{
-                      border: `1px solid ${h.type === 'issued' ? 'var(--point-green-60, #2ca05a)' : 'var(--gray-30)'}`,
+                      border: `1px solid ${h.type === 'issued' ? 'var(--point-green-60, #2ca05a)' : 'var(--gray-30, #ccc)'}`,
                       borderRadius: 8,
-                      padding: '12px 16px',
+                      padding: '16px 20px',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      {h.type === 'issued' && <Icons iName="check" size={16} color="#2ca05a" />}
-                      <strong style={{ fontSize: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      {h.type === 'issued' ? (
+                        <Icons iName="check" size={18} color="#2ca05a" />
+                      ) : (
+                        <Icons iName="feedback" size={18} color="#1a6fdb" />
+                      )}
+                      <strong
+                        style={{
+                          fontSize: 15,
+                          color: h.type === 'issued' ? '#2ca05a' : 'inherit',
+                        }}
+                      >
                         {h.type === 'submit' ? '신청 접수' : '발급 완료'}
                       </strong>
                     </div>
-                    <div style={{ color: 'var(--gray-60)', fontSize: 13, marginBottom: 4 }}>
-                      접수 일시 &nbsp; {h.date}
+                    <div style={{ color: 'var(--gray-60, #666)', fontSize: 13, marginBottom: 6 }}>
+                      접수 일시&nbsp;&nbsp;{h.date}
                     </div>
-                    <div style={{ fontSize: 13 }}>{h.description}</div>
-                    <div style={{ textAlign: 'right', color: 'var(--gray-50)', fontSize: 12 }}>
+                    <div style={{ fontSize: 13, marginBottom: 8 }}>{h.description}</div>
+                    <div
+                      style={{ textAlign: 'right', color: 'var(--gray-50, #999)', fontSize: 12 }}
+                    >
                       접수자 {h.submitter}
                     </div>
                   </div>

@@ -22,11 +22,11 @@ const mapChartData = (
 
 export const buildPowerChartData = (
   inverterMap: Record<number, RealtimeInverterItem>,
-): DonutDataItem[] => mapChartData(inverterMap, (item) => item.gridPowerW, 'W');
+): DonutDataItem[] => mapChartData(inverterMap, (item) => item.gridPowerW, 'kW');
 
 export const buildVoltageChartData = (
   inverterMap: Record<number, RealtimeInverterItem>,
-): DonutDataItem[] => mapChartData(inverterMap, (item) => item.formattedAvgVoltage, 'W');
+): DonutDataItem[] => mapChartData(inverterMap, (item) => item.formattedAvgVoltage, 'V');
 
 export const buildPowerFactorChartData = (
   inverterMap: Record<number, RealtimeInverterItem>,
@@ -38,7 +38,7 @@ export const buildFrequencyChartData = (
 
 export const buildTodayPowerChartData = (
   inverterMap: Record<number, RealtimeInverterItem>,
-): DonutDataItem[] => mapChartData(inverterMap, (item) => item.todayPower, 'Wh');
+): DonutDataItem[] => mapChartData(inverterMap, (item) => item.todayPower, 'kWh');
 
 export const buildEfficiencyChartData = (
   inverterMap: Record<number, RealtimeInverterItem>,

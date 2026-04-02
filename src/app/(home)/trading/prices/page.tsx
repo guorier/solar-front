@@ -19,9 +19,7 @@ import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'react-aria-components';
 
 const PAGE_SIZE = 20;
 
-// ─────────────────────────────────────────────
-// 타입 정의
-// ─────────────────────────────────────────────
+// ── 타입 ──────────────────────────────────────
 
 type PriceSummaryCard = {
   key: string;
@@ -48,7 +46,7 @@ type RecPriceRow = {
   lowPrice: string;
 };
 
-// SMP 차트용 - API 연결 시 이 타입으로 데이터 받아오기
+// SMP 차트용 — API 연결 시 이 타입으로 데이터 받아오기
 export type SmpChartItem = {
   date: string; // 'MM-DD' 형식
   inlandForecastDemand: number; // 육지 예측 수요 (MW)
@@ -56,7 +54,7 @@ export type SmpChartItem = {
   smp: number; // SMP (원/kWh)
 };
 
-// REC 차트용 - API 연결 시 이 타입으로 데이터 받아오기
+// REC 차트용 — API 연결 시 이 타입으로 데이터 받아오기
 export type RecChartItem = {
   거래일자: string;
   평균가: number;
@@ -64,9 +62,7 @@ export type RecChartItem = {
   하한가: number;
 };
 
-// ─────────────────────────────────────────────
-// 더미 데이터 (API 연결 시 교체)
-// ─────────────────────────────────────────────
+// ── 더미 데이터 (API 연결 시 교체) ────────────
 
 const summaryCards: PriceSummaryCard[] = [
   { key: 'smp-prev', label: 'SMP 전일 단가', value: '145.87', unit: '원 / kWh' },
@@ -75,7 +71,6 @@ const summaryCards: PriceSummaryCard[] = [
   { key: 'rec-base2', label: 'REC 2026-03-31 기준 단가', value: '14,287', unit: '원 / REC' },
 ];
 
-// SMP 차트 더미 데이터 (30일)
 const SMP_CHART_DUMMY: SmpChartItem[] = [
   { date: '03-01', inlandForecastDemand: 12100, totalForecastDemand: 32100, smp: 14.82 },
   { date: '03-02', inlandForecastDemand: 11980, totalForecastDemand: 31800, smp: 14.56 },
@@ -109,7 +104,6 @@ const SMP_CHART_DUMMY: SmpChartItem[] = [
   { date: '03-30', inlandForecastDemand: 12123, totalForecastDemand: 32291, smp: 14.93 },
 ];
 
-// REC 차트 더미 데이터 (dataset 형식)
 const REC_CHART_DUMMY: RecChartItem[] = [
   { 거래일자: '03-16', 평균가: 44200, 상한가: 45800, 하한가: 42900 },
   { 거래일자: '03-17', 평균가: 44850, 상한가: 46200, 하한가: 43500 },
@@ -128,137 +122,34 @@ const REC_CHART_DUMMY: RecChartItem[] = [
   { 거래일자: '03-30', 평균가: 14287, 상한가: 46900, 하한가: 44100 },
 ];
 
-// SMP 테이블 더미 데이터
-const legacySmpRows: SmpPriceRow[] = [
-  {
-    id: '1',
-    date: '2026-03-31',
-    time: '09:00 12:11',
-    inlandForecastDemand: '12,123 ',
-    totalForecastDemand: '32,291 원',
-    smp: '14.93원',
-  },
-  {
-    id: '2',
-    date: '2026-03-30',
-    time: '09:00 12:00',
-    inlandForecastDemand: '12,243',
-    totalForecastDemand: '34,491 원',
-    smp: '15.93원',
-  },
-  {
-    id: '3',
-    date: '2026-03-29',
-    time: '09:00 11:56',
-    inlandForecastDemand: '11,123',
-    totalForecastDemand: '31,902 원',
-    smp: '14.21원',
-  },
-  {
-    id: '4',
-    date: '2026-03-28',
-    time: '09:00 11:48',
-    inlandForecastDemand: '12,845',
-    totalForecastDemand: '33,102 원',
-    smp: '15.12원',
-  },
-  {
-    id: '5',
-    date: '2026-03-27',
-    time: '09:00 11:31',
-    inlandForecastDemand: '12,551',
-    totalForecastDemand: '32,448 원',
-    smp: '14.80원',
-  },
-];
+// ── 테이블 데이터 ─────────────────────────────
 
-// REC 테이블 더미 데이터
-const legacyRecRows: RecPriceRow[] = [
-  {
-    id: '1',
-    date: '2026-03-31',
-    time: '09:00 12:11',
-    avgPrice: '12,123 원',
-    highPrice: '10,921 원',
-    lowPrice: '현물가',
-  },
-  {
-    id: '2',
-    date: '2026-03-30',
-    time: '09:00 12:00',
-    avgPrice: '12,243 원',
-    highPrice: '11,971 원',
-    lowPrice: '입찰가',
-  },
-  {
-    id: '3',
-    date: '2026-03-29',
-    time: '09:00 11:56',
-    avgPrice: '11,123 원',
-    highPrice: '11,962 원',
-    lowPrice: '35,231 원',
-  },
-  {
-    id: '4',
-    date: '2026-03-28',
-    time: '09:00 11:48',
-    avgPrice: '12,845 원',
-    highPrice: '10,884 원',
-    lowPrice: '입찰가',
-  },
-  {
-    id: '5',
-    date: '2026-03-27',
-    time: '09:00 11:31',
-    avgPrice: '12,551 원',
-    highPrice: '10,337 원',
-    lowPrice: '현물가',
-  },
-];
-
-// ─────────────────────────────────────────────
-// 테이블 컬럼 정의
-// ─────────────────────────────────────────────
-
-const smpRows: SmpPriceRow[] = Array.from({ length: 20 }, (_, index) => {
-  const day = 31 - index;
-  const inlandForecastDemand = 12123 + index * 94;
-  const totalForecastDemand = 32291 + index * 173;
-  const smp = (14.93 + index * 0.07).toFixed(2);
-
+const smpRows: SmpPriceRow[] = Array.from({ length: 20 }, (_, i) => {
+  const day = 31 - i;
   return {
-    id: String(index + 1),
+    id: String(i + 1),
     date: `2026-03-${String(day).padStart(2, '0')}`,
-    time: `09:00 ${String(12 - Math.floor(index / 3)).padStart(2, '0')}:${String((11 + index * 7) % 60).padStart(2, '0')}`,
-    inlandForecastDemand: inlandForecastDemand.toLocaleString('ko-KR'),
-    totalForecastDemand: `${totalForecastDemand.toLocaleString('ko-KR')} MW`,
-    smp: `${smp}원`,
+    time: `09:00 ${String(12 - Math.floor(i / 3)).padStart(2, '0')}:${String((11 + i * 7) % 60).padStart(2, '0')}`,
+    inlandForecastDemand: (12123 + i * 94).toLocaleString('ko-KR'),
+    totalForecastDemand: `${(32291 + i * 173).toLocaleString('ko-KR')} MW`,
+    smp: `${(14.93 + i * 0.07).toFixed(2)}원`,
   };
 });
 
-const recRows: RecPriceRow[] = Array.from({ length: 20 }, (_, index) => {
-  const day = 31 - index;
-  const avgPrice = 12123 + index * 118;
-  const highPrice = 10921 + index * 103;
-  const lowPriceValue = 9820 + index * 97;
-
+const recRows: RecPriceRow[] = Array.from({ length: 20 }, (_, i) => {
+  const day = 31 - i;
+  const lowPriceLabel = i % 6 === 0 ? '현물가' : i % 5 === 0 ? '입찰가' : null;
   return {
-    id: String(index + 1),
+    id: String(i + 1),
     date: `2026-03-${String(day).padStart(2, '0')}`,
-    time: `09:00 ${String(12 - Math.floor(index / 3)).padStart(2, '0')}:${String((11 + index * 5) % 60).padStart(2, '0')}`,
-    avgPrice: `${avgPrice.toLocaleString('ko-KR')} 원`,
-    highPrice: `${highPrice.toLocaleString('ko-KR')} 원`,
-    lowPrice:
-      index % 6 === 0
-        ? '?꾨Ъ媛'
-        : index % 5 === 0
-          ? '?낆같媛'
-          : `${lowPriceValue.toLocaleString('ko-KR')} 원`,
+    time: `09:00 ${String(12 - Math.floor(i / 3)).padStart(2, '0')}:${String((11 + i * 5) % 60).padStart(2, '0')}`,
+    avgPrice: `${(12123 + i * 118).toLocaleString('ko-KR')} 원`,
+    highPrice: `${(10921 + i * 103).toLocaleString('ko-KR')} 원`,
+    lowPrice: lowPriceLabel ?? `${(9820 + i * 97).toLocaleString('ko-KR')} 원`,
   };
 });
 
-void legacySmpRows;
-void legacyRecRows;
+// ── 컬럼 정의 ─────────────────────────────────
 
 const smpColumns: {
   key: keyof SmpPriceRow;
@@ -286,12 +177,8 @@ const recColumns: {
   { key: 'lowPrice', label: '하한가', width: '30%' },
 ];
 
-// ─────────────────────────────────────────────
-// 스타일 상수
-// ─────────────────────────────────────────────
+// ── 스타일 상수 ───────────────────────────────
 
-const dateStyle: CSSProperties = { width: '120px' };
-// const cellLefttStyle: CSSProperties = { textAlign: 'left', paddingLeft: '20px' };
 const cellRightStyle: CSSProperties = { textAlign: 'right', paddingRight: '20px' };
 const tableWrapStyle: CSSProperties = {
   width: '100%',
@@ -309,37 +196,64 @@ const chartWrapStyle: CSSProperties = {
   padding: '16px',
 };
 
-// ─────────────────────────────────────────────
-// SMP Stacked Line Chart
-// ECharts line-stack 예제 기반
-// ─────────────────────────────────────────────
+// ── 차트 공통 ─────────────────────────────────
+
+function useEChart(ref: React.RefObject<HTMLDivElement | null>, option: EChartsOption) {
+  const instanceRef = useRef<echarts.ECharts | null>(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    instanceRef.current?.dispose();
+    instanceRef.current = echarts.init(ref.current);
+    instanceRef.current.setOption(option);
+
+    const handleResize = () => instanceRef.current?.resize();
+    const ro = new ResizeObserver(handleResize);
+    ro.observe(ref.current);
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', handleResize);
+      instanceRef.current?.dispose();
+      instanceRef.current = null;
+    };
+  }, [option, ref]);
+}
+
+function tooltipFormatter(params: unknown, unit = ' 원') {
+  const items = Array.isArray(params) ? params : [params];
+  const date =
+    items[0] && typeof items[0] === 'object' && 'axisValueLabel' in items[0]
+      ? String((items[0] as { axisValueLabel: unknown }).axisValueLabel)
+      : '';
+  const lines = items.map((p) => {
+    if (!p || typeof p !== 'object') return '';
+    const name = 'seriesName' in p ? String((p as { seriesName: unknown }).seriesName) : '';
+    const val =
+      'value' in p && typeof (p as { value: unknown }).value === 'number'
+        ? (p as { value: number }).value.toLocaleString()
+        : '-';
+    const marker =
+      'marker' in p && typeof (p as { marker: unknown }).marker === 'string'
+        ? (p as { marker: string }).marker
+        : '';
+    return `${marker}${name}: ${val}${unit}`;
+  });
+  return [date, ...lines].join('<br/>');
+}
+
+// ── SMP 라인 차트 ─────────────────────────────
 
 function SmpStackedLineChart({ data = SMP_CHART_DUMMY }: { data?: SmpChartItem[] }) {
   const chartRef = useRef<HTMLDivElement>(null);
-  const chartInstance = useRef<echarts.ECharts | null>(null);
 
   const option = useMemo<EChartsOption>(
     () => ({
       color: ['#D70251', '#1C7ED6'],
       tooltip: {
         trigger: 'axis',
-        formatter: (params) => {
-          const items = Array.isArray(params) ? params : [params];
-          const date =
-            items[0] && typeof items[0] === 'object' && 'axisValueLabel' in items[0]
-              ? String(items[0].axisValueLabel)
-              : '';
-          const lines = items.map((p) => {
-            if (!p || typeof p !== 'object') return '';
-            const name = 'seriesName' in p ? String(p.seriesName) : '';
-            const val =
-              'value' in p && typeof p.value === 'number' ? p.value.toLocaleString() : '-';
-            const marker = 'marker' in p && typeof p.marker === 'string' ? p.marker : '';
-            const unit = ' 원';
-            return `${marker}${name}: ${val}${unit}`;
-          });
-          return [date, ...lines].join('<br/>');
-        },
+        formatter: (p) => tooltipFormatter(p),
         axisPointer: { type: 'cross', label: { backgroundColor: '#6a7985' } },
       },
       legend: {
@@ -426,29 +340,7 @@ function SmpStackedLineChart({ data = SMP_CHART_DUMMY }: { data?: SmpChartItem[]
     [data],
   );
 
-  useEffect(() => {
-    if (!chartRef.current) return;
-
-    if (chartInstance.current) {
-      chartInstance.current.dispose();
-      chartInstance.current = null;
-    }
-    chartInstance.current = echarts.init(chartRef.current);
-    chartInstance.current.setOption(option);
-
-    const handleResize = () => chartInstance.current?.resize();
-    const ro = new ResizeObserver(handleResize);
-    ro.observe(chartRef.current);
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', handleResize);
-      chartInstance.current?.dispose();
-      chartInstance.current = null;
-    };
-  }, [option]);
-
+  useEChart(chartRef, option);
   return (
     <div style={chartWrapStyle}>
       <div ref={chartRef} style={{ width: '100%', height: '100%' }} />
@@ -456,14 +348,10 @@ function SmpStackedLineChart({ data = SMP_CHART_DUMMY }: { data?: SmpChartItem[]
   );
 }
 
-// ─────────────────────────────────────────────
-// REC Dataset Bar Chart
-// ECharts dataset-simple1 예제 기반
-// ─────────────────────────────────────────────
+// ── REC 바 차트 ───────────────────────────────
 
 function RecDatasetBarChart({ data = REC_CHART_DUMMY }: { data?: RecChartItem[] }) {
   const chartRef = useRef<HTMLDivElement>(null);
-  const chartInstance = useRef<echarts.ECharts | null>(null);
 
   const option = useMemo<EChartsOption>(
     () => ({
@@ -471,22 +359,7 @@ function RecDatasetBarChart({ data = REC_CHART_DUMMY }: { data?: RecChartItem[] 
       tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'shadow' },
-        formatter: (params) => {
-          const items = Array.isArray(params) ? params : [params];
-          const date =
-            items[0] && typeof items[0] === 'object' && 'axisValueLabel' in items[0]
-              ? String(items[0].axisValueLabel)
-              : '';
-          const lines = items.map((p) => {
-            if (!p || typeof p !== 'object') return '';
-            const name = 'seriesName' in p ? String(p.seriesName) : '';
-            const val =
-              'value' in p && typeof p.value === 'number' ? p.value.toLocaleString() : '-';
-            const marker = 'marker' in p && typeof p.marker === 'string' ? p.marker : '';
-            return `${marker}${name}: ${val} 원`;
-          });
-          return [date, ...lines].join('<br/>');
-        },
+        formatter: (p) => tooltipFormatter(p),
       },
       legend: {
         top: 0,
@@ -523,29 +396,7 @@ function RecDatasetBarChart({ data = REC_CHART_DUMMY }: { data?: RecChartItem[] 
     [data],
   );
 
-  useEffect(() => {
-    if (!chartRef.current) return;
-
-    if (chartInstance.current) {
-      chartInstance.current.dispose();
-      chartInstance.current = null;
-    }
-    chartInstance.current = echarts.init(chartRef.current);
-    chartInstance.current.setOption(option);
-
-    const handleResize = () => chartInstance.current?.resize();
-    const ro = new ResizeObserver(handleResize);
-    ro.observe(chartRef.current);
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', handleResize);
-      chartInstance.current?.dispose();
-      chartInstance.current = null;
-    };
-  }, [option]);
-
+  useEChart(chartRef, option);
   return (
     <div style={chartWrapStyle}>
       <div ref={chartRef} style={{ width: '100%', height: '100%' }} />
@@ -553,9 +404,7 @@ function RecDatasetBarChart({ data = REC_CHART_DUMMY }: { data?: RecChartItem[] 
   );
 }
 
-// ─────────────────────────────────────────────
-// 공통 컴포넌트
-// ─────────────────────────────────────────────
+// ── 공통 컴포넌트 ─────────────────────────────
 
 function SummaryCard({ item }: { item: PriceSummaryCard }) {
   return (
@@ -581,6 +430,14 @@ function SummaryCard({ item }: { item: PriceSummaryCard }) {
   );
 }
 
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ fontSize: '16px', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>
+      {children}
+    </div>
+  );
+}
+
 function SmpTable({ rows }: { rows: SmpPriceRow[] }) {
   return (
     <div style={tableWrapStyle}>
@@ -595,11 +452,11 @@ function SmpTable({ rows }: { rows: SmpPriceRow[] }) {
         <TableBody>
           {rows.map((item) => (
             <Row key={item.id}>
-              <Cell style={dateStyle}>{item.date}</Cell>
-              <Cell style={dateStyle}>{item.time}</Cell>
+              <Cell>{item.date}</Cell>
+              <Cell>{item.time}</Cell>
               <Cell style={cellRightStyle}>{item.inlandForecastDemand} 원</Cell>
-              <Cell style={cellRightStyle}>{item.totalForecastDemand} 원</Cell>
-              <Cell style={cellRightStyle}>{item.smp.replace(/원/g, '').trim()} 원</Cell>
+              <Cell style={cellRightStyle}>{item.totalForecastDemand}</Cell>
+              <Cell style={cellRightStyle}>{item.smp}</Cell>
             </Row>
           ))}
         </TableBody>
@@ -645,9 +502,7 @@ function RecTable({ rows }: { rows: RecPriceRow[] }) {
   );
 }
 
-// ─────────────────────────────────────────────
-// 페이지
-// ─────────────────────────────────────────────
+// ── 페이지 ────────────────────────────────────
 
 export default function Page() {
   const [selectedTab, setSelectedTab] = useState<string>('smp');
@@ -686,6 +541,7 @@ export default function Page() {
           <SummaryCard key={item.key} item={item} />
         ))}
       </div>
+
       <Tabs
         aria-label="SMP REC 관리"
         selectedKey={selectedTab}
@@ -698,45 +554,22 @@ export default function Page() {
 
         <TabPanels aria-label="SMP REC 패널">
           <TabPanel id="smp">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <div
-                  style={{
-                    fontSize: '16px',
-                    fontWeight: 700,
-                    color: '#111827',
-                    marginBottom: '12px',
-                  }}
-                >
-                  SMP 최근 단가 추이(30일)
-                </div>
-                {/* TODO: API 연결 시 → <SmpStackedLineChart data={apiData} /> */}
+                <SectionTitle>SMP 최근 단가 추이(30일)</SectionTitle>
                 <SmpStackedLineChart />
               </div>
-
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '12px',
-                  }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
-                    SMP 단가 목록
-                  </div>
+                  <SectionTitle>SMP 단가 목록</SectionTitle>
                   <div style={{ fontSize: '13px', color: '#6b7280' }}>{smpRows.length}건</div>
                 </div>
-                {/* TODO: API 연결 시 → <SmpTable rows={apiRows} /> */}
                 <SmpTable rows={pagedSmpRows} />
               </div>
               <Pagination
-                data={{
-                  page: smpPage,
-                  size: PAGE_SIZE,
-                  total: smpRows.length,
-                }}
+                data={{ page: smpPage, size: PAGE_SIZE, total: smpRows.length }}
                 onChange={setSmpPage}
               />
             </div>
@@ -745,44 +578,25 @@ export default function Page() {
           <TabPanel id="rec">
             <div style={{ display: 'grid', gap: '20px' }}>
               <div>
-                <div
-                  style={{
-                    fontSize: '16px',
-                    fontWeight: 700,
-                    color: '#111827',
-                    marginBottom: '12px',
-                  }}
-                >
-                  REC 최근 단가 추이(30일)
-                </div>
-                {/* TODO: API 연결 시 → <RecDatasetBarChart data={apiData} /> */}
+                <SectionTitle>REC 최근 단가 추이(30일)</SectionTitle>
                 <RecDatasetBarChart />
               </div>
-
               <div>
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    gap: '12px',
                     marginBottom: '12px',
                   }}
                 >
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
-                    REC 단가 목록
-                  </div>
+                  <SectionTitle>REC 단가 목록</SectionTitle>
                   <div style={{ fontSize: '13px', color: '#6b7280' }}>{recRows.length}건</div>
                 </div>
-                {/* TODO: API 연결 시 → <RecTable rows={apiRows} /> */}
                 <RecTable rows={pagedRecRows} />
                 <div style={{ marginTop: '16px' }}>
                   <Pagination
-                    data={{
-                      page: recPage,
-                      size: PAGE_SIZE,
-                      total: recRows.length,
-                    }}
+                    data={{ page: recPage, size: PAGE_SIZE, total: recRows.length }}
                     onChange={setRecPage}
                   />
                 </div>
