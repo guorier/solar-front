@@ -20,24 +20,37 @@ export function useDashboardSse({ onRefresh }: UseDashboardSseProps) {
   }, []);
 
   useEffect(() => {
-    const eventSource = new EventSource('/api/dashboard/stream', {
+    const eventSource = new EventSource('/plant/api/dashboard/stream', {
       withCredentials: true,
     });
 
     eventSourceRef.current = eventSource;
 
-    eventSource.addEventListener('dashboard-connected', () => {
-      console.log('[DashboardSSE] connected');
+    eventSource.onopen = () => {
+      console.log(
+        '[DashboardSSE] open — readyState:',
+        eventSource.readyState,
+        '| url:',
+        eventSource.url,
+      );
+    };
+
+    eventSource.addEventListener('dashboard-connected', (e) => {
+      console.log('[DashboardSSE] connected', (e as MessageEvent).data);
     });
 
-    eventSource.addEventListener('dashboard-refresh', handleRefresh);
+    eventSource.addEventListener('dashboard-refresh', (e) => {
+      console.log('[DashboardSSE] refresh', (e as MessageEvent).data);
+      handleRefresh();
+    });
 
-    eventSource.addEventListener('dashboard-ping', () => {
-      console.log('[DashboardSSE] ping');
+    eventSource.addEventListener('dashboard-ping', (e) => {
+      console.log('[DashboardSSE] ping', (e as MessageEvent).data);
     });
 
     eventSource.onerror = (error) => {
-      console.error('[DashboardSSE] error', error);
+      console.error('[DashboardSSE] error — readyState:', eventSource.readyState, error);
+      // readyState: 0=CONNECTING, 1=OPEN, 2=CLOSED
     };
 
     return () => {

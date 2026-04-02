@@ -218,6 +218,7 @@ const mergeDashboardDataWithSocket = (
 export default function DashboardPage() {
   const realtimeTopic = process.env.NEXT_PUBLIC_WS_SOLAR_TOPIC ?? '/topic/realtime-data';
   const [isMounted, setIsMounted] = useState(false);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
 
   const [selectedPlant, setSelectedPlant] = useState<PlantData>({
     pwplId: '',
@@ -272,7 +273,12 @@ export default function DashboardPage() {
     detailPwplId: firstSelectedPwplId,
   });
 
-  useDashboardSse({ onRefresh: refetchDashboard });
+  useDashboardSse({
+    onRefresh: () => {
+      refetchDashboard();
+      setLastRefreshedAt(new Date());
+    },
+  });
 
   const { data: plantCombo } = useGetPlantBaseCombo();
 
@@ -624,6 +630,11 @@ export default function DashboardPage() {
           desc="실시간 전국 발전소별 모니터링 대시보드 화면 입니다"
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {lastRefreshedAt && (
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>
+              마지막 갱신: {lastRefreshedAt.toLocaleTimeString('ko-KR')}
+            </span>
+          )}
           <PlantSelector onOpen={() => setModalOpen(true)} />
         </div>
       </div>
