@@ -14,11 +14,11 @@ import {
 } from '@/components';
 import KakaoMap from '@/components/kakaoMap/KakaoMap';
 import { ModalPlantSelector } from '@/constants/dashboard/ModalPlantSelector';
-import { usePostDashboardSelect, DASHBOARD_SELECT_POLLING_MS } from '@/services/dashboard/query';
+import { usePostDashboardSelect } from '@/services/dashboard/query';
+import { useDashboardSse } from '@/hooks';
 import { useGetPlantBaseCombo } from '@/services/plants/query';
 
 import { PlantSelector } from '@/constants/dashboard/PlantSelector';
-import { PollingCountdown } from '@/constants/dashboard/PollingCountdown';
 import { TodayPowerGeneration } from '@/constants/dashboard/TodayPowerGeneration';
 import { WeatherInfoSection } from '@/constants/dashboard/WeatherInfoSection';
 import { PlantDetailSection } from '@/constants/dashboard/PlantDetailSection';
@@ -265,12 +265,14 @@ export default function DashboardPage() {
   const { realtimeData, setOperationPwplId } = useDashboardSocketContext();
   const socketStatusMap = realtimeData as Record<string, DashboardSocketPlantStatus>;
 
-  const { data: dashboardData, dataUpdatedAt } = usePostDashboardSelect({
+  const { data: dashboardData, refetch: refetchDashboard } = usePostDashboardSelect({
     pwplIds,
     chartType: 'TIME',
     weatherPwplId: firstSelectedPwplId,
     detailPwplId: firstSelectedPwplId,
   });
+
+  useDashboardSse({ onRefresh: refetchDashboard });
 
   const { data: plantCombo } = useGetPlantBaseCombo();
 
@@ -622,12 +624,6 @@ export default function DashboardPage() {
           desc="실시간 전국 발전소별 모니터링 대시보드 화면 입니다"
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {dataUpdatedAt > 0 && (
-            <PollingCountdown
-              intervalMs={DASHBOARD_SELECT_POLLING_MS}
-              lastUpdatedAt={dataUpdatedAt}
-            />
-          )}
           <PlantSelector onOpen={() => setModalOpen(true)} />
         </div>
       </div>
