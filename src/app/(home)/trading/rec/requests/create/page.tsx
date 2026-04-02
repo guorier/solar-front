@@ -20,6 +20,7 @@ import {
   DatePicker,
 } from '@/components';
 import { Group, Heading, Input, ResizableTableContainer } from 'react-aria-components';
+import { ModalPlantSelectorSingle } from '@/constants/dashboard/ModalPlantSelectorSingle';
 
 type Mode = 'create' | 'edit';
 
@@ -46,6 +47,7 @@ type RecForm = {
 export default function RecCreatePage() {
   const router = useRouter();
   const [mode] = useState<Mode>('create');
+  const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<RecForm>({
     plantNm: '',
     plantId: '',
@@ -190,8 +192,16 @@ export default function RecCreatePage() {
                       <Label className="imp">발전소</Label>
                     </Cell>
                     <Cell>
-                      <div className="react-aria-TextField">
-                        <Input aria-label="발전소" placeholder="입력해 주세요" title="발전소" />
+                      <div className="react-aria-TextField" style={{ maxWidth: '284px' }}>
+                        <Group style={{ flex: 'none' }}>
+                          <Input
+                            value={form.plantNm}
+                            placeholder="발전소 검색"
+                            aria-label="발전소 검색"
+                            disabled
+                          />
+                          <ButtonComponent onPress={() => setModalOpen(true)}>검색</ButtonComponent>
+                        </Group>
                       </div>
                     </Cell>
                     <Cell>
@@ -287,31 +297,12 @@ export default function RecCreatePage() {
                     </Cell>
                   </Row>
 
-                  {/* RPS 업로드 / REC 인증서 */}
+                  {/* REC 인증서 */}
                   <Row>
-                    <Cell>
-                      <Label className="imp">RPS 업로드</Label>
-                    </Cell>
-                    <Cell>
-                      <div className="react-aria-TextField" style={{ maxWidth: '100%' }}>
-                        <Group style={{ flex: 'none' }}>
-                          <Input
-                            aria-label="RPS 파일"
-                            placeholder=""
-                            title="파일 업로드"
-                            readOnly
-                            style={{ width: 160 }}
-                          />
-                          <ButtonComponent type="button" aria-label="파일 업로드">
-                            파일 업로드
-                          </ButtonComponent>
-                        </Group>
-                      </div>
-                    </Cell>
                     <Cell>
                       <Label>REC 인증서</Label>
                     </Cell>
-                    <Cell>
+                    <Cell colSpan={3}>
                       <div className="react-aria-TextField" style={{ maxWidth: '100%' }}>
                         <Group style={{ flex: 'none' }}>
                           <Input
@@ -411,6 +402,14 @@ export default function RecCreatePage() {
             </ButtonComponent>
           </div>
         }
+      />
+
+      <ModalPlantSelectorSingle
+        isOpen={modalOpen}
+        onOpenChange={setModalOpen}
+        onApply={(plant) => {
+          setForm((prev) => ({ ...prev, plantNm: plant.pwplNm, plantId: plant.pwplId }));
+        }}
       />
     </form>
   );

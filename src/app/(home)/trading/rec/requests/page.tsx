@@ -119,21 +119,18 @@ const searchConfig: SearchFieldConfig[] = [
     label: '발전소',
     type: 'text',
     placeholder: '발전소 검색',
-    width: 220,
   },
   {
     key: 'requestCode',
     label: '신청 코드 번호',
     type: 'text',
     placeholder: '신청 코드 번호',
-    width: 220,
   },
   {
     key: 'status',
     label: '상태',
     type: 'select',
     options: recRequestStatusOptions,
-    width: 180,
   },
 ];
 

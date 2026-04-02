@@ -13,7 +13,9 @@ import {
   TableBody,
   TableHeader,
   TitleComponent,
-  Icons,
+  TopInfoBoxComponent,
+  InfoBoxComponent,
+  InfoBoxGroup,
 } from '@/components';
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'react-aria-components';
 
@@ -406,30 +408,6 @@ function RecDatasetBarChart({ data = REC_CHART_DUMMY }: { data?: RecChartItem[] 
 
 // ── 공통 컴포넌트 ─────────────────────────────
 
-function SummaryCard({ item }: { item: PriceSummaryCard }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        border: '1px solid #d9dde5',
-        borderRadius: '12px',
-        padding: '16px 18px',
-        background: '#ffffff',
-        gap: '12px',
-      }}
-    >
-      <div style={{ fontSize: '13px', color: '#6b7280', flexShrink: 0 }}>{item.label}</div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span style={{ fontSize: '22px', fontWeight: 700, color: '#111827' }}>{item.value}</span>
-        <span style={{ fontSize: '14px', fontWeight: 600, color: '#374151' }}>{item.unit}</span>
-        <Icons iName="alarm" size={22} />
-      </div>
-    </div>
-  );
-}
-
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ fontSize: '16px', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>
@@ -520,8 +498,8 @@ export default function Page() {
   }, [recPage]);
 
   return (
-    <div>
-      <div className="title-group" style={{ marginBottom: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="title-group">
         <TitleComponent
           title="SMP/REC 단가"
           subTitle="SMP/REC 단가 조회"
@@ -529,18 +507,29 @@ export default function Page() {
         />
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-          gap: '16px',
-          marginBottom: '24px',
-        }}
-      >
-        {summaryCards.map((item) => (
-          <SummaryCard key={item.key} item={item} />
-        ))}
-      </div>
+      <TopInfoBoxComponent title="SMP/REC 단가" bg="var(--point-orange-5)" color="#A34600">
+        <InfoBoxGroup className="row-type">
+          {summaryCards.map((item, idx) => (
+            <InfoBoxComponent
+              key={`${item.label}-${item.value}`}
+              icon={
+                idx === 0
+                  ? 'feedback'
+                  : idx === 1
+                    ? 'feedback'
+                    : idx === 2
+                      ? 'feedback'
+                      : 'feedback'
+              }
+              title={item.label}
+              count={item.value}
+              tag={'notice' in item && typeof item.notice === 'string' ? item.notice : undefined}
+              bg="white"
+            >
+            </InfoBoxComponent>
+          ))}
+        </InfoBoxGroup>
+      </TopInfoBoxComponent>
 
       <Tabs
         aria-label="SMP REC 관리"
@@ -594,12 +583,10 @@ export default function Page() {
                   <div style={{ fontSize: '13px', color: '#6b7280' }}>{recRows.length}건</div>
                 </div>
                 <RecTable rows={pagedRecRows} />
-                <div style={{ marginTop: '16px' }}>
-                  <Pagination
-                    data={{ page: recPage, size: PAGE_SIZE, total: recRows.length }}
-                    onChange={setRecPage}
-                  />
-                </div>
+                <Pagination
+                  data={{ page: recPage, size: PAGE_SIZE, total: recRows.length }}
+                  onChange={setRecPage}
+                />
               </div>
             </div>
           </TabPanel>

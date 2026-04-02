@@ -73,10 +73,6 @@ export function useOperationChartSocket({ pwplIds }: Props) {
   useEffect(() => {
     const currentPwplIds = pwplIdsKey ? pwplIdsKey.split(',') : [];
 
-    console.group('%c[운영차트 소켓] useEffect 실행', 'color:#facc15;font-weight:bold');
-    console.log('발전소 ID 목록:', currentPwplIds);
-    console.groupEnd();
-
     if (!WS_URL) {
       console.error('[운영차트 소켓] WS_URL 누락');
       return;
@@ -123,7 +119,7 @@ export function useOperationChartSocket({ pwplIds }: Props) {
     client.debug = () => {};
 
     client.onConnect = () => {
-      console.log(`[운영차트 소켓] 연결됨 → 구독 시작 (발전소: ${pwplIdsKey})`);
+      console.log(`[운영차트 소켓] 연결됨 (발전소: ${pwplIdsKey})`);
 
       subscriptionsRef.current.forEach((s) => {
         try {
@@ -138,7 +134,6 @@ export function useOperationChartSocket({ pwplIds }: Props) {
       const initialTopic = `/topic/operate-monitor-initial/${channelId}`;
       try {
         const initialSub = client.subscribe(initialTopic, (message: IMessage) => {
-          console.log(`[운영차트 소켓] 초기 데이터 수신 — ${initialTopic}`);
           try {
             const json = JSON.parse(message.body) as InitialPlantNode[];
             json.forEach((plantNode) => {
@@ -150,7 +145,6 @@ export function useOperationChartSocket({ pwplIds }: Props) {
           }
         });
         subscriptionsRef.current.push(initialSub);
-        console.log(`[운영차트 소켓] 초기 구독 완료 → ${initialTopic}`);
       } catch (e) {
         console.error(`[운영차트 소켓] 초기 구독 실패 — ${initialTopic}`, e);
       }
@@ -160,11 +154,9 @@ export function useOperationChartSocket({ pwplIds }: Props) {
         const topic = `${WS_OPERATION_CHART_TOPIC}/${pwplId}`;
         try {
           const subscription = client.subscribe(topic, (message: IMessage) => {
-            console.log(`[운영차트 소켓] ★ 메시지 수신 — ${topic}`);
             try {
               const json = JSON.parse(message.body);
               const list: Record<string, unknown>[] = Array.isArray(json) ? json : [json];
-              console.log(`[운영차트 소켓] 데이터 ${list.length}건:`, list);
               applyList(list, pwplId);
               flushState();
             } catch (e) {
@@ -172,7 +164,6 @@ export function useOperationChartSocket({ pwplIds }: Props) {
             }
           });
           subscriptionsRef.current.push(subscription);
-          console.log(`[운영차트 소켓] 구독 완료 → ${topic}`);
         } catch (e) {
           console.error(`[운영차트 소켓] 구독 실패 — ${topic}`, e);
         }
@@ -184,7 +175,6 @@ export function useOperationChartSocket({ pwplIds }: Props) {
           destination: '/app/request-operate-monitor',
           body: JSON.stringify({ targetPwplIds: currentPwplIds, channelId }),
         });
-        console.log(`[운영차트 소켓] 초기 데이터 요청 발송 → channelId: ${channelId}`);
       } catch (e) {
         console.error('[운영차트 소켓] 초기 데이터 요청 실패', e);
       }
@@ -206,7 +196,7 @@ export function useOperationChartSocket({ pwplIds }: Props) {
     clientRef.current = client;
 
     return () => {
-      console.log(`[운영차트 소켓] 정리 — 구독 해제 및 연결 종료 (발전소: ${pwplIdsKey})`);
+      console.log(`[운영차트 소켓] 연결 종료 (발전소: ${pwplIdsKey})`);
 
       subscriptionsRef.current.forEach((s) => {
         try {

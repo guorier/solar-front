@@ -1,4 +1,4 @@
-// src\constants\dashboard\ModalPlantSelector.tsx
+// src\constants\dashboard\ModalPlantSelectorSingle.tsx
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -9,7 +9,6 @@ import { useGetPlantBaseCombo } from '@/services/plants/query';
 import type { PlantBaseComboItem } from '@/services/plants/type';
 import type { ColDef, ICellRendererParams } from 'ag-grid-community';
 import { Radio } from '@/components/radio';
-import { Checkbox } from '@/components/checkbox';
 
 type StoredPlantItem = {
   pwplId: string;
@@ -46,25 +45,20 @@ type PaginationRequest = {
   size: number;
 };
 
-interface ModalPlantSelectorProps {
+interface ModalPlantSelectorSingleProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  selectionMode: 'single' | 'multiple';
-  onApplySingle: (plant: PlantBaseComboItem) => void;
-  onApplyMulti: (plants: PlantBaseComboItem[]) => void;
+  onApply: (plant: PlantBaseComboItem) => void;
 }
 
-export const ModalPlantSelector = ({
+export const ModalPlantSelectorSingle = ({
   isOpen,
   onOpenChange,
-  selectionMode,
-  onApplySingle,
-  onApplyMulti,
-}: ModalPlantSelectorProps) => {
+  onApply,
+}: ModalPlantSelectorSingleProps) => {
   const [keyword, setKeyword] = useState('');
   const [appliedKeyword, setAppliedKeyword] = useState('');
   const [selected, setSelected] = useState<PlantBaseComboItem | null>(null);
-  const [selectedList, setSelectedList] = useState<PlantBaseComboItem[]>([]);
 
   const { data, isFetching } = useGetPlantBaseCombo();
 
@@ -92,69 +86,23 @@ export const ModalPlantSelector = ({
       setKeyword('');
       setAppliedKeyword('');
       setSelected(null);
-      setSelectedList([]);
 
-      // ===== 추가 =====
       const stored = localStorage.getItem('pwplIds');
 
       if (stored) {
         const ids = getStoredPwplIds(stored);
-
-        if (selectionMode === 'single') {
-          const found = plants.find((v) => v.pwplId === ids[0]);
-          if (found) setSelected(found);
-        } else {
-          const foundList = plants.filter((v) => ids.includes(v.pwplId));
-          setSelectedList(foundList);
-        }
+        const found = plants.find((v) => v.pwplId === ids[0]);
+        if (found) setSelected(found);
       }
-      // =================
     }
-  }, [isOpen, plants, selectionMode]);
+  }, [isOpen, plants]);
 
   const handleSearch = () => {
     setAppliedKeyword(keyword.trim());
   };
 
-  const columnDefs: ColDef<PlantBaseComboItem>[] = useMemo(() => {
-    if (selectionMode === 'single') {
-      return [
-        {
-          headerName: '',
-          width: 60,
-          minWidth: 60,
-          maxWidth: 60,
-          suppressSizeToFit: true,
-          resizable: false,
-          cellRenderer: (params: ICellRendererParams<PlantBaseComboItem>) => {
-            const row = params.data;
-            if (!row) return null;
-
-            return (
-              <Radio
-                name="plantSelect"
-                value={row.pwplId}
-                checked={selected?.pwplId === row.pwplId}
-                onChange={() => setSelected(row)}
-                ariaLabel="선택"
-              />
-            );
-          },
-        },
-        {
-          field: 'pwplNm',
-          headerName: '발전소 명',
-          flex: 1,
-          cellStyle: {
-            textAlign: 'left',
-            justifyContent: 'flex-start',
-            cursor: 'pointer',
-          },
-        },
-      ];
-    }
-
-    return [
+  const columnDefs: ColDef<PlantBaseComboItem>[] = useMemo(
+    () => [
       {
         headerName: '',
         width: 60,
@@ -166,23 +114,13 @@ export const ModalPlantSelector = ({
           const row = params.data;
           if (!row) return null;
 
-          const checked = selectedList.some((v) => v.pwplId === row.pwplId);
-
           return (
-            <Checkbox
-              isSelected={checked}
-              onChange={(checkedValue: boolean) => {
-                if (checkedValue) {
-                  // ✅ 중복 방지 추가
-                  setSelectedList((prev) => {
-                    if (prev.some((v) => v.pwplId === row.pwplId)) return prev;
-                    return [...prev, row];
-                  });
-                } else {
-                  setSelectedList((prev) => prev.filter((v) => v.pwplId !== row.pwplId));
-                }
-              }}
-              aria-label="선택"
+            <Radio
+              name="plantSelectSingle"
+              value={row.pwplId}
+              checked={selected?.pwplId === row.pwplId}
+              onChange={() => setSelected(row)}
+              ariaLabel="선택"
             />
           );
         },
@@ -197,8 +135,9 @@ export const ModalPlantSelector = ({
           cursor: 'pointer',
         },
       },
-    ];
-  }, [selectionMode, selected, selectedList]);
+    ],
+    [selected],
+  );
 
   return (
     <Modal
@@ -209,21 +148,11 @@ export const ModalPlantSelector = ({
       primaryButton="적용"
       secondaryButton="취소"
       onPrimaryPress={() => {
-        if (selectionMode === 'single') {
-          if (!selected) return;
-
-          // ✅ 덮어쓰기 (remove 없어도 동일)
-          onApplySingle(selected);
-        } else {
-          if (!selectedList.length) return;
-
-          // ✅ 덮어쓰기
-          onApplyMulti(selectedList);
-        }
-
+        if (!selected) return;
+        onApply(selected);
         onOpenChange(false);
       }}
-      isPrimaryDisabled={selectionMode === 'single' ? !selected : selectedList.length === 0}
+      isPrimaryDisabled={!selected}
     >
       <TextField style={{ maxWidth: '100%' }} aria-label="발전소 검색">
         <Group style={{ flex: 'none' }}>
@@ -242,7 +171,7 @@ export const ModalPlantSelector = ({
         </Group>
       </TextField>
 
-      <div style={{ height: 360}}>
+      <div style={{ height: 360 }}>
         <AgGridComponent<PaginationRequest, PlantBaseComboItem>
           rowData={filtered}
           columnDefs={columnDefs}
@@ -250,20 +179,7 @@ export const ModalPlantSelector = ({
           onRowClicked={(e) => {
             const row = e.data;
             if (!row) return;
-
-            if (selectionMode === 'single') {
-              setSelected(row);
-            }
-
-            if (selectionMode === 'multiple') {
-              const exists = selectedList.some((v) => v.pwplId === row.pwplId);
-
-              if (exists) {
-                setSelectedList((prev) => prev.filter((v) => v.pwplId !== row.pwplId));
-              } else {
-                setSelectedList((prev) => [...prev, row]);
-              }
-            }
+            setSelected(row);
           }}
         />
       </div>

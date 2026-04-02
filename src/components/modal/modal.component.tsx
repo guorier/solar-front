@@ -32,7 +32,7 @@ const Head = styled.div`
 const Body = styled.div<{ $hideButton?: boolean }>`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-12);
+  gap: var(--spacing-6);
   max-height: 680px;
   padding: 0 var(--spacing-20);
   overflow-y: auto;

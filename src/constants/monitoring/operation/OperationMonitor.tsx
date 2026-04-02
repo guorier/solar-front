@@ -58,6 +58,7 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
   const [, setGenTableState] = useState<GenTableItem[]>([]);
   const [, setChartDataState] = useState<BarChartData[]>([]);
   const [isSocketReady, setIsSocketReady] = useState(false);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
 
   /* =========================
    * 마운트 후 localStorage 복원 (클라이언트 전용)
@@ -163,6 +164,7 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
     });
 
     writeSocketCacheMap(nextCacheMap);
+    setLastRefreshedAt(new Date());
     setCachedSocketStatusMap((prev) => {
       const mergedMap = { ...prev };
       effectiveMacAddrs.forEach((macAddr) => {
@@ -296,6 +298,13 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
     if (hasData) setIsSocketReady(true);
   }, [operationChartDataMap, isSocketReady]);
 
+  useEffect(() => {
+    const hasData = Object.keys(operationChartDataMap).some(
+      (key) => operationChartDataMap[key].length > 0,
+    );
+    if (hasData) setLastRefreshedAt(new Date());
+  }, [operationChartDataMap]);
+
   /* =========================
    * 렌더
    * ========================= */
@@ -307,6 +316,11 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
           subTitle={selectedPlantNameText}
           desc="Real-time Plant Operations Dashboard"
         />
+        {lastRefreshedAt && (
+          <span style={{ fontSize: '16px', color: '#6b7280' }}>
+            마지막 갱신: {lastRefreshedAt.toLocaleTimeString('ko-KR')}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-1" style={{ position: 'relative' }}>

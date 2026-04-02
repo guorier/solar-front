@@ -11,6 +11,7 @@ import {
   DatePicker,
 } from '@/components';
 import type { iName } from '@/components/icon/Icons';
+import { ModalPlantSelectorSingle } from '@/constants/dashboard/ModalPlantSelectorSingle';
 
 type SummaryMetricItem = {
   icon: iName;
@@ -313,11 +314,6 @@ const sectionTitleStyle: CSSProperties = {
   color: 'var(--gray-90)',
 };
 
-const actionRowStyle: CSSProperties = {
-  display: 'flex',
-  justifyContent: 'flex-end',
-};
-
 const toolbarStyle: CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
@@ -427,6 +423,8 @@ function SummarySection({
 }
 
 export default function TradingPerformancePage() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedPlantName, setSelectedPlantName] = useState<string | null>(null);
   const [startDate, setStartDate] = useState('2026-03-01');
   const [endDate, setEndDate] = useState('2026-03-31');
   const startMonthInput = startDate.slice(0, 7);
@@ -496,7 +494,7 @@ export default function TradingPerformancePage() {
   );
 
   const handlePlantSelect = () => {
-    console.log('[거래 현황 및 실적] 발전소 선택 팝업 열기', { pageId: '01002' });
+    setModalOpen(true);
   };
 
   const handleSearch = () => {
@@ -516,24 +514,26 @@ export default function TradingPerformancePage() {
           subTitle="거래 현황 및 실적"
           desc="최근 거래 현황 실적 조회"
         />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {selectedPlantName && (
+            <span style={{ fontSize: 'var(--font-size-13)', color: 'var(--gray-70)' }}>
+              {selectedPlantName}
+            </span>
+          )}
+          <ButtonComponent
+            onPress={handlePlantSelect}
+            variant="contained"
+            icon={<Icons iName="link" size={20} color="#fff" />}
+          >
+            발전소 선택
+          </ButtonComponent>
+        </div>
       </div>
 
       <div
         className="content-group"
         style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}
       >
-        <div style={actionRowStyle}>
-          <ButtonComponent
-            variant="contained"
-            minWidth={112}
-            height={38}
-            onPress={handlePlantSelect}
-            style={{ backgroundColor: '#111827', border: '1px solid #111827' }}
-          >
-            발전소
-          </ButtonComponent>
-        </div>
-
         <div style={panelGridStyle}>
           <SummarySection
             title="금일 거래 현황"
@@ -617,6 +617,14 @@ export default function TradingPerformancePage() {
           </div>
         </section>
       </div>
+
+      <ModalPlantSelectorSingle
+        isOpen={modalOpen}
+        onOpenChange={setModalOpen}
+        onApply={(plant) => {
+          setSelectedPlantName(plant.pwplNm);
+        }}
+      />
     </>
   );
 }
