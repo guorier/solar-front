@@ -7,6 +7,8 @@ interface TopInfoBoxComponentProps {
   bg?: string;
   color?: string;
   title?: string;
+  totalLabel?: string;
+  totalValue?: string;
   children?: React.ReactNode;
   className?: string;
 }
@@ -20,13 +22,33 @@ const TopInfoBox = styled.div`
   border-radius: var(--radius);
   background: var(--point-pink-5);
 `;
-const Title = styled.div`
+const TitleRow = styled.div`
   height: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+`;
+const Title = styled.div`
   padding-top: 3px;
   color: #a91c50;
   font-family: 'GmarketSans';
   font-size: var(--font-size-19);
   font-weight: 500;
+`;
+const TotalArea = styled.div`
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+`;
+const TotalLabel = styled.span`
+  font-size: var(--font-size-15);
+  color: var(--gray-100);
+`;
+const TotalValue = styled.strong`
+  font-size: var(--font-size-20);
+  font-weight: 700;
+  color: var(--gray-100);
+  line-height: 1;
 `;
 const Content = styled.div``;
 
@@ -34,12 +56,22 @@ export const TopInfoBoxComponent: React.FC<TopInfoBoxComponentProps> = ({
   bg,
   color,
   title,
+  totalLabel,
+  totalValue,
   children,
   className,
 }) => {
   return (
     <TopInfoBox style={{ backgroundColor: bg }} className={className}>
-      <Title style={{ color: color }}>{title}</Title>
+      <TitleRow>
+        <Title style={{ color: color }}>{title}</Title>
+        {(totalLabel || totalValue) && (
+          <TotalArea>
+            {totalLabel && <TotalLabel>{totalLabel}</TotalLabel>}
+            {totalValue && <TotalValue>{totalValue}</TotalValue>}
+          </TotalArea>
+        )}
+      </TitleRow>
       <Content>{children}</Content>
     </TopInfoBox>
   );

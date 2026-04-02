@@ -6,9 +6,11 @@ import {
   AgGridComponent,
   ButtonComponent,
   Icons,
-  TextBoxComponent,
   TitleComponent,
   DatePicker,
+  InfoBoxComponent,
+  InfoBoxGroup,
+  TopInfoBoxComponent,
 } from '@/components';
 import type { iName } from '@/components/icon/Icons';
 import { ModalPlantSelectorSingle } from '@/constants/dashboard/ModalPlantSelectorSingle';
@@ -176,10 +178,10 @@ const TRADE_ROWS: readonly TradeRow[] = [
 ];
 
 const EMPTY_SEARCH_SUMMARY: SearchSummary = {
-  totalVolume: '0 kWh',
-  totalRevenue: '0 원',
-  averageSmpPrice: '0 원',
-  averageRecPrice: '0 원',
+  totalVolume: '0',
+  totalRevenue: '0',
+  averageSmpPrice: '0',
+  averageRecPrice: '0',
 };
 
 const panelStyle: CSSProperties = {
@@ -193,119 +195,9 @@ const panelStyle: CSSProperties = {
 };
 
 const panelGridStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
+  display: 'flex',
+  flexDirection: 'column',
   gap: 16,
-};
-
-const summaryShellStyle: CSSProperties = {
-  background: '#FFF4EC',
-  border: '1px solid #F5DFC9',
-  padding: 12,
-};
-
-const summaryHeaderStyle: CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'flex-start',
-  gap: 16,
-  marginBottom: 12,
-};
-
-const summaryTitleStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'flex-end',
-  gap: 6,
-};
-
-const summaryNameStyle: CSSProperties = {
-  fontSize: 'var(--font-size-17)',
-  fontWeight: 700,
-  color: '#B65A14',
-};
-
-const summaryDescStyle: CSSProperties = {
-  fontSize: 'var(--font-size-12)',
-  color: 'var(--gray-60)',
-};
-
-const totalLabelStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'flex-end',
-  gap: 6,
-};
-
-const totalNameStyle: CSSProperties = {
-  fontSize: 'var(--font-size-12)',
-  color: 'var(--gray-60)',
-};
-
-const totalValueStyle: CSSProperties = {
-  fontSize: 'var(--font-size-22)',
-  fontWeight: 700,
-  color: 'var(--gray-90)',
-  lineHeight: 1.1,
-};
-
-const summaryCardsStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-  gap: 4,
-};
-
-const summaryMetricCardStyle: CSSProperties = {
-  display: 'grid',
-  gap: 8,
-  minHeight: 74,
-  padding: '10px 12px',
-  borderRadius: 8,
-  border: '1px solid #F2E3D7',
-  background: '#fff',
-};
-
-const summaryMetricTopStyle: CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'flex-start',
-  gap: 12,
-};
-
-const summaryMetricLabelStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 6,
-  fontSize: 'var(--font-size-13)',
-  fontWeight: 600,
-  color: 'var(--gray-80)',
-  lineHeight: 1.3,
-};
-
-const summaryMetricTagStyle: CSSProperties = {
-  fontSize: 'var(--font-size-12)',
-  fontWeight: 500,
-  color: 'var(--gray-60)',
-  textAlign: 'right',
-  whiteSpace: 'nowrap',
-};
-
-const summaryMetricValueRowStyle: CSSProperties = {
-  display: 'flex',
-  justifyContent: 'flex-end',
-  alignItems: 'baseline',
-  gap: 4,
-};
-
-const summaryMetricValueStyle: CSSProperties = {
-  fontSize: 'var(--font-size-24)',
-  fontWeight: 700,
-  color: 'var(--gray-90)',
-  lineHeight: 1,
-};
-
-const summaryMetricUnitStyle: CSSProperties = {
-  fontSize: 'var(--font-size-13)',
-  fontWeight: 600,
-  color: 'var(--gray-60)',
 };
 
 const sectionTitleStyle: CSSProperties = {
@@ -349,7 +241,7 @@ function formatNumber(value: number) {
 }
 
 function formatCurrency(value: number) {
-  return `${formatNumber(value)} 원`;
+  return `${formatNumber(value)}`;
 }
 
 function buildSearchSummary(rows: TradeRow[]): SearchSummary {
@@ -367,59 +259,11 @@ function buildSearchSummary(rows: TradeRow[]): SearchSummary {
   );
 
   return {
-    totalVolume: `${formatNumber(totalVolume)} kWh`,
-    totalRevenue: formatCurrency(totalRevenue),
-    averageSmpPrice: `${formatNumber(averageSmpPrice)} 원`,
-    averageRecPrice: `${formatNumber(averageRecPrice)} 원`,
+    totalVolume: formatNumber(totalVolume),
+    totalRevenue: formatNumber(totalRevenue),
+    averageSmpPrice: formatNumber(averageSmpPrice),
+    averageRecPrice: formatNumber(averageRecPrice),
   };
-}
-
-function SummarySection({
-  title,
-  helperText,
-  totalLabel,
-  totalValue,
-  items,
-}: {
-  title: string;
-  helperText?: string;
-  totalLabel: string;
-  totalValue: string;
-  items: readonly SummaryMetricItem[];
-}) {
-  return (
-    <section style={{ ...panelStyle, ...summaryShellStyle }}>
-      <div style={summaryHeaderStyle}>
-        <div style={summaryTitleStyle}>
-          <div style={summaryNameStyle}>{title}</div>
-          {helperText ? <div style={summaryDescStyle}>{helperText}</div> : null}
-        </div>
-        <div style={totalLabelStyle}>
-          <span style={totalNameStyle}>{totalLabel}</span>
-          <strong style={totalValueStyle}>{totalValue}</strong>
-        </div>
-      </div>
-
-      <div style={summaryCardsStyle}>
-        {items.map((item) => (
-          <article key={item.title} style={summaryMetricCardStyle}>
-            <div style={summaryMetricTopStyle}>
-              <div style={summaryMetricLabelStyle}>
-                <Icons iName={item.icon} size={14} color="#7A7A7A" />
-                <span>{item.title}</span>
-              </div>
-              {item.tag ? <span style={summaryMetricTagStyle}>{item.tag}</span> : null}
-            </div>
-
-            <div style={summaryMetricValueRowStyle}>
-              <strong style={summaryMetricValueStyle}>{item.count}</strong>
-              <span style={summaryMetricUnitStyle}>{item.unit}</span>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
 }
 
 export default function TradingPerformancePage() {
@@ -454,7 +298,6 @@ export default function TradingPerformancePage() {
         headerName: '발전소/기지국',
         minWidth: 220,
         flex: 1.3,
-        // cellStyle: leftAlignCellStyle,
         cellRenderer: ({ value }: { value: string }) => value,
       },
       {
@@ -493,10 +336,6 @@ export default function TradingPerformancePage() {
     [],
   );
 
-  const handlePlantSelect = () => {
-    setModalOpen(true);
-  };
-
   const handleSearch = () => {
     if (hasInvalidRange) return;
 
@@ -521,7 +360,7 @@ export default function TradingPerformancePage() {
             </span>
           )}
           <ButtonComponent
-            onPress={handlePlantSelect}
+            onPress={() => setModalOpen(true)}
             variant="contained"
             icon={<Icons iName="link" size={20} color="#fff" />}
           >
@@ -535,20 +374,44 @@ export default function TradingPerformancePage() {
         style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}
       >
         <div style={panelGridStyle}>
-          <SummarySection
+          <TopInfoBoxComponent
             title="금일 거래 현황"
+            bg="var(--point-orange-5)"
+            color="#A34600"
             totalLabel="금일 총 예상 수익"
             totalValue="402,000 원"
-            items={TODAY_SUMMARY_ITEMS}
-          />
-
-          <SummarySection
+          >
+            <InfoBoxGroup className="row-type">
+              {TODAY_SUMMARY_ITEMS.map((item) => (
+                <InfoBoxComponent
+                  key={`${item.title}-${item.count}`}
+                  icon="feedback"
+                  title={item.title}
+                  count={item.count}
+                  bg="white"
+                />
+              ))}
+            </InfoBoxGroup>
+          </TopInfoBoxComponent>
+          <TopInfoBoxComponent
             title="누적 거래 실적"
-            helperText="현재월 기준 과거 1개월"
+            bg="var(--point-orange-5)"
+            color="#A34600"
             totalLabel="누적 총 수익"
             totalValue="1,402,000 원"
-            items={ACCUMULATED_SUMMARY_ITEMS}
-          />
+          >
+            <InfoBoxGroup className="row-type">
+              {ACCUMULATED_SUMMARY_ITEMS.map((item) => (
+                <InfoBoxComponent
+                  key={`${item.title}-${item.count}`}
+                  icon="feedback"
+                  title={item.title}
+                  count={item.count}
+                  bg="white"
+                />
+              ))}
+            </InfoBoxGroup>
+          </TopInfoBoxComponent>
         </div>
 
         <section style={panelStyle}>
@@ -594,18 +457,32 @@ export default function TradingPerformancePage() {
           ) : null}
 
           <div style={summaryGridStyle}>
-            <TextBoxComponent width="100%" title="총 거래량" content={searchSummary.totalVolume} />
-            <TextBoxComponent width="100%" title="총 수익" content={searchSummary.totalRevenue} />
-            <TextBoxComponent
-              width="100%"
-              title="평균 SMP 단가"
-              content={searchSummary.averageSmpPrice}
-            />
-            <TextBoxComponent
-              width="100%"
-              title="평균 REC 단가"
-              content={searchSummary.averageRecPrice}
-            />
+            <InfoBoxGroup className="row-type">
+              <InfoBoxComponent
+                icon="energy"
+                title="총 거래량"
+                count={searchSummary.totalVolume}
+                unit="kWh"
+              />
+              <InfoBoxComponent
+                icon="energy"
+                title="총 수익"
+                count={searchSummary.totalRevenue}
+                unit="원"
+              />
+              <InfoBoxComponent
+                icon="energy"
+                title="평균 SMP 단가"
+                count={searchSummary.averageSmpPrice}
+                unit="원"
+              />
+              <InfoBoxComponent
+                icon="energy"
+                title="평균 REC 단가"
+                count={searchSummary.averageRecPrice}
+                unit="원"
+              />
+            </InfoBoxGroup>
           </div>
 
           <div style={gridWrapStyle}>

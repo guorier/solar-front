@@ -509,7 +509,17 @@ export default function Page() {
 
       <TopInfoBoxComponent title="SMP/REC 단가" bg="var(--point-orange-5)" color="#A34600">
         <InfoBoxGroup className="row-type">
-          {summaryCards.map((item, idx) => (
+          {summaryCards.map((item) => (
+            <InfoBoxComponent
+              key={`${item.label}-${item.value}`}
+              icon="feedback"
+              title={item.label}
+              count={item.value}
+              bg="white"
+            />
+          ))}
+
+          {/* {summaryCards.map((item, idx) => (
             <InfoBoxComponent
               key={`${item.label}-${item.value}`}
               icon={
@@ -527,7 +537,8 @@ export default function Page() {
               bg="white"
             >
             </InfoBoxComponent>
-          ))}
+          ))} */}
+
         </InfoBoxGroup>
       </TopInfoBoxComponent>
 

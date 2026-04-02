@@ -30,6 +30,38 @@ type SelectedPlantStorageItem = {
 type LocalStorageRecord = Record<string, unknown>;
 const WS_REFRESH_SECONDS = 300;
 
+const mergeChartSeries = (
+  prev: PowerTrendChartSeries[],
+  next: PowerTrendChartSeries[],
+): PowerTrendChartSeries[] => {
+  const mergedMap = new Map<string, PowerTrendChartSeries>();
+
+  prev.forEach((series) => {
+    const key = `${series.plantId}__${series.inverterId}`;
+    mergedMap.set(key, { ...series, data: [...series.data] });
+  });
+
+  next.forEach((series) => {
+    const key = `${series.plantId}__${series.inverterId}`;
+    const existing = mergedMap.get(key);
+
+    if (existing) {
+      const dataMap = new Map(existing.data.map((item) => [item.time, item]));
+      series.data.forEach((item) => {
+        dataMap.set(item.time, item);
+      });
+      mergedMap.set(key, {
+        ...existing,
+        data: Array.from(dataMap.values()).sort((a, b) => a.time.localeCompare(b.time)),
+      });
+    } else {
+      mergedMap.set(key, series);
+    }
+  });
+
+  return Array.from(mergedMap.values());
+};
+
 const isObjectRecord = (value: unknown): value is LocalStorageRecord => {
   return typeof value === 'object' && value !== null;
 };
@@ -279,23 +311,7 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
     // console.log('📊 필터링된 차트 데이터 반영:', filteredChartData);
 
     // 웹소켓 차트 데이터로 업데이트 (기존 데이터와 merge)
-    setChartData((prevChartData) => {
-      const mergedMap = new Map<string, PowerTrendChartSeries>();
-
-      // 기존 차트 데이터 추가
-      prevChartData.forEach((series) => {
-        const key = `${series.plantId}__${series.inverterId}`;
-        mergedMap.set(key, series);
-      });
-
-      // 웹소켓 데이터로 업데이트 (같은 plant + inverter는 덮어씌움)
-      filteredChartData.forEach((series) => {
-        const key = `${series.plantId}__${series.inverterId}`;
-        mergedMap.set(key, series);
-      });
-
-      return Array.from(mergedMap.values());
-    });
+    setChartData((prevChartData) => mergeChartSeries(prevChartData, filteredChartData));
   }, [filteredChartData]);
 
   // 프로바이더의 Context 데이터가 업데이트되면 rows 업데이트
@@ -356,8 +372,8 @@ export default function MonitoringPow({ pwplIds: initialPwplIds }: MonitoringPow
         size: PAGE_SIZE,
       });
 
-      // 초기 데이터 설정 (웹소켓 수신 전 UI 표시용)
-      setChartData(response.chart);
+      // 초기 데이터 설정 - 소켓이 먼저 도착했을 경우 기존 데이터 보존 (merge)
+      setChartData((prevChartData) => mergeChartSeries(prevChartData, response.chart));
       setRows(response.list);
       setHasMore(response.hasMore);
     } finally {

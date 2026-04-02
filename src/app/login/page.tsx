@@ -21,11 +21,6 @@ import { useEffect, useState } from 'react';
 import { deleteCookie, getCookie, setCookie } from '@/utils/rememberId';
 import { toast } from '@/stores/toast';
 
-const BodyWrap = styled.div.attrs({ className: 'login-body-wrap' })`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
 const LoginWrap = styled.div`
   display: flex;
   flex-direction: column;
@@ -137,132 +132,130 @@ export default function LoginPage() {
   };
 
   return (
-    <BodyWrap>
-      <LoginWrap>
-        <LoginGroup>
-          <LoginBoxComponent
-            title="Wiable Powerfabric"
-            descriptions={[
-              'SNS 계정으로 가입&로그인 하실 경우, 일부 서비스 이용에\n제한이 있을 수 있습니다.',
-            ]}
-            bg={`
+    <LoginWrap>
+      <LoginGroup>
+        <LoginBoxComponent
+          title="Wiable Powerfabric"
+          descriptions={[
+            'SNS 계정으로 가입&로그인 하실 경우, 일부 서비스 이용에\n제한이 있을 수 있습니다.',
+          ]}
+          bg={`
                 url('/images/bg_login.png') no-repeat left bottom / auto, 
                 linear-gradient(104deg, var(--point-pink-5) 10%, var(--point-orange-5) 90%)
               `}
-          >
-            <img
-              src={'/images/logo.svg'}
-              alt=""
-              style={{ position: 'absolute', left: 40, bottom: 40, width: 170 }}
+        >
+          <img
+            src={'/images/logo.svg'}
+            alt=""
+            style={{ position: 'absolute', left: 40, bottom: 40, width: 170 }}
+          />
+        </LoginBoxComponent>
+        <LoginBoxComponent>
+          <Form onSubmit={form.handleSubmit(onSubmit)}>
+            <SearchFormFields
+              config={loginConfig}
+              control={form.control}
+              errors={form.formState.errors}
+              columnSpacing={0}
             />
-          </LoginBoxComponent>
-          <LoginBoxComponent>
-            <Form onSubmit={form.handleSubmit(onSubmit)}>
-              <SearchFormFields
-                config={loginConfig}
-                control={form.control}
-                errors={form.formState.errors}
-                columnSpacing={0}
-              />
-              <div className="side-group">
-                <Checkbox
-                  isSelected={rememberId}
-                  onChange={(checked: boolean) => setRememberId(checked)}
-                >
-                  아이디 저장
-                </Checkbox>
-                <LinkGroup>
-                  <ButtonComponent variant="none" onClick={() => router.push('/login/find-id')}>
-                    아이디찾기
-                  </ButtonComponent>
-                  <ButtonComponent variant="none" onClick={() => router.push('/login/find-pw')}>
-                    비밀번호 찾기
-                  </ButtonComponent>
-                </LinkGroup>
-              </div>
-              <ButtonComponent type="submit" variant="contained" mt={20}>
-                로그인
-              </ButtonComponent>
-              <div className="button-group" style={{ marginTop: -4 }}>
-                <ButtonComponent
-                  variant="outlined"
-                  icon={<Icons iName="naver" size={16} original />}
-                  iconPosition="left"
-                  ls={-1.1}
-                  className="flex-1"
-                  onClick={() => signIn('naver')}
-                >
-                  네이버 로그인
-                </ButtonComponent>
-                <ButtonComponent
-                  variant="outlined"
-                  icon={
-                    <Icons
-                      iName="google"
-                      size={16}
-                      original
-                      style={{ backgroundColor: 'transparent' }}
-                    />
-                  }
-                  iconPosition="left"
-                  ls={-1.1}
-                  className="flex-1"
-                  onClick={() => signIn('google')}
-                >
-                  구글 로그인
-                </ButtonComponent>
-                <ButtonComponent
-                  variant="outlined"
-                  icon={
-                    <Icons
-                      iName="kakao"
-                      size={16}
-                      original
-                      style={{ backgroundColor: 'transparent' }}
-                    />
-                  }
-                  iconPosition="left"
-                  ls={-1.1}
-                  className="flex-1"
-                  onClick={() => signIn('kakao')}
-                >
-                  카카오 로그인
-                </ButtonComponent>
-              </div>
-            </Form>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                gap: 'var(--spacing-4)',
-              }}
-            >
-              <p style={{ color: 'var(--gray-50)' }}>아직 계정이 없으신가요?</p>
-              <ButtonComponent
-                variant="none"
-                textColor="var(--point-pink-70)"
-                underline
-                onClick={() => router.push('/login/signup-agree')}
+            <div className="side-group">
+              <Checkbox
+                isSelected={rememberId}
+                onChange={(checked: boolean) => setRememberId(checked)}
               >
-                회원가입
+                아이디 저장
+              </Checkbox>
+              <LinkGroup>
+                <ButtonComponent variant="none" onClick={() => router.push('/login/find-id')}>
+                  아이디찾기
+                </ButtonComponent>
+                <ButtonComponent variant="none" onClick={() => router.push('/login/find-pw')}>
+                  비밀번호 찾기
+                </ButtonComponent>
+              </LinkGroup>
+            </div>
+            <ButtonComponent type="submit" variant="contained" mt={20}>
+              로그인
+            </ButtonComponent>
+            <div className="button-group" style={{ marginTop: -4 }}>
+              <ButtonComponent
+                variant="outlined"
+                icon={<Icons iName="naver" size={16} original />}
+                iconPosition="left"
+                ls={-1.1}
+                className="flex-1"
+                onClick={() => signIn('naver')}
+              >
+                네이버 로그인
+              </ButtonComponent>
+              <ButtonComponent
+                variant="outlined"
+                icon={
+                  <Icons
+                    iName="google"
+                    size={16}
+                    original
+                    style={{ backgroundColor: 'transparent' }}
+                  />
+                }
+                iconPosition="left"
+                ls={-1.1}
+                className="flex-1"
+                onClick={() => signIn('google')}
+              >
+                구글 로그인
+              </ButtonComponent>
+              <ButtonComponent
+                variant="outlined"
+                icon={
+                  <Icons
+                    iName="kakao"
+                    size={16}
+                    original
+                    style={{ backgroundColor: 'transparent' }}
+                  />
+                }
+                iconPosition="left"
+                ls={-1.1}
+                className="flex-1"
+                onClick={() => signIn('kakao')}
+              >
+                카카오 로그인
               </ButtonComponent>
             </div>
-          </LoginBoxComponent>
-        </LoginGroup>
-        <div className="side-group">
-          <p style={{ color: 'var(--gray-50)' }}>
-            Copyright © 2025 Wiable Corp. All Rights Reserved.
-          </p>
-          <LinkGroup>
-            <ButtonComponent variant="none" underline>
-              이용약관
+          </Form>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 'var(--spacing-4)',
+            }}
+          >
+            <p style={{ color: 'var(--gray-50)' }}>아직 계정이 없으신가요?</p>
+            <ButtonComponent
+              variant="none"
+              textColor="var(--point-pink-70)"
+              underline
+              onClick={() => router.push('/login/signup-agree')}
+            >
+              회원가입
             </ButtonComponent>
-            <ButtonComponent variant="none" underline>
-              개인정보처리방침
-            </ButtonComponent>
-          </LinkGroup>
-        </div>
-      </LoginWrap>
-    </BodyWrap>
+          </div>
+        </LoginBoxComponent>
+      </LoginGroup>
+      <div className="side-group">
+        <p style={{ color: 'var(--gray-50)' }}>
+          Copyright © 2025 Wiable Corp. All Rights Reserved.
+        </p>
+        <LinkGroup>
+          <ButtonComponent variant="none" underline>
+            이용약관
+          </ButtonComponent>
+          <ButtonComponent variant="none" underline>
+            개인정보처리방침
+          </ButtonComponent>
+        </LinkGroup>
+      </div>
+    </LoginWrap>
   );
 }

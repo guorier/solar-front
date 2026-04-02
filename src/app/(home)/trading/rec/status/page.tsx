@@ -102,7 +102,6 @@ const recentIssueColumns: RecentIssueColumn[] = [
   { key: 'totalRevenue', label: '총 수익', width: '15%' },
 ];
 
-
 function RecentIssueTable({ rows }: { rows: RecStatusRecentIssueRow[] }) {
   return (
     <div style={tableWrapStyle}>
@@ -155,19 +154,14 @@ export default function RecStatusPage() {
         />
       </div>
 
-      <TopInfoBoxComponent
-        title="총 발급 현황"
-        bg="var(--point-orange-5)"
-        color="#A34600"
-      >
+      <TopInfoBoxComponent title="총 발급 현황" bg="var(--point-orange-5)" color="#A34600">
         <InfoBoxGroup className="row-type">
-          {recStatusSummaryMock.map((item, idx) => (
+          {recStatusSummaryMock.map((item) => (
             <InfoBoxComponent
               key={`${item.label}-${item.value}`}
-              icon={idx === 0 ? 'feedback' : idx === 1 ? 'feedback' : idx === 2 ? 'feedback' : 'feedback'}
+              icon="feedback"
               title={item.label}
               count={item.value}
-              tag={'notice' in item && typeof item.notice === 'string' ? item.notice : undefined}
               bg="white"
             >
               {item.helper}
@@ -175,10 +169,6 @@ export default function RecStatusPage() {
           ))}
         </InfoBoxGroup>
       </TopInfoBoxComponent>
-
-
-
-
 
       <div className="content-group" style={{ gap: '16px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -191,10 +181,9 @@ export default function RecStatusPage() {
               {recStatusMonthlyMock.metrics.map((item, idx) => (
                 <InfoBoxComponent
                   key={`${item.label}-${item.value}`}
-                  icon={idx === 0 ? 'energy' : idx === 1 ? 'feedback' : idx === 2 ? 'feedback' : 'feedback'}
+                  icon={idx === 0 ? 'energy' : 'feedback'}
                   title={item.label}
                   count={item.value}
-                  tag={'notice' in item && typeof item.notice === 'string' ? item.notice : undefined}
                   bg="white"
                 >
                   {item.helper}

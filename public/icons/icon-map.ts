@@ -59,6 +59,7 @@ import IconTransfer_left from "public/icons/icon_transfer_left.svg";
 import IconTransfer_right from "public/icons/icon_transfer_right.svg";
 import IconWarning from "public/icons/icon_warning.svg";
 import IconWind from "public/icons/icon_wind.svg";
+import IconXlsx from "public/icons/icon_xlsx.svg";
 
 export const ICON_MAP = {
   alarm: IconAlarm,
@@ -122,6 +123,7 @@ export const ICON_MAP = {
   transfer_right: IconTransfer_right,
   warning: IconWarning,
   wind: IconWind,
+  xlsx: IconXlsx,
 } as const;
 
 export type IconName = keyof typeof ICON_MAP;

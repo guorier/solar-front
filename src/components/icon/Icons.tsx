@@ -60,6 +60,7 @@ const IconSource = [
   { name: 'member', src: '/icons/icon_member.svg' },
   { name: 'normal', src: '/icons/icon_normal.svg' },
   { name: 'warning', src: '/icons/icon_warning.svg' },
+  { name: 'xlsx', src: '/icons/icon_xlsx.svg' },
 ] as const;
 
 export type iName = (typeof IconSource)[number]['name'];

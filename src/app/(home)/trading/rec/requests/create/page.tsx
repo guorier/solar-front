@@ -40,7 +40,6 @@ type RecForm = {
   weight: string;
   appliedRec: string;
   status: string;
-  rpsFile: File | null;
   certFile: File | null;
 };
 
@@ -57,7 +56,6 @@ export default function RecCreatePage() {
     weight: '',
     appliedRec: '',
     status: '신청',
-    rpsFile: null,
     certFile: null,
   });
 

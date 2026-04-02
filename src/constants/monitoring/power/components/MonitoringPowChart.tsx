@@ -90,6 +90,7 @@ const getTooltipMarkerColor = (color?: string | TooltipColorObject): string => {
 export default function MonitoringPowChart({ chartData }: MonitoringPowChartProps) {
   const chartRef = useRef<HTMLDivElement | null>(null);
   const chartInstanceRef = useRef<echarts.ECharts | null>(null);
+  const isChartInitializedRef = useRef<boolean>(false);
 
   const categoryData = useMemo(() => {
     const timeSet = new Set<string>();
@@ -164,6 +165,7 @@ export default function MonitoringPowChart({ chartData }: MonitoringPowChartProp
 
     if (!chartInstanceRef.current) {
       chartInstanceRef.current = echarts.init(chartRef.current);
+      isChartInitializedRef.current = false;
     }
 
     const chart = chartInstanceRef.current;
@@ -268,20 +270,20 @@ export default function MonitoringPowChart({ chartData }: MonitoringPowChartProp
       dataZoom: [
         {
           type: 'inside',
-          start: 50,
-          end: 100,
+          ...(isChartInitializedRef.current ? {} : { start: 50, end: 100 }),
         },
         {
           show: true,
           type: 'slider',
           bottom: sliderBottom,
-          start: 50,
-          end: 100,
+          ...(isChartInitializedRef.current ? {} : { start: 50, end: 100 }),
           labelFormatter: () => '',
         },
       ],
       series: seriesOption,
     });
+
+    isChartInitializedRef.current = true;
 
     const handleResize = (): void => {
       chart.resize();

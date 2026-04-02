@@ -10,7 +10,6 @@ type FindIdValues = {
   email?: string;
   certiCode?: string;
 };
-
 export default function FindIdPage() {
   const router = useRouter();
   const [values, setValues] = useState<FindIdValues>({});
