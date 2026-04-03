@@ -31,7 +31,7 @@ const StyledGroup = styled(Group)`
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
-    gap: var(--spacing-4) !important;
+    gap: var(--spacing-4) ;
     grid-template-columns: none !important;
   }
 

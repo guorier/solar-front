@@ -5,11 +5,11 @@
   max-width: 100%;
   height: 100%;
 
-  &[data-orientation=horizontal] {
+  &[data-orientation='horizontal'] {
     flex-direction: column;
   }
 
-  &[data-orientation=vertical] {
+  &[data-orientation='vertical'] {
     flex-direction: row;
     width: 100%;
     .react-aria-TabPanels {
@@ -25,7 +25,7 @@
     background: var(--border-color);
   }
 
-  &[data-orientation=horizontal] {
+  &[data-orientation='horizontal'] {
     border-bottom: 0.5px solid var(--border-color);
     max-width: 100%;
     overflow-x: auto;
@@ -41,7 +41,7 @@
     }
   }
 
-  &[data-orientation=vertical] {
+  &[data-orientation='vertical'] {
     flex-direction: column;
     border-inline-end: 1px solid var(--border-color);
 
@@ -114,7 +114,7 @@
   overflow: clip;
   height: 100%;
   flex: 1;
-  min-Height: 0;
+  min-height: 0;
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
@@ -143,10 +143,10 @@
     width: 100%;
   }
 }
- 
+
 .react-aria-Tabs {
-   display: flex;
-   flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
   .react-aria-TabList {
     display: flex;
@@ -155,7 +155,7 @@
     padding: var(--spacing-2);
     border: 0;
     border-radius: var(--radius);
-    background: #E9E8EB;
+    background: #e9e8eb;
 
     .react-aria-Tab {
       display: flex;
@@ -179,26 +179,26 @@
 
 //map
 .map-group {
-   position: relative;
-   flex: 1; 
-  .react-aria-Tabs { 
-    border-radius: var(--radius); 
+  position: relative;
+  flex: 1;
+  .react-aria-Tabs {
+    border-radius: var(--radius);
     background: var(--gray-50);
     overflow: hidden;
 
     .react-aria-TabList {
       position: absolute;
-      top: 20px; 
-      left: 20px;  
-      height: 42px; 
+      top: 20px;
+      left: 20px;
+      height: 42px;
       border: 1px solid var(--border-color);
-      background: var(--background-color); 
+      background: var(--background-color);
       z-index: 9999;
 
       .react-aria-Tab {
         padding: var(--spacing-4) var(--spacing-5);
 
-        &[data-selected="true"] {
+        &[data-selected='true'] {
           background: var(--point-pink-60);
           color: var(--gray-0);
         }
@@ -211,11 +211,13 @@
 .tabs {
   display: flex;
   flex-direction: column;
+  gap:10px;
   height: 100%;
 
-  > [class^="table-title-component_"] {
+  > [class^='table-title-component_'] {
     position: relative;
     align-items: center;
+    padding: var(--spacing-5) 0;
 
     &::after {
       position: absolute;
@@ -235,7 +237,7 @@
     overflow: visible;
     margin: 0;
     border: 0;
-    
+
     .react-aria-Tab {
       position: relative;
       cursor: pointer;
@@ -255,7 +257,7 @@
         z-index: 2;
       }
 
-      &[data-selected="true"] {
+      &[data-selected='true'] {
         color: var(--text-color);
         border-bottom-color: var(--gray-70);
 

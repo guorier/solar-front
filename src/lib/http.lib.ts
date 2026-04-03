@@ -66,3 +66,23 @@ plantCommonClient.interceptors.request.use(async (config) => {
 
   return config;
 });
+
+// 전력 거래 api
+export const tradeClient = axios.create({
+  baseURL: '/power/api',
+  timeout: 15_000,
+});
+
+tradeClient.interceptors.request.use(async (config) => {
+  if (!config.headers) return config;
+
+  const skipAuth = config.headers.get('X-SKIP-AUTH');
+  if (!skipAuth) {
+    const session = await getSession();
+    if (session?.accessToken) {
+      config.headers.set('Authorization', `Bearer ${session.accessToken}`);
+    }
+  }
+
+  return config;
+});

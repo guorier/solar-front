@@ -6,6 +6,7 @@ export * from './tab';
 export * from './table';
 export * from './ag-grid';
 export * from './table-title';
+export * from './count-area';
 export * from './pagination';
 export * from './metor';
 export * from './modal';

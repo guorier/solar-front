@@ -58,7 +58,6 @@ const InfoBox = styled.div`
   position: relative;
   min-width: 140px;
   min-height: 62px;
-  max-height: 66px;
   padding: var(--spacing-6) var(--spacing-8);
   border-radius: var(--radius);
   background: rgba(232, 228, 235, 0.45);
@@ -78,7 +77,7 @@ const HeaderRow = styled.div<HeaderRowProps>`
 
 const Title = styled.div`
   display: flex;
-  gap:4px;
+  gap: 4px;
   color: var(--gray-100);
 `;
 
@@ -117,7 +116,18 @@ const Count = styled.div`
   }
 `;
 
-const Content = styled.div``;
+const Content = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-4);
+  width: fit-content;
+  font-weight: 400;
+  font-size: var(--font-size-15);
+  color: #555555;
+  border-radius: var(--radius-sm);
+  background: #f4f3f6;
+`;
 
 export const InfoBoxComponent: React.FC<InfoBoxProps> = ({
   width,
@@ -150,19 +160,28 @@ export const InfoBoxComponent: React.FC<InfoBoxProps> = ({
             <Icons iName={icon} size={20} color="#8B8888" />
             <span>{title}</span>
           </Title>
-          <Count>
-            {tag && <p>{tag}</p>}
-            {formatNumber(count)}
-            {totalCount !== undefined && totalCount !== null && (
-              <span>
-                <b>/</b>
-                {formatNumber(totalCount)}
-              </span>
-            )}
-            {unit && <small>{unit}</small>}
-          </Count>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--spacing-8)',
+              alignItems: 'flex-end',
+            }}
+          >
+            {children && <Content>{children}</Content>}
+            <Count>
+              {tag && <p>{tag}</p>}
+              {formatNumber(count)}
+              {totalCount !== undefined && totalCount !== null && (
+                <span>
+                  <b>/</b>
+                  {formatNumber(totalCount)}
+                </span>
+              )}
+              {unit && <small>{unit}</small>}
+            </Count>
+          </div>
         </HeaderRow>
-        {children && <Content>{children}</Content>}
       </InfoBox>
     </InfoBoxGroup>
   );
