@@ -15,6 +15,8 @@ import {
   type SelectionChangedEvent,
 } from 'ag-grid-community';
 import './ag-grid.component.scss';
+import { EmptyBox } from '@/components/empty/emptyData';
+import { Loading } from '@/components/loading/loading';
 // import { Checkbox } from '@/components'; //선언없어서 주석처리
 
 type RowDataType = Record<string, unknown>; // ✅ never -> unknown (제네릭 제약으로 row 타입 확장 가능)
@@ -113,7 +115,7 @@ export const AgGridComponent = <T extends PaginationRequest, R extends RowDataTy
   }, [loading, rowData]);
 
   return (
-    <div className="ag-theme-alpine" style={{ height: '100%'}}>
+    <div className="ag-theme-alpine" style={{ height: '100%' }}>
       <AgGridReact<R>
         ref={gridRef}
         rowData={rowData}
@@ -139,9 +141,8 @@ export const AgGridComponent = <T extends PaginationRequest, R extends RowDataTy
         rowHeight={43}
         rowSelection={rowSelection}
         onSelectionChanged={onSelectionChanged}
-        // ✅ 문구 지정 (Td 대신 overlay)
-        overlayLoadingTemplate={`<span class="ag-overlay-loading-center">${loadingText}</span>`}
-        overlayNoRowsTemplate={`<span class="ag-overlay-no-rows-center">${emptyText}</span>`}
+        loadingOverlayComponent={() => <Loading loadingText={loadingText} />}
+        noRowsOverlayComponent={() => <EmptyBox>{emptyText}</EmptyBox>}
       />
     </div>
   );

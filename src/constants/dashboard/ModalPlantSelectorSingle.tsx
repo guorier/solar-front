@@ -10,36 +10,6 @@ import type { PlantBaseComboItem } from '@/services/plants/type';
 import type { ColDef, ICellRendererParams } from 'ag-grid-community';
 import { Radio } from '@/components/radio';
 
-type StoredPlantItem = {
-  pwplId: string;
-  macAddr?: string;
-};
-
-const getStoredPwplIds = (value: string | null): string[] => {
-  if (!value) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(value) as Array<string | StoredPlantItem>;
-
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      return [];
-    }
-
-    if (typeof parsed[0] === 'string') {
-      return parsed.filter((item): item is string => typeof item === 'string');
-    }
-
-    return parsed
-      .map((item) => (item && typeof item === 'object' ? item.pwplId : ''))
-      .filter(Boolean);
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
-
 type PaginationRequest = {
   page: number;
   size: number;
@@ -86,16 +56,8 @@ export const ModalPlantSelectorSingle = ({
       setKeyword('');
       setAppliedKeyword('');
       setSelected(null);
-
-      const stored = localStorage.getItem('pwplIds');
-
-      if (stored) {
-        const ids = getStoredPwplIds(stored);
-        const found = plants.find((v) => v.pwplId === ids[0]);
-        if (found) setSelected(found);
-      }
     }
-  }, [isOpen, plants]);
+  }, [isOpen]);
 
   const handleSearch = () => {
     setAppliedKeyword(keyword.trim());

@@ -11,6 +11,7 @@ interface TopInfoBoxComponentProps {
   totalValue?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 const TopInfoBox = styled.div`
@@ -60,9 +61,10 @@ export const TopInfoBoxComponent: React.FC<TopInfoBoxComponentProps> = ({
   totalValue,
   children,
   className,
+  style,
 }) => {
   return (
-    <TopInfoBox style={{ backgroundColor: bg }} className={className}>
+    <TopInfoBox style={{ backgroundColor: bg, ...style }} className={className}>
       <TitleRow>
         <Title style={{ color: color }}>{title}</Title>
         {(totalLabel || totalValue) && (

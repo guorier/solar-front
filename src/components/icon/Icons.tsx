@@ -61,6 +61,8 @@ const IconSource = [
   { name: 'normal', src: '/icons/icon_normal.svg' },
   { name: 'warning', src: '/icons/icon_warning.svg' },
   { name: 'xlsx', src: '/icons/icon_xlsx.svg' },
+  { name: 'exel', src: '/icons/img_exel.svg' },
+  { name: 'nodata', src: '/icons/ing_nodata.svg' },
 ] as const;
 
 export type iName = (typeof IconSource)[number]['name'];
@@ -97,7 +99,7 @@ const Icons = ({
         WebkitMaskPosition: 'center',
         width: size,
         height: size,
-        background: background ?? color,
+        backgroundColor: background ?? color,
       }
     : {
         display: 'inline-block',
@@ -107,7 +109,7 @@ const Icons = ({
         backgroundRepeat: 'no-repeat',
         width: size,
         height: size,
-        backgroundColor: color,
+        backgroundColor: background ? color : "transparent",
       };
 
   return <i className={className} style={{ ...iconStyle, ...style }} onClick={() => onClick?.()} />;

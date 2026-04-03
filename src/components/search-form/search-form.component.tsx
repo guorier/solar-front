@@ -10,34 +10,53 @@ type SearchFormProps = {
   values: Record<string, unknown>;
   onChange: (key: string, value: unknown) => void;
   onSearch: () => void;
+  children?: React.ReactNode;
 };
 
-const SearchFormGroup = styled.div`
+const SearchFormWrap = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: var(--spacing-10);
   padding: var(--spacing-10) var(--spacing-15);
   border-radius: var(--radius);
   border: 1px solid var(--border-color);
   background: var(--gray-A100);
+`;
 
-  .react-aria-Group{
+const SearchFormGroup = styled.div<{ $hasChildren: boolean }>`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  ${({ $hasChildren }) =>
+    !$hasChildren &&
+    `
+    padding: var(--spacing-10) var(--spacing-15);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    background: var(--gray-A100);
+  `}
+  .react-aria-Group {
     flex: 1;
 
     > div {
-      flex: 1; 
+      flex: 1;
     }
   }
 `;
+
 const ButtonGroup = styled(Group)`
   flex: none;
   padding-left: var(--spacing-16);
   border-left: 1px solid var(--border-color);
 `;
+const Content = styled.div``;
 
-export const SearchForm = ({ config, values, onChange, onSearch }: SearchFormProps) => {
-  return (
+export const SearchForm = ({ config, values, onChange, onSearch, children }: SearchFormProps) => {
+  const hasChildren = !!children;
+
+  const group = (
     <SearchFormGroup
+      $hasChildren={hasChildren}
       role="search"
       onKeyDownCapture={(e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.key === 'Enter') {
@@ -61,4 +80,15 @@ export const SearchForm = ({ config, values, onChange, onSearch }: SearchFormPro
       </ButtonGroup>
     </SearchFormGroup>
   );
+
+  if (hasChildren) {
+    return (
+      <SearchFormWrap>
+        {group}
+        <Content>{children}</Content>
+      </SearchFormWrap>
+    );
+  }
+
+  return group;
 };
