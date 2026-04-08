@@ -15,7 +15,7 @@ export const Loading = ({ loadingText = '로딩중...' }: LoadingOverlayProps) =
           height: 36,
           borderRadius: '50%',
           border: '6px solid var(--gray-20)',
-          borderTopColor: 'var(--point-pink-60);',
+          borderTopColor: 'var(--point-pink-60)',
           animation: 'spin 0.8s linear infinite',
         }}
       />

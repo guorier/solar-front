@@ -26,6 +26,7 @@ export const initialForm = {
   grdnt: 0,
   az: 0,
   pr: 0,
+  weight: 1.5,
   bldgStrctNm: '',
   instlPlcNm: '',
   infraNm: '',
@@ -47,4 +48,5 @@ export const initialForm = {
   roadAddress: '',
   sido: '',
   zonecode: '',
+  loginId: '',
 } satisfies PlantBaseCreateReq;

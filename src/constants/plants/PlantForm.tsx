@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { AxiosError } from 'axios';
+import { useSession } from 'next-auth/react';
 
 import { ButtonComponent, Icons, TitleComponent, BottomGroupComponent } from '@/components';
 import { Group } from 'react-aria-components';
@@ -35,6 +36,7 @@ import EquipmentInfoTable from './components/EquipmentInfoTable';
 import StructureInfoTable from './components/StructureInfoTable';
 import InfrastructureInfoTable from './components/InfrastructureInfoTable';
 import ExtraInfoTable from './components/ExtraInfoTable';
+import WeightInfoTable from './components/WeightInfoTable';
 import { initialForm } from './PlantType';
 
 type ApiErrorBody = { message?: string };
@@ -51,6 +53,7 @@ const REQUIRED: FieldKey[] = ['pwplNm', 'bcode', 'roadAddress', 'jibunAddress', 
 export default function PlantForm({ pwplId, initialMode }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
 
   const [mode] = useState<Mode>(initialMode);
 
@@ -64,6 +67,8 @@ export default function PlantForm({ pwplId, initialMode }: Props) {
 
   const requiredSet = useMemo(() => new Set<FieldKey>(REQUIRED), []);
   const isRequired = (k: FieldKey) => requiredSet.has(k);
+
+  const loginId = session?.user?.email?.trim() ?? '';
 
   const setValue = <K extends FieldKey>(k: K, v: PlantBaseCreateReq[K]) => {
     setForm((prev) => ({ ...prev, [k]: v }));
@@ -138,54 +143,56 @@ export default function PlantForm({ pwplId, initialMode }: Props) {
   const detailParams: PlantBaseDetailParams = useMemo(() => ({ pwplId: pwplId ?? '' }), [pwplId]);
   const detailQuery = useGetPlantBaseDetail(detailParams, !!pwplId && mode === 'edit');
 
-const mapDetailToForm = (d: PlantBaseDetailRes): PlantBaseCreateReq => ({
-  ...initialForm,
-  pwplIdPrefix: initialForm.pwplIdPrefix,
-  pwplId: d.pwplId,
-  pwplNm: d.pwplNm ?? '',
-  pwplTypeCd: d.pwplTypeCd ?? '',
-  pwplSttsCd: d.pwplSttsCd ?? '',
-  pwplSclCd: d.pwplSclCd ?? '',
-  designCpct: d.designCpct ?? 0,
-  instlCpct: d.instlCpct ?? 0,
-  lctnZip: d.lctnZip ?? '',
-  roadNmAddr: d.roadNmAddr ?? '',
-  lctnLotnoAddr: d.lctnLotnoAddr ?? '',
-  lctnDtlAddr: d.lctnDtlAddr ?? '',
-  pwplLat: d.pwplLat ?? 0,
-  pwplLot: d.pwplLot ?? 0,
-  pwplXcrd: d.pwplXcrd ?? 0,
-  pwplYcrd: d.pwplYcrd ?? 0,
-  pmMsrstn: d.pmMsrstn ?? '',
-  pltar: d.pltar ?? 0,
-  premsShpNm: d.premsShpNm ?? '',
-  eqpmntQty: d.eqpmntQty ?? 0,
-  systmVltg: d.systmVltg ?? 0,
-  grdnt: d.grdnt ?? 0,
-  az: d.az ?? 0,
-  pr: d.pr === 0 || d.pr === null || d.pr === undefined ? 85 : d.pr,
-  bldgStrctNm: d.bldgStrctNm ?? '',
-  instlPlcNm: d.instlPlcNm ?? '',
-  infraNm: d.infraNm ?? '',
-  asstFlctNm: d.asstFlctNm ?? '',
-  ownrNm: d.ownrNm ?? '',
-  operCoNm: d.operCoNm ?? '',
-  cnstCoNm: d.cnstCoNm ?? '',
-  instlYmd: d.instlYmd ?? '',
-  cmrcoprYmd: d.cmrcoprYmd ?? '',
-  pwplExpln: d.pwplExpln ?? '',
-  delYn: d.delYn ?? initialForm.delYn,
-  rgtrId: d.rgtrId ?? initialForm.rgtrId,
-  regDt: d.regDt ?? initialForm.regDt,
-  mdfrId: d.mdfrId ?? initialForm.mdfrId,
-  mdfcnDt: d.mdfcnDt ?? initialForm.mdfcnDt,
-  bcode: initialForm.bcode,
-  address: initialForm.address,
-  jibunAddress: initialForm.jibunAddress,
-  roadAddress: initialForm.roadAddress,
-  sido: initialForm.sido,
-  zonecode: initialForm.zonecode,
-});
+  const mapDetailToForm = (d: PlantBaseDetailRes): PlantBaseCreateReq => ({
+    ...initialForm,
+    loginId: '',
+    pwplIdPrefix: initialForm.pwplIdPrefix,
+    pwplId: d.pwplId,
+    pwplNm: d.pwplNm ?? '',
+    pwplTypeCd: d.pwplTypeCd ?? '',
+    pwplSttsCd: d.pwplSttsCd ?? '',
+    pwplSclCd: d.pwplSclCd ?? '',
+    designCpct: d.designCpct ?? 0,
+    instlCpct: d.instlCpct ?? 0,
+    lctnZip: d.lctnZip ?? '',
+    roadNmAddr: d.roadNmAddr ?? '',
+    lctnLotnoAddr: d.lctnLotnoAddr ?? '',
+    lctnDtlAddr: d.lctnDtlAddr ?? '',
+    pwplLat: d.pwplLat ?? 0,
+    pwplLot: d.pwplLot ?? 0,
+    pwplXcrd: d.pwplXcrd ?? 0,
+    pwplYcrd: d.pwplYcrd ?? 0,
+    pmMsrstn: d.pmMsrstn ?? '',
+    pltar: d.pltar ?? 0,
+    premsShpNm: d.premsShpNm ?? '',
+    eqpmntQty: d.eqpmntQty ?? 0,
+    systmVltg: d.systmVltg ?? 0,
+    grdnt: d.grdnt ?? 0,
+    az: d.az ?? 0,
+    pr: d.pr === 0 || d.pr === null || d.pr === undefined ? 85 : d.pr,
+    weight: d.weight ?? 1.5,
+    bldgStrctNm: d.bldgStrctNm ?? '',
+    instlPlcNm: d.instlPlcNm ?? '',
+    infraNm: d.infraNm ?? '',
+    asstFlctNm: d.asstFlctNm ?? '',
+    ownrNm: d.ownrNm ?? '',
+    operCoNm: d.operCoNm ?? '',
+    cnstCoNm: d.cnstCoNm ?? '',
+    instlYmd: d.instlYmd ?? '',
+    cmrcoprYmd: d.cmrcoprYmd ?? '',
+    pwplExpln: d.pwplExpln ?? '',
+    delYn: d.delYn ?? initialForm.delYn,
+    rgtrId: d.rgtrId ?? initialForm.rgtrId,
+    regDt: d.regDt ?? initialForm.regDt,
+    mdfrId: d.mdfrId ?? initialForm.mdfrId,
+    mdfcnDt: d.mdfcnDt ?? initialForm.mdfcnDt,
+    bcode: initialForm.bcode,
+    address: initialForm.address,
+    jibunAddress: initialForm.jibunAddress,
+    roadAddress: initialForm.roadAddress,
+    sido: initialForm.sido,
+    zonecode: initialForm.zonecode,
+  });
 
   useEffect(() => {
     if (mode !== 'edit') return;
@@ -205,6 +212,8 @@ const mapDetailToForm = (d: PlantBaseDetailRes): PlantBaseCreateReq => ({
   const buildCreatePayload = (): PlantBaseCreateReq => ({
     ...form,
     pr: Number.isFinite(form.pr) ? (form.pr === 0 ? 85 : form.pr) : 85,
+    loginId,
+    rgtrId: loginId || form.rgtrId,
   });
 
   const buildUpdatePayload = (): PlantBaseUpdateReq => ({
@@ -231,6 +240,7 @@ const mapDetailToForm = (d: PlantBaseDetailRes): PlantBaseCreateReq => ({
     grdnt: toStringOrNullFromNumber(form.grdnt),
     az: toStringOrNullFromNumber(form.az),
     pr: Number.isFinite(form.pr) ? (form.pr === 0 ? 85 : form.pr) : 85,
+    weight: Number.isFinite(form.weight) ? form.weight : null,
     bldgStrctNm: toStringOrNullFromString(form.bldgStrctNm),
     instlPlcNm: toStringOrNullFromString(form.instlPlcNm),
     infraNm: toStringOrNullFromString(form.infraNm),
@@ -238,15 +248,10 @@ const mapDetailToForm = (d: PlantBaseDetailRes): PlantBaseCreateReq => ({
     ownrNm: toStringOrNullFromString(form.ownrNm),
     operCoNm: toStringOrNullFromString(form.operCoNm),
     cnstCoNm: toStringOrNullFromString(form.cnstCoNm),
-
-    // ✅ 변경: 하이픈 제거해서 전송
-    // instlYmd: toYmdNoHyphenOrNull(form.instlYmd),
-    // cmrcoprYmd: toYmdNoHyphenOrNull(form.cmrcoprYmd),
     instlYmd: form.instlYmd,
     cmrcoprYmd: form.cmrcoprYmd,
-
     pwplExpln: toStringOrNullFromString(form.pwplExpln),
-    mdfrId: form.mdfrId,
+    mdfrId: loginId || form.mdfrId,
   });
 
   const onSubmit = async (e?: React.FormEvent) => {
@@ -254,9 +259,8 @@ const mapDetailToForm = (d: PlantBaseDetailRes): PlantBaseCreateReq => ({
 
     try {
       if (mode === 'create') {
-        if (!validateCreate()) {
-          return;
-        }
+        if (!validateCreate()) return;
+
         const payload = buildCreatePayload();
         await createMutation.mutateAsync(payload);
         await queryClient.invalidateQueries({ queryKey: ['getPlantBaseList'] });
@@ -338,6 +342,9 @@ const mapDetailToForm = (d: PlantBaseDetailRes): PlantBaseCreateReq => ({
           />
 
           <EquipmentInfoTable form={form} setValue={setValue} />
+
+          <WeightInfoTable form={form} setValue={setValue} />
+
           <StructureInfoTable form={form} setValue={setValue} />
           <InfrastructureInfoTable form={form} setValue={setValue} />
           <ExtraInfoTable form={form} setValue={setValue} />
@@ -349,7 +356,7 @@ const mapDetailToForm = (d: PlantBaseDetailRes): PlantBaseCreateReq => ({
           <div className="button-group">
             <ButtonComponent
               variant="contained"
-              icon={<Icons iName='plus' size={16} color="#fff" />}
+              icon={<Icons iName="plus" size={16} color="#fff" />}
               type="button"
               onClick={() => onSubmit()}
               isDisabled={mode === 'create' ? createMutation.isPending : updateMutation.isPending}

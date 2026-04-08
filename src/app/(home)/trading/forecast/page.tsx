@@ -1,4 +1,5 @@
-// app/trading/forecast/page.tsx
+import { ForecastPage } from '@/constants/trading/forecast/forecast';
+
 export default function Page() {
-  return <div>발전량 예측</div>;
+  return <ForecastPage />;
 }

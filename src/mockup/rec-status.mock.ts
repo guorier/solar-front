@@ -5,13 +5,13 @@ export interface RecStatusMetric {
   notice?: string;
 }
 
-export interface RecStatusRecentIssueRow {
-  tradeDate: string;
+export interface RecIssueRow {
+  id: number;
+  targetDate: string;
   plantName: string;
-  transactionAmount: string;
-  smpUnitPrice: string;
-  recUnitPrice: string;
-  totalRevenue: string;
+  powerAmount: string;
+  recCount: number;
+  certStatus: '등록' | '미등록';
 }
 
 const plantNames = [
@@ -32,18 +32,13 @@ export const recStatusSummaryMock: RecStatusMetric[] = [
     helper: '전체 발급 신청',
   },
   {
-    label: '발급 완료',
+    label: '인증서 등록완료',
     value: '19건',
     helper: '정상 발급 완료',
   },
   {
-    label: '처리 대기',
-    value: '2건',
-    helper: '신청 심사 진행 중',
-  },
-  {
-    label: '누적 발급량',
-    value: '191.36',
+    label: 'REC 인증서 누적 등록건수',
+    value: '191 REC',
     helper: 'REC 인증서',
   },
 ];
@@ -75,22 +70,21 @@ export const recStatusMonthlyMock = {
   ] satisfies RecStatusMetric[],
 };
 
-export const recStatusRecentIssuesMock: RecStatusRecentIssueRow[] = Array.from(
-  { length: 50 },
+export const recStatusRecentIssuesMock: RecIssueRow[] = Array.from(
+  { length: 30 },
   (_, index) => {
-    const day = 15 - (index % 15);
-    const transactionValue = 980 + index * 17;
-    const smpValue = 148 + (index % 4);
-    const recValue = 30 + (index % 3);
-    const totalRevenueValue = 720000 + transactionValue * (smpValue + recValue);
+    const day = 30 - index;
+    const powerValue = 980 + index * 17;
+    const recCount = 3 + (index % 8);
+    const certStatus: '등록' | '미등록' = index % 3 === 0 ? '등록' : '미등록';
 
     return {
-      tradeDate: `2025-12-${String(day).padStart(2, '0')}`,
+      id: index + 1,
+      targetDate: `2025-12-${String(day).padStart(2, '0')}`,
       plantName: plantNames[index % plantNames.length],
-      transactionAmount: transactionValue.toLocaleString('ko-KR'),
-      smpUnitPrice: `${smpValue}원`,
-      recUnitPrice: `${recValue}원`,
-      totalRevenue: `${totalRevenueValue.toLocaleString('ko-KR')}원`,
+      powerAmount: powerValue.toLocaleString('ko-KR'),
+      recCount,
+      certStatus,
     };
   },
 );

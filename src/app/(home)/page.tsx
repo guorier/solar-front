@@ -631,7 +631,7 @@ export default function DashboardPage() {
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {lastRefreshedAt && (
-            <span style={{ fontSize: '12px', color: '#6b7280' }}>
+            <span style={{ fontSize: '16px', color: '#6b7280' }}>
               마지막 갱신: {lastRefreshedAt.toLocaleTimeString('ko-KR')}
             </span>
           )}

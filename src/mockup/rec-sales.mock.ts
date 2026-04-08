@@ -101,3 +101,76 @@ const extraRows: RecSalesContractRow[] = Array.from({ length: 22 }, (_, i) => {
 });
 
 export const recSalesContractRows: RecSalesContractRow[] = [...baseRows, ...extraRows];
+
+// ──────────────────────────────────────────
+// 현물 시장 거래 관리
+// ──────────────────────────────────────────
+
+export interface RecSalesSpotRow {
+  tradeNo: string;
+  tradeDate: string;
+  buyer: string;
+  saleQty: string;
+  settlePrice: string;
+  commission: string;
+  netProfit: string;
+  status: RecSalesStatus;
+}
+
+const spotBuyers = ['SK E&S', '한국 전력 공사', '한국수력원자력', 'GS에너지', '포스코에너지'];
+const spotStatuses: RecSalesStatus[] = ['진행 중', '완료 됨', '대기'];
+
+const baseSpotRows: RecSalesSpotRow[] = [
+  {
+    tradeNo: 'LTC-217833',
+    tradeDate: '2025-12-12',
+    buyer: 'SK E&S',
+    saleQty: '50 REC',
+    settlePrice: '45,000',
+    commission: '15,000 원',
+    netProfit: '12,028,000',
+    status: '진행 중',
+  },
+  {
+    tradeNo: 'LTC-398323',
+    tradeDate: '2025-12-11',
+    buyer: '한국 전력 공사',
+    saleQty: '30 REC',
+    settlePrice: '44,000',
+    commission: '44,000 원',
+    netProfit: '1,292,000',
+    status: '완료 됨',
+  },
+  {
+    tradeNo: 'LTC-938223',
+    tradeDate: '2025-12-10',
+    buyer: '한국수력원자력',
+    saleQty: '80 REC',
+    settlePrice: '46,500',
+    commission: '32,000 원',
+    netProfit: '3,688,000',
+    status: '진행 중',
+  },
+];
+
+const extraSpotRows: RecSalesSpotRow[] = Array.from({ length: 15 }, (_, i) => {
+  const idx = i + baseSpotRows.length;
+  const tradeNo = `LTC-${String(200000 + idx * 3713).slice(0, 6)}`;
+  const day = ((i % 28) + 1).toString().padStart(2, '0');
+  const qty = 20 + (i % 10) * 10;
+  const price = 40000 + (i % 8) * 1000;
+  const commission = 10000 + i * 500;
+  const netProfit = qty * price - commission;
+  return {
+    tradeNo,
+    tradeDate: `2025-12-${day}`,
+    buyer: spotBuyers[i % spotBuyers.length],
+    saleQty: `${qty} REC`,
+    settlePrice: price.toLocaleString('ko-KR'),
+    commission: `${commission.toLocaleString('ko-KR')} 원`,
+    netProfit: netProfit.toLocaleString('ko-KR'),
+    status: spotStatuses[i % spotStatuses.length],
+  };
+});
+
+export const recSalesSpotRows: RecSalesSpotRow[] = [...baseSpotRows, ...extraSpotRows];

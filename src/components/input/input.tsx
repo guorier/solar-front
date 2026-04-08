@@ -10,6 +10,7 @@ type InputComponentProps = InputProps & {
   label?: string;
   type?: Pick<InputProps, 'type'>;
   isRequired?: boolean;
+  maxWidth?: string;
 };
 
 export function InputComponent({
@@ -17,6 +18,7 @@ export function InputComponent({
   type = 'text',
   label,
   isRequired = false,
+  maxWidth,
   ...props
 }: InputComponentProps) {
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
@@ -32,7 +34,7 @@ export function InputComponent({
           {label}
         </Label>
       )}
-      <div className="react-aria-TextField">
+      <div className="react-aria-TextField" style={{ maxWidth }}>
         {type === 'password' ? (
           <Group>
             <Input

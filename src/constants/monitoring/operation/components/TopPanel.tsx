@@ -56,7 +56,6 @@ export const TopDashboardSection = ({
           <CircleGlowBackground />
           <AnimatedWaveGauge
             value={safeToFixed(realtimeData.gridPowerW, 2)}
-            title="3상 출력 전류"
             unit="W"
           />
         </div>
@@ -91,8 +90,8 @@ export const TopDashboardSection = ({
 
           <ProgressbarComponent
             title="예측 발전량"
-            count={safeToFixed(realtimeData.predictionPowerW / 1000, 2)}
-            unit="kW"
+            count={Math.floor(realtimeData.predictionPowerW * 100) / 100}
+            unit="kWh"
             fractionDigits={2}
             rightSide
           >

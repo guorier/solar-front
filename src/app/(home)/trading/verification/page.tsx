@@ -1,4 +1,5 @@
-// app/trading/verification/page.tsx
+import { VerificationPage } from '@/constants/trading/verification/verification';
+
 export default function Page() {
-  return <div>발전 검증</div>;
+  return <VerificationPage />;
 }

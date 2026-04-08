@@ -606,7 +606,7 @@ export default function PlantForm({ eqpmntId, initialMode }: PlantFormProps) {
           <div className="button-group">
             <ButtonComponent
               variant="contained"
-              icon={<Icons iName="edit" size={16} color="#fff" />}
+              icon={<Icons iName={mode === 'create' ? 'plus' : 'edit'} size={16} color="#fff" />}
               onPress={onSubmit}
               isDisabled={mode === 'create' ? createMutation.isPending : updateMutation.isPending}
             >

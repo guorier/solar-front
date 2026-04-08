@@ -112,6 +112,6 @@ const Icons = ({
         backgroundColor: background ? color : "transparent",
       };
 
-  return <i className={className} style={{ ...iconStyle, ...style }} onClick={() => onClick?.()} />;
+  return <i aria-hidden="true" className={className} style={{ ...iconStyle, ...style }} onClick={() => onClick?.()} />;
 };
 export default Icons;

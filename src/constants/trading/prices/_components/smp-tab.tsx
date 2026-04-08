@@ -6,6 +6,7 @@ import {
   Pagination,
   SearchFields,
   TableTitleComponent,
+  BottomGroupComponent,
 } from '@/components';
 import { useGetSmpChart, useGetSmpList } from '@/services/trading/prices/query';
 import { SmpLineChart } from './smp-line-chart';
@@ -42,10 +43,10 @@ export function SmpTab({
   const total = listData?.total ?? 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
       <SmpLineChart data={chartData} />
 
-      <div className="table-group">
+      <div className="table-group" style={{ height: '400px' }}>
         <TableTitleComponent
           leftCont={<CountArea search={items.length} total={total} />}
           rightCont={
@@ -58,7 +59,9 @@ export function SmpTab({
           loading={isFetching}
         />
       </div>
-      <Pagination data={{ page, size, total }} onChange={onPageChange} />
+      <BottomGroupComponent
+        centerCont={<Pagination data={{ page, size, total }} onChange={onPageChange} />}
+      />
     </div>
   );
 }

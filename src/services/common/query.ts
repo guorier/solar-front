@@ -8,6 +8,7 @@ import {
   getMenuGroupList,
   getMenuList,
   getMenuTree,
+  postFileUpload,
   postMenuCreate,
   postMenuDelete,
   postMenuGroupSave,
@@ -16,6 +17,7 @@ import {
 import type {
   ComCodeListReq,
   ComCodeItem,
+  FileUploadReq,
   MenuListParams,
   MenuCreateReq,
   MenuUpdateReq,
@@ -151,5 +153,13 @@ export const useGetAuthMenuTree = (groupCd: string) => {
     queryKey: ['auth-menu', groupCd],
     queryFn: () => getAuthMenuTree(groupCd),
     enabled: !!groupCd,
+  });
+};
+
+// 파일 업로드
+export const usePostFileUpload = () => {
+  return useMutation({
+    mutationKey: ['file', 'upload'],
+    mutationFn: (payload: FileUploadReq) => postFileUpload(payload),
   });
 };

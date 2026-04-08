@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
     const API = process.env.NEXT_PUBLIC_API_URL; // http://192.168.20.13:60821
     const PLANT = process.env.PLANT_GATEWAY; // http://192.168.20.49:60823
     const PLANT_COMMON = process.env.PLANT_COMMON_GATEWAY; // http://192.168.20.49:60821
-    const POWER = process.env.POWER_GATEWAY; // http://192.168.20.49:60822
+    const OPERATE = process.env.OPERATE_GATEWAY; // http://192.168.20.49:60822
 
     // if (!API) throw new Error('NEXT_PUBLIC_API_URL is not set');
     // if (!PLANT) throw new Error('PLANT_GATEWAY is not set');
@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
     const apiUrl = API.replace(/\/$/, '');
     const plantUrl = PLANT.replace(/\/$/, '');
     const plantCommonUrl = PLANT_COMMON.replace(/\/$/, '');
-    const powerUrl = (POWER ?? '').replace(/\/$/, '');
+    const operateUrl = (OPERATE ?? '').replace(/\/$/, '');
 
     return [
       // ✅ apiClient.baseURL = '/solar/api' 대응
@@ -47,8 +47,8 @@ const nextConfig: NextConfig = {
 
       // ✅ tradeClient.baseURL = '/power/api' 대응
       {
-        source: '/power/api/:path*',
-        destination: `${powerUrl}/api/:path*`,
+        source: '/operate/api/:path*',
+        destination: `${operateUrl}/api/:path*`,
       },
     ];
   },

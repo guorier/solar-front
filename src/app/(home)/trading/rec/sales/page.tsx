@@ -2,21 +2,17 @@
 
 import { useMemo, useState, type CSSProperties } from 'react';
 import {
+  AgGridComponent,
   BottomGroupComponent,
   ButtonComponent,
-  Cell,
-  Column,
+  CountArea,
   Icons,
   InfoBoxComponent,
   InfoBoxGroup,
   Pagination,
-  Row,
   SearchFieldConfig,
   SearchForm,
   Tab,
-  Table,
-  TableBody,
-  TableHeader,
   TableTitleComponent,
   TabList,
   TabPanel,
@@ -24,17 +20,24 @@ import {
   TitleComponent,
   TopInfoBoxComponent,
 } from '@/components';
+import type { CellStyle, ColDef } from 'ag-grid-community';
+import { RecContractRegisterModal } from './_components/RecContractRegisterModal';
+import { RecSpotRegisterModal } from './_components/RecSpotRegisterModal';
 import {
   recSalesBuyerOptions,
   recSalesContractRows,
   recSalesSummary,
   recSalesStatusOptions,
+  recSalesSpotRows,
   type RecSalesContractRow,
+  type RecSalesSpotRow,
 } from '@/mockup/rec-sales.mock';
 
 const PAGE_SIZE = 20;
 
-type SearchState = {
+// ── 장기 계약 ──────────────────────────────
+
+type LtcSearchState = {
   contractNo: string;
   buyer: string;
   status: string;
@@ -42,7 +45,7 @@ type SearchState = {
   periodTo: string;
 };
 
-type PageState = SearchState & { page: number };
+type LtcPageState = LtcSearchState & { page: number };
 
 type ContractColumn = {
   key: keyof RecSalesContractRow;
@@ -51,7 +54,7 @@ type ContractColumn = {
   isRowHeader?: boolean;
 };
 
-const initialSearch: SearchState = {
+const ltcInitialSearch: LtcSearchState = {
   contractNo: '',
   buyer: '',
   status: '',
@@ -70,7 +73,7 @@ const contractColumns: ContractColumn[] = [
   { key: 'status', label: '상태', width: '7%' },
 ];
 
-const searchConfig: SearchFieldConfig[] = [
+const ltcSearchConfig: SearchFieldConfig[] = [
   {
     key: 'contractNo',
     label: '계약 번호',
@@ -78,33 +81,61 @@ const searchConfig: SearchFieldConfig[] = [
     placeholder: '계약 번호 입력',
     gridSize: 2,
   },
-  {
-    key: 'buyer',
-    label: '구매자',
-    type: 'select',
-    options: recSalesBuyerOptions,
-    gridSize: 2,
-  },
-  {
-    key: 'status',
-    label: '상태',
-    type: 'select',
-    options: recSalesStatusOptions,
-    gridSize: 2,
-  },
-  {
-    key: 'periodFrom',
-    label: '계약 시작일',
-    type: 'date',
-    gridSize: 2,
-  },
-  {
-    key: 'periodTo',
-    label: '계약 종료일',
-    type: 'date',
-    gridSize: 2,
-  },
+  { key: 'buyer', label: '구매자', type: 'select', options: recSalesBuyerOptions, gridSize: 2 },
+  { key: 'status', label: '상태', type: 'select', options: recSalesStatusOptions, gridSize: 2 },
+  { key: 'periodFrom', label: '계약기간', type: 'date-range', gridSize: 3 },
 ];
+
+// ── 현물 시장 ──────────────────────────────
+
+type SpotSearchState = {
+  tradeNo: string;
+  buyer: string;
+  status: string;
+  tradeMonth: string;
+};
+
+type SpotColumn = {
+  key: keyof RecSalesSpotRow;
+  label: string;
+  width: string;
+  isRowHeader?: boolean;
+};
+
+const TODAY = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+const spotInitialSearch: SpotSearchState = {
+  tradeNo: '',
+  buyer: '',
+  status: '',
+  tradeMonth: TODAY,
+};
+
+const spotColumns: SpotColumn[] = [
+  { key: 'tradeNo', label: '거래 번호', width: '14%', isRowHeader: true },
+  { key: 'tradeDate', label: '거래 일', width: '13%' },
+  { key: 'buyer', label: '구매자', width: '16%' },
+  { key: 'saleQty', label: '판매 수량', width: '11%' },
+  { key: 'settlePrice', label: '체결 단가', width: '13%' },
+  { key: 'commission', label: '수수료', width: '13%' },
+  { key: 'netProfit', label: '순이익', width: '13%' },
+  { key: 'status', label: '상태', width: '7%' },
+];
+
+const spotSearchConfig: SearchFieldConfig[] = [
+  {
+    key: 'tradeNo',
+    label: '거래 번호',
+    type: 'text',
+    placeholder: '거래 번호 입력 (최대 25자)',
+    gridSize: 2,
+  },
+  { key: 'buyer', label: '구매자', type: 'select', options: recSalesBuyerOptions, gridSize: 2 },
+  { key: 'status', label: '상태', type: 'select', options: recSalesStatusOptions, gridSize: 2 },
+  { key: 'tradeMonth', label: '거래 일', type: 'date', gridSize: 2 },
+];
+
+// ── 공통 스타일 ────────────────────────────
 
 const tableWrapStyle: CSSProperties = {
   width: '100%',
@@ -114,84 +145,81 @@ const tableWrapStyle: CSSProperties = {
   background: '#ffffff',
 };
 
-const tableStyle: CSSProperties = {
-  width: '100%',
-  minWidth: '980px',
-  tableLayout: 'fixed',
-};
+const gridCenterCellStyle: CellStyle = { textAlign: 'center' };
 
-const centerCellStyle: CSSProperties = {
-  textAlign: 'center',
-};
+const ltcColumnDefs: ColDef<RecSalesContractRow>[] = contractColumns.map((col) => ({
+  field: col.key,
+  headerName: col.label,
+  flex: Number.parseFloat(col.width) / 10,
+  cellStyle: gridCenterCellStyle,
+}));
 
-const countAreaStyle: CSSProperties = {
-  fontSize: '14px',
-  fontWeight: 500,
-  color: '#222222',
-  lineHeight: 1,
-};
-
-const totalCountStyle: CSSProperties = {
-  color: '#D70251',
-  fontWeight: 700,
-};
-
-const emptyStateStyle: CSSProperties = {
-  padding: '24px 16px',
-  color: '#8b8888',
-  textAlign: 'center',
-  borderTop: '1px solid #e5e7eb',
-};
+const spotColumnDefs: ColDef<RecSalesSpotRow>[] = spotColumns.map((col) => ({
+  field: col.key,
+  headerName: col.label,
+  flex: Number.parseFloat(col.width) / 10,
+  cellStyle: gridCenterCellStyle,
+}));
 
 const tabContentStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   gap: '12px',
-  paddingTop: '12px',
 };
 
+// ── 컴포넌트 ──────────────────────────────
+
 export default function RecSalesPage() {
-  const [draftSearch, setDraftSearch] = useState<Record<string, unknown>>(initialSearch);
-  const [query, setQuery] = useState<PageState>({ ...initialSearch, page: 1 });
+  // 탭 상태
+  const [selectedTab, setSelectedTab] = useState<string>('longterm');
 
-  const filteredRows = useMemo(() => {
+  // 장기 계약 상태
+  const [ltcDraft, setLtcDraft] = useState<Record<string, unknown>>(ltcInitialSearch);
+  const [ltcQuery, setLtcQuery] = useState<LtcPageState>({ ...ltcInitialSearch, page: 1 });
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [isSpotRegisterOpen, setIsSpotRegisterOpen] = useState(false);
+
+  // 현물 시장 상태
+  const [spotDraft, setSpotDraft] = useState<Record<string, unknown>>(spotInitialSearch);
+  const [spotQuery, setSpotQuery] = useState<SpotSearchState>(spotInitialSearch);
+
+  // 장기 계약 필터
+  const ltcFiltered = useMemo(() => {
     let rows = recSalesContractRows;
-
-    if (query.contractNo.trim()) {
-      const kw = query.contractNo.trim().toUpperCase();
+    if (ltcQuery.contractNo.trim()) {
+      const kw = ltcQuery.contractNo.trim().toUpperCase();
       rows = rows.filter((r) => r.contractNo.toUpperCase().includes(kw));
     }
-
-    if (query.buyer) {
-      rows = rows.filter((r) => r.buyer === query.buyer);
-    }
-
-    if (query.status) {
-      rows = rows.filter((r) => r.status === query.status);
-    }
-
+    if (ltcQuery.buyer) rows = rows.filter((r) => r.buyer === ltcQuery.buyer);
+    if (ltcQuery.status) rows = rows.filter((r) => r.status === ltcQuery.status);
     return rows;
-  }, [query.contractNo, query.buyer, query.status]);
+  }, [ltcQuery]);
 
-  const pagedRows = useMemo(() => {
-    const start = (query.page - 1) * PAGE_SIZE;
-    return filteredRows.slice(start, start + PAGE_SIZE);
-  }, [filteredRows, query.page]);
+  const ltcPaged = useMemo(() => {
+    const start = (ltcQuery.page - 1) * PAGE_SIZE;
+    return ltcFiltered.slice(start, start + PAGE_SIZE);
+  }, [ltcFiltered, ltcQuery.page]);
 
-  const handleSearchChange = (key: string, value: unknown) => {
-    setDraftSearch((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleSearch = () => {
-    setQuery({
-      contractNo: (draftSearch.contractNo as string) || '',
-      buyer: (draftSearch.buyer as string) || '',
-      status: (draftSearch.status as string) || '',
-      periodFrom: (draftSearch.periodFrom as string) || '',
-      periodTo: (draftSearch.periodTo as string) || '',
-      page: 1,
+  // 현물 시장 필터 (월별, 최신순 → 진행중 우선)
+  const spotFiltered = useMemo(() => {
+    let rows = recSalesSpotRows;
+    if (spotQuery.tradeNo.trim()) {
+      const kw = spotQuery.tradeNo.trim().toUpperCase();
+      rows = rows.filter((r) => r.tradeNo.toUpperCase().includes(kw));
+    }
+    if (spotQuery.buyer) rows = rows.filter((r) => r.buyer === spotQuery.buyer);
+    if (spotQuery.status) rows = rows.filter((r) => r.status === spotQuery.status);
+    if (spotQuery.tradeMonth) {
+      const ym = spotQuery.tradeMonth.slice(0, 7); // YYYY-MM
+      rows = rows.filter((r) => r.tradeDate.startsWith(ym));
+    }
+    // 최신순 → 진행 중 우선
+    return [...rows].sort((a, b) => {
+      if (a.status === '진행 중' && b.status !== '진행 중') return -1;
+      if (a.status !== '진행 중' && b.status === '진행 중') return 1;
+      return b.tradeDate.localeCompare(a.tradeDate);
     });
-  };
+  }, [spotQuery]);
 
   return (
     <>
@@ -199,8 +227,12 @@ export default function RecSalesPage() {
         <TitleComponent
           title="전력 거래"
           subTitle="REC 발급 관리"
-          thirdTitle="REC 판매(장기REC 계약 관리)"
-          desc="REC 판매 계약 관리 내역 조회"
+          thirdTitle="REC 판매"
+          desc={
+            selectedTab === 'spot'
+              ? '현물 시장 거래 관리 내역 조회'
+              : 'REC 장기 계약 관리 내역 조회'
+          }
         />
       </div>
 
@@ -221,7 +253,7 @@ export default function RecSalesPage() {
       </TopInfoBoxComponent>
 
       <div className="content-group">
-        <Tabs className="tabs">
+        <Tabs className="tabs" onSelectionChange={(key) => setSelectedTab(key as string)}>
           <TableTitleComponent
             leftCont={
               <TabList aria-label="REC 판매 관리">
@@ -231,94 +263,108 @@ export default function RecSalesPage() {
             }
           />
 
-          <TabPanel id="longterm">
+          <TabPanel id="longterm" style={{ borderTop: 0 }}>
             <div style={tabContentStyle}>
               <SearchForm
-                config={searchConfig}
-                values={draftSearch}
-                onChange={handleSearchChange}
-                onSearch={handleSearch}
+                config={ltcSearchConfig}
+                values={ltcDraft}
+                onChange={(key, val) => setLtcDraft((prev) => ({ ...prev, [key]: val }))}
+                onSearch={() =>
+                  setLtcQuery({
+                    contractNo: (ltcDraft.contractNo as string) || '',
+                    buyer: (ltcDraft.buyer as string) || '',
+                    status: (ltcDraft.status as string) || '',
+                    periodFrom: (ltcDraft.periodFrom as string) || '',
+                    periodTo: (ltcDraft.periodTo as string) || '',
+                    page: 1,
+                  })
+                }
               />
 
               <div className="table-group">
                 <TableTitleComponent
                   leftCont={
-                    <div style={countAreaStyle}>
-                      검색 {filteredRows.length} / 전체{' '}
-                      <span style={totalCountStyle}>{recSalesContractRows.length}</span>
-                    </div>
-                  }
-                  rightCont={
-                    <ButtonComponent
-                      variant="contained"
-                      icon={<Icons iName="plus" size={16} color="#fff" />}
-                      iconPosition="left"
-                      onPress={() => undefined}
-                    >
-                      계약 등록
-                    </ButtonComponent>
+                    <CountArea search={ltcFiltered.length} total={recSalesContractRows.length} />
                   }
                 />
 
                 <div style={tableWrapStyle}>
-                  <Table aria-label="장기 REC 계약 관리" style={tableStyle}>
-                    <TableHeader>
-                      {contractColumns.map((col) => (
-                        <Column
-                          key={col.key}
-                          style={{ width: col.width }}
-                          isRowHeader={col.isRowHeader}
-                        >
-                          {col.label}
-                        </Column>
-                      ))}
-                    </TableHeader>
-                    <TableBody>
-                      {pagedRows.map((row) => (
-                        <Row key={row.contractNo}>
-                          <Cell style={centerCellStyle}>{row.contractNo}</Cell>
-                          <Cell style={centerCellStyle}>{row.contractName}</Cell>
-                          <Cell style={centerCellStyle}>{row.buyer}</Cell>
-                          <Cell style={centerCellStyle}>{row.contractPeriod}</Cell>
-                          <Cell style={centerCellStyle}>{row.monthlyQty}</Cell>
-                          <Cell style={centerCellStyle}>{row.unitPrice}</Cell>
-                          <Cell style={centerCellStyle}>{row.executionPeriod}</Cell>
-                          <Cell style={centerCellStyle}>{row.status}</Cell>
-                        </Row>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  {pagedRows.length === 0 && (
-                    <div style={emptyStateStyle}>일치하는 DATA가 없습니다</div>
-                  )}
+                  <AgGridComponent rowData={ltcPaged} columnDefs={ltcColumnDefs} />
                 </div>
               </div>
             </div>
+            
+            <BottomGroupComponent
+              leftCont={
+                <Pagination
+                  data={{ page: ltcQuery.page, size: PAGE_SIZE, total: ltcFiltered.length }}
+                  onChange={(page) => setLtcQuery((prev) => ({ ...prev, page }))}
+                />
+              }
+              rightCont={
+                <ButtonComponent
+                  variant="contained"
+                  icon={<Icons iName="plus" size={16} color="#fff" />}
+                  onPress={() => setIsRegisterOpen(true)}
+                >
+                  계약 등록
+                </ButtonComponent>
+              }
+            />
           </TabPanel>
 
-          <TabPanel id="spot">
-            <div
-              style={{
-                paddingTop: '40px',
-                textAlign: 'center',
-                color: '#8b8888',
-                fontSize: '14px',
-              }}
-            >
-              현물 시장 거래 관리 화면
+          <TabPanel id="spot" style={{ borderTop: 0 }}>
+            <div style={tabContentStyle}>
+              <SearchForm
+                config={spotSearchConfig}
+                values={spotDraft}
+                onChange={(key, val) => setSpotDraft((prev) => ({ ...prev, [key]: val }))}
+                onSearch={() =>
+                  setSpotQuery({
+                    tradeNo: (spotDraft.tradeNo as string) || '',
+                    buyer: (spotDraft.buyer as string) || '',
+                    status: (spotDraft.status as string) || '',
+                    tradeMonth: (spotDraft.tradeMonth as string) || TODAY,
+                  })
+                }
+              />
+
+              <div className="table-group">
+                <TableTitleComponent
+                  leftCont={
+                    <CountArea search={spotFiltered.length} total={recSalesSpotRows.length} />
+                  }
+                />
+
+                <div style={tableWrapStyle}>
+                  <AgGridComponent rowData={spotFiltered} columnDefs={spotColumnDefs} />
+                </div>
+              </div>
             </div>
+
+            <BottomGroupComponent
+              leftCont={
+                <Pagination
+                  data={{ page: ltcQuery.page, size: PAGE_SIZE, total: ltcFiltered.length }}
+                  onChange={(page) => setLtcQuery((prev) => ({ ...prev, page }))}
+                />
+              }
+              rightCont={
+                <ButtonComponent
+                  variant="contained"
+                  icon={<Icons iName="plus" size={16} color="#fff" />}
+                  onPress={() => setIsSpotRegisterOpen(true)}
+                >
+                  거래 등록
+                </ButtonComponent>
+              }
+            />
           </TabPanel>
         </Tabs>
       </div>
 
-      <BottomGroupComponent
-        centerCont={
-          <Pagination
-            data={{ page: query.page, size: PAGE_SIZE, total: filteredRows.length }}
-            onChange={(page) => setQuery((prev) => ({ ...prev, page }))}
-          />
-        }
-      />
+      <RecContractRegisterModal isOpen={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
+      <RecSpotRegisterModal isOpen={isSpotRegisterOpen} onOpenChange={setIsSpotRegisterOpen} />
     </>
   );
 }

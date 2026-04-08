@@ -17,7 +17,7 @@ import {
   TableHeader,
   TitleComponent,
 } from '@/components';
-import { MENU_GROUP_SAVE_COLUMN } from '@/constants/menu/menu';
+import { MENU_GROUP_SAVE_COLUMN } from '@/constants/setting/menu';
 import {
   useGetComCodeList,
   useGetMenuGroupDetail,
@@ -55,7 +55,7 @@ function MenuTransferPageInner() {
   const searchParams = useSearchParams();
   const groupCd = searchParams.get('groupCd');
 
-  const isEditing = !!groupCd;
+  const isEdit = !!groupCd;
 
   // 권한 종류 목록
   const { data: accessLevelCodeList } = useGetComCodeList({ comMastrCd: 'A01' }, true);
@@ -85,7 +85,7 @@ function MenuTransferPageInner() {
   const { handleSubmit, reset } = form;
 
   useEffect(() => {
-    if (!isEditing) return;
+    if (!isEdit) return;
     if (!menuGroupDetail) return;
 
     const mappedMenus = menuGroupDetail.menuItems.map(toTreeNode);
@@ -101,7 +101,7 @@ function MenuTransferPageInner() {
       useYn: menuGroupDetail.useYn === 'N' ? 'N' : 'Y',
       menuCds: menuGroupDetail.menuItems.map((menu) => menu.menuCd) ?? [],
     });
-  }, [isEditing, menuGroupDetail, reset]);
+  }, [isEdit, menuGroupDetail, reset]);
 
   // 폼 제출
   const saveMenuGroup = usePostMenuGroupSave();
@@ -112,7 +112,7 @@ function MenuTransferPageInner() {
     const payload = {
       ...values,
       menuCds: menuRowData.map((m) => m.menuCd),
-      ...(isEditing ? { mdfrId: userEmail } : { rgtrId: userEmail }),
+      ...(isEdit ? { mdfrId: userEmail } : { rgtrId: userEmail }),
     };
 
     saveMenuGroup.mutate(payload as MenuGroupSaveReq, {
@@ -315,9 +315,9 @@ function MenuTransferPageInner() {
             <ButtonComponent
               onClick={form.handleSubmit(onSubmit)}
               variant="contained"
-              icon={<Icons iName="edit" size={16} color="#fff" />}
+              icon={<Icons iName={isEdit ? 'edit' :'plus'} size={16} color="#fff" />}
             >
-              {isEditing ? '수정' : '등록'}
+              {isEdit ? '수정' : '등록'}
             </ButtonComponent>
           </div>
         }

@@ -6,7 +6,8 @@ import { Icons } from '../icon';
 import styled from 'styled-components';
 
 interface MyModalProps extends ModalOverlayProps {
-  title?: string;
+  title?: React.ReactNode;
+  subTitle?: string;
   children?: React.ReactNode;
   primaryButton?: string;
   secondaryButton?: string;
@@ -53,6 +54,7 @@ const Foot = styled.div`
 
 export function Modal({
   title,
+  subTitle,
   children,
   primaryButton = '확인',
   secondaryButton = '취소',
@@ -78,17 +80,24 @@ export function Modal({
                   style={{
                     margin: 0,
                     display: 'flex',
-                    alignItems: 'center',
+                    flexDirection: 'column',
+                    gap: '4px',
                     lineHeight: 1,
                     fontFamily: 'auto',
                   }}
                 >
                   {title}
+                  {subTitle && (
+                    <span style={{ fontSize: '13px', fontWeight: 400, color: '#666', whiteSpace: 'pre-line' }}>
+                      {subTitle}
+                    </span>
+                  )}
                 </Heading>
                 <ButtonComponent
                   height={20}
                   variant="none"
                   icon={<Icons iName="close" />}
+                  aria-label="닫기"
                   onClick={close}
                 />
               </Head>

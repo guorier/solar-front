@@ -9,6 +9,7 @@ interface TopInfoBoxComponentProps {
   title?: string;
   totalLabel?: string;
   totalValue?: string;
+  headerRight?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -59,6 +60,7 @@ export const TopInfoBoxComponent: React.FC<TopInfoBoxComponentProps> = ({
   title,
   totalLabel,
   totalValue,
+  headerRight,
   children,
   className,
   style,
@@ -67,7 +69,8 @@ export const TopInfoBoxComponent: React.FC<TopInfoBoxComponentProps> = ({
     <TopInfoBox style={{ backgroundColor: bg, ...style }} className={className}>
       <TitleRow>
         <Title style={{ color: color }}>{title}</Title>
-        {(totalLabel || totalValue) && (
+        {headerRight}
+        {!headerRight && (totalLabel || totalValue) && (
           <TotalArea>
             {totalLabel && <TotalLabel>{totalLabel}</TotalLabel>}
             {totalValue && <TotalValue>{totalValue}</TotalValue>}

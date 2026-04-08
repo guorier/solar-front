@@ -10,12 +10,12 @@ export interface RecRequestRow {
   status: RecRequestStatus;
 }
 
-export interface RecRequestOption {
+interface RecRequestOption {
   label: string;
   value: string;
 }
 
-export const recRequestPlantOptions: RecRequestOption[] = [
+const recRequestPlantOptions: RecRequestOption[] = [
   { label: '전체', value: '' },
   { label: '와이어블 1호기', value: 'wiable-1' },
   { label: '와이어블 2호기', value: 'wiable-2' },

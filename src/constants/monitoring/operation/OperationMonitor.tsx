@@ -12,6 +12,7 @@ import { useGetPlantBaseCombo } from '@/services/plants/query';
 
 import { TopDashboardSection } from './components/TopPanel';
 import { SidePieChartGroup } from './components/PieCharts';
+// import './OperationSkeleton.scss';
 import { safeToFixed } from './utils/utils';
 import {
   aggregateRealtimeData,
@@ -323,6 +324,12 @@ export default function MonitoringOp({ pwplIds: initialPwplIds }: MonitoringOpPr
       </div>
 
       <div className="flex flex-1" style={{ position: 'relative' }}>
+        {/* {!isSocketReady && (
+          <div className="operation-skeleton-overlay">
+            <div className="operation-skeleton-spinner" />
+            <span className="operation-skeleton-text">실시간 데이터 수신 중...</span>
+          </div>
+        )} */}
         <SidePieChartGroup
           items={[
             { centerText: 'GRID 전압', data: formattedAvgVoltage },

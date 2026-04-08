@@ -26,31 +26,18 @@ export function useDashboardSse({ onRefresh }: UseDashboardSseProps) {
 
     eventSourceRef.current = eventSource;
 
-    eventSource.onopen = () => {
-      console.log(
-        '[DashboardSSE] open — readyState:',
-        eventSource.readyState,
-        '| url:',
-        eventSource.url,
-      );
-    };
-
-    eventSource.addEventListener('dashboard-connected', (e) => {
-      console.log('[DashboardSSE] connected', (e as MessageEvent).data);
+    eventSource.addEventListener('dashboard-connected', () => {
+      console.log('[DashboardSSE] connected');
     });
 
-    eventSource.addEventListener('dashboard-refresh', (e) => {
-      console.log('[DashboardSSE] refresh', (e as MessageEvent).data);
-      handleRefresh();
-    });
+    eventSource.addEventListener('dashboard-refresh', handleRefresh);
 
-    eventSource.addEventListener('dashboard-ping', (e) => {
-      console.log('[DashboardSSE] ping', (e as MessageEvent).data);
+    eventSource.addEventListener('dashboard-ping', () => {
+      console.log('[DashboardSSE] ping');
     });
 
     eventSource.onerror = (error) => {
-      console.error('[DashboardSSE] error — readyState:', eventSource.readyState, error);
-      // readyState: 0=CONNECTING, 1=OPEN, 2=CLOSED
+      console.error('[DashboardSSE] error', error);
     };
 
     return () => {

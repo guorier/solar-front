@@ -3,6 +3,8 @@ import { plantCommonClient } from '@/lib/http.lib';
 import type {
   ComCodeItem,
   ComCodeListReq,
+  FileUploadReq,
+  FileUploadRes,
   MenuCreateReq,
   MenuDetailRes,
   MenuGroupDetailRes,
@@ -84,5 +86,18 @@ export const getAuthMenuTree = async (groupCd: string): Promise<MenuTreeRes[]> =
   const { data } = await plantCommonClient.get<MenuTreeRes[]>('/auth/menu-tree', {
     params: { groupCd },
   });
+  return data;
+};
+
+// 파일 업로드 API
+export const postFileUpload = async ({ file, ...params }: FileUploadReq): Promise<FileUploadRes> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      formData.append(key, String(value));
+    }
+  });
+  const { data } = await plantCommonClient.post<FileUploadRes>('/file/upload', formData);
   return data;
 };

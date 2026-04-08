@@ -60,9 +60,33 @@ const toTrimmedString = (v: unknown) => {
 /* =======================================================================================
  * 구조물 키 / 초기값
  * ======================================================================================= */
-const STRUCT_KEYS = ['BUI','MOU','FOU','ANC','BRE','LIG','EME','ELR','CTL','TRA','DIF',] as const;
+const STRUCT_KEYS = [
+  'BUI',
+  'MOU',
+  'FOU',
+  'ANC',
+  'BRE',
+  'LIG',
+  'EME',
+  'ELR',
+  'CTL',
+  'TRA',
+  'DIF',
+] as const;
 
-const createEmptyStructState = (): StructState => ({BUI: '',MOU: '',FOU: '',ANC: '',BRE: '',LIG: '',EME: '',ELR: '',CTL: '',TRA: '',DIF: '',});
+const createEmptyStructState = (): StructState => ({
+  BUI: '',
+  MOU: '',
+  FOU: '',
+  ANC: '',
+  BRE: '',
+  LIG: '',
+  EME: '',
+  ELR: '',
+  CTL: '',
+  TRA: '',
+  DIF: '',
+});
 
 /* =======================================================================================
  * payload 변환
@@ -349,16 +373,16 @@ export default function InfoPage({ eqpmntId, initialMode }: StrctFormProps) {
 
   const goListAfterSave = () => router.replace('/eqpmnt/strct');
 
-const invalidateListQueries = () => {
-  qc.invalidateQueries({
-    predicate: (q) => {
-      const key = q.queryKey;
-      if (!Array.isArray(key) || key.length === 0) return false;
-      const head = String(key[0] ?? '');
-      return head === 'getStrctList';
-    },
-  });
-};
+  const invalidateListQueries = () => {
+    qc.invalidateQueries({
+      predicate: (q) => {
+        const key = q.queryKey;
+        if (!Array.isArray(key) || key.length === 0) return false;
+        const head = String(key[0] ?? '');
+        return head === 'getStrctList';
+      },
+    });
+  };
 
   const onSubmit = async () => {
     try {
@@ -465,7 +489,7 @@ const invalidateListQueries = () => {
           <div className="button-group">
             <ButtonComponent
               variant="contained"
-              icon={<Icons iName="edit" size={16} color="#fff" />}
+              icon={<Icons iName={mode === 'create' ? 'plus' : 'edit'} size={16} color="#fff" />}
               onPress={onSubmit}
               isDisabled={mode === 'create' ? createMutation.isPending : updateMutation.isPending}
             >

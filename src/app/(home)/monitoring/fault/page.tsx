@@ -6,8 +6,6 @@ import {
   FaultDetailForm,
   Icons,
   Modal,
-  SearchFieldConfig,
-  SearchFields,
   Select,
   SelectItem,
   Switch,
@@ -16,159 +14,97 @@ import {
   TabList,
   Tabs,
   TitleComponent,
-  BottomGroupComponent
+  BottomGroupComponent,
 } from '@/components';
-
-import { useState } from 'react';
+import { FAULT_MONITORING_COLUMN } from '@/constants/monitoring/fault/fault';
+import { useFaultSocket } from '@/hooks/useFaultSocket';
+import {
+  useGetFaultList,
+  usePostManualDownStatus,
+  usePostRecognizeStatus,
+} from '@/services/monitoring/fault/query';
+import { FaultSocket } from '@/services/monitoring/fault/type';
+import { useEffect, useState } from 'react';
 import { Tag, TagGroup, TagList, Text } from 'react-aria-components';
+import { PasswordVerifyModal } from '../../mypage/_components';
+import { useSession } from 'next-auth/react';
+import { PlantSelectorModal } from './_components/plantSelector';
+import { toast } from '@/stores/toast';
 
+type ModalType = 'none' | 'plant' | 'verify' | 'detail';
 
-// ================= 타입 =================
-interface faultListResponse extends Record<string, unknown> {
-  status: string;
-  severityLevels: string;
-  startTime: string;
-  faultCode: string;
-  notice: string;
-  deviceName: string;
-  deviceLoc: string;
-  deviceType: string;
-  manufacturer: string;
-  address: string;
-  memo: string;
-}
-
-type SearchValue = string | number | boolean | null;
-
-// ================= 페이지 =================
 export default function FaultMonitoringPage() {
-  const [values, setValues] = useState<Record<string, SearchValue>>({});
+  const { data: user } = useSession();
 
-  const handleChange = (key: string, value: unknown) => {
-    setValues((prev) => ({
-      ...prev,
-      [key]: value as SearchValue,
-    }));
+  const [rowData, setRowData] = useState<FaultSocket[]>([]);
+
+  const [modalType, setModalType] = useState<ModalType>('none');
+  const [selectedPwplIds, setSelectedPwplIds] = useState<string[]>([]);
+  const [selectedFaults, setSelectedFaults] = useState<FaultSocket[]>([]);
+  const [selectedTab, setSelectedTab] = useState<string>('recognized');
+
+  const { faultList, isPaused, pause, resume } = useFaultSocket({ pwplIds: selectedPwplIds });
+  const { data: initialFaultList, refetch: refetchFaultList } = useGetFaultList(selectedPwplIds);
+
+  // 1. API → 초기 데이터
+  useEffect(() => {
+    setRowData(initialFaultList ?? []);
+  }, [initialFaultList]);
+
+  // 2. WebSocket → 실시간 추가
+  useEffect(() => {
+    if (faultList.length === 0) return;
+
+    const latest = faultList[faultList.length - 1];
+
+    setRowData((prev) => {
+      const filtered = prev.filter((item) => item.unqNo !== latest.unqNo);
+      return [latest, ...filtered];
+    });
+  }, [faultList]);
+
+  // 장애 등급 Item
+  const tagItems = ['CRITICAL', 'MAJOR', 'MINOR', 'WARNING'].map((grade) => {
+    return {
+      key: grade.toLowerCase(),
+      label: grade.toLowerCase(),
+      count: rowData.filter((d) => d.alrmGrd === grade).length || 0,
+    };
+  });
+
+  // 인지 상태 변경
+  const recognizeStatus = usePostRecognizeStatus();
+  const handleRecognizeStatusUpdate = async () => {
+    try {
+      for (const fault of selectedFaults) {
+        await recognizeStatus.mutateAsync(fault.unqNo);
+      }
+    } catch (error) {
+      console.error('상태 업데이트 실패', error);
+      toast.error('상태 변경 실패', '상태 변경 중 오류가 발생하였습니다.');
+    }
   };
 
-  const faultLeftConfig: (SearchFieldConfig | SearchFieldConfig[])[] = [
-    {
-      key: 'plantName',
-      label: '발전소 선택',
-      type: 'select',
-      options: [
-        { label: '발전소 A', value: 'a' },
-        { label: '발전소 B', value: 'b' },
-      ],
-      width: 220,
-    },
-  ];
+  // 수동 종료 상태 변경
+  const manualDown = usePostManualDownStatus();
+  const handleManualDown = async (verifiedCode: string) => {
+    setModalType('none');
 
-  const faultRightConfig: (SearchFieldConfig | SearchFieldConfig[])[] = [
-    {
-      key: 'deviceType',
-      label: '장비 구분',
-      type: 'select',
-      options: [
-        { label: '발전소 A', value: 'a' },
-        { label: '발전소 B', value: 'b' },
-      ],
-      width: 160,
-    },
-    {
-      key: 'deviceName',
-      type: 'select',
-      label: '장비',
-      options: [
-        { label: '발전소 A', value: 'a' },
-        { label: '발전소 B', value: 'b' },
-      ],
-      width: 160,
-    },
-  ];
+    if (!user?.user) return;
 
-  // ag-grid
-  const gridOptions = {
-    columnDefs: [
-      {
-        headerName: '',
-        field: 'selection',
-        width: 50,
-        checkboxSelection: true,
-        headerCheckboxSelection: true,
-        sortable: false,
-        headerClass: 'checkbox-header',
-      },
-      { field: 'status', headerName: '상태', width: 100 },
-      { field: 'severityLevels', headerName: '장애 등급', flex: 1 },
-      { field: 'startTime', headerName: '발생 시간', width: 200 },
-      { field: 'faultCode', headerName: '장애 코드', flex: 1 },
-      { field: 'notice', headerName: '알림', width: 120 },
-      { field: 'deviceName', headerName: '장치 명', flex: 1 },
-      { field: 'deviceLoc', headerName: '장치 위치', flex: 1 },
-      { field: 'deviceType', headerName: '타입', width: 120 },
-      { field: 'manufacturer', headerName: '제조사', width: 160 },
-      { field: 'address', headerName: '주소', width: 200 },
-      { field: 'memo', headerName: '메모', flex: 1 },
-    ],
+    try {
+      for (const fault of selectedFaults) {
+        await manualDown.mutateAsync({
+          acntId: user.user.email,
+          verifiedCode,
+          unqNo: fault.unqNo,
+        });
+      }
+    } catch (error) {
+      console.error('상태 업데이트 실패', error);
+      toast.error('상태 변경 실패', '상태 변경 중 오류가 발생하였습니다.');
+    }
   };
-
-  const [faultList] = useState<faultListResponse[]>([
-    {
-      status: '발생',
-      severityLevels: 'Critical',
-      startTime: '2026-02-09 14:10:20',
-      faultCode: 'F-1024',
-      notice: 'Overheating',
-      deviceName: 'Turbine-01',
-      deviceLoc: 'Sector A',
-      deviceType: 'Generator',
-      manufacturer: 'GE Power',
-      address: 'Seoul, Korea',
-      memo: 'Check cooling system',
-    },
-    {
-      status: '발생',
-      severityLevels: 'Critical',
-      startTime: '2026-02-09 14:10:20',
-      faultCode: 'F-1024',
-      notice: 'Overheating',
-      deviceName: 'Turbine-01',
-      deviceLoc: 'Sector A',
-      deviceType: 'Generator',
-      manufacturer: 'GE Power',
-      address: 'Seoul, Korea',
-      memo: 'Check cooling system',
-    },
-    {
-      status: '발생',
-      severityLevels: 'Critical',
-      startTime: '2026-02-09 14:10:20',
-      faultCode: 'F-1024',
-      notice: 'Overheating',
-      deviceName: 'Turbine-01',
-      deviceLoc: 'Sector A',
-      deviceType: 'Generator',
-      manufacturer: 'GE Power',
-      address: 'Seoul, Korea',
-      memo: 'Check cooling system',
-    },
-  ]);
-
-  const tagItems = [
-    { key: 'critical', label: 'critical', count: 8 },
-    { key: 'major', label: 'major', count: 8 },
-    { key: 'minor', label: 'minor', count: 8 },
-    { key: 'warning', label: 'warning', count: 8 },
-  ];
-
-  // popup
-  const [isFaultDetailOpen, setIsFaultDetailOpen] = useState(false);
-
-  const handleRowDoubleClick = () => {
-    setIsFaultDetailOpen(true);
-  };
-
 
   return (
     <>
@@ -179,15 +115,12 @@ export default function FaultMonitoringPage() {
           desc="실시간 장치 감시 모니터링 관리 입니다"
         />
       </div>
-      
+
       <div className="content-group">
         <div className="table-group">
           <TableTitleComponent
-            leftCont={
-              <SearchFields config={faultLeftConfig} values={values} onChange={handleChange} />
-            }
             rightCont={
-              <SearchFields config={faultRightConfig} values={values} onChange={handleChange} />
+              <ButtonComponent onClick={() => setModalType('plant')}>발전소 선택</ButtonComponent>
             }
           />
 
@@ -195,13 +128,13 @@ export default function FaultMonitoringPage() {
             leftCont={
               <>
                 <Text>
-                  총 <em style={{ fontWeight: 600 }}>26건</em>
+                  총 <em style={{ fontWeight: 600 }}>{rowData.length}건</em>
                 </Text>
 
                 <TagGroup aria-label="장애 건수">
                   <TagList>
                     {tagItems.map((item) => (
-                      <Tag key={item.key} id={item.key}>
+                      <Tag key={item.key} id={item.key} textValue={`${item.label} ${item.count}건`}>
                         {item.label} <em>{item.count}건</em>
                       </Tag>
                     ))}
@@ -211,17 +144,59 @@ export default function FaultMonitoringPage() {
             }
             rightCont={
               <>
-                <Tabs>
+                <Tabs
+                  selectedKey={selectedTab}
+                  onSelectionChange={(key) => {
+                    if (['recognized', 'manual-end'].includes(key as string)) {
+                      if (selectedFaults.length === 0)
+                        return toast.error(
+                          '필수 선택',
+                          '상태 변경을 위해 장애 목록을 먼저 선택해주세요.',
+                        );
+                    }
+
+                    setSelectedTab(key as string);
+                  }}
+                >
                   <TabList aria-label="장애상태선택">
-                    <Tab id="recognized">인지</Tab>
-                    <Tab id="manual-end">수동종료</Tab>
+                    <Tab id="recognized" onClick={handleRecognizeStatusUpdate}>
+                      인지
+                    </Tab>
+                    <Tab
+                      id="manual-end"
+                      onClick={() => {
+                        if (selectedFaults.length === 0) return;
+                        setModalType('verify');
+                      }}
+                    >
+                      수동종료
+                    </Tab>
                     <Tab id="hold">해지 유지</Tab>
-                    <Tab id="stopped">중지</Tab>
-                    <Tab id="renew">갱신</Tab>
+                    <Tab
+                      id="stopped"
+                      onClick={async () => {
+                        if (isPaused) {
+                          resume();
+                          await refetchFaultList();
+                        } else {
+                          await pause();
+                        }
+                      }}
+                    >
+                      {isPaused ? '재개' : '중지'}
+                    </Tab>
+                    <Tab
+                      id="renew"
+                      onClick={async () => {
+                        await refetchFaultList();
+                      }}
+                    >
+                      갱신
+                    </Tab>
                   </TabList>
                 </Tabs>
 
-                <Select style={{ width: 160 }}>
+                <Select aria-label="반복 횟수 선택" style={{ width: 160 }}>
                   <SelectItem>2회 반복</SelectItem>
                   <SelectItem>4회 반복</SelectItem>
                   <SelectItem>6회 반복</SelectItem>
@@ -232,14 +207,28 @@ export default function FaultMonitoringPage() {
             }
           />
 
-          <AgGridComponent
-            rowData={faultList}
-            columnDefs={gridOptions.columnDefs}
-            rowSelection="multiple"
-            onRowDoubleClicked={handleRowDoubleClick}
-          />
+          <div style={{ maxHeight: 800, height: '100%' }}>
+            <AgGridComponent
+              rowData={rowData}
+              columnDefs={FAULT_MONITORING_COLUMN}
+              rowSelection={{
+                mode: 'multiRow',
+                enableClickSelection: true,
+                enableSelectionWithoutKeys: true,
+              }}
+              onRowDoubleClicked={() => setModalType('detail')}
+              onSelectionChanged={(params) => {
+                const selectedRows = params.api.getSelectedRows();
+                setSelectedFaults(selectedRows);
+              }}
+              selectionColumnDef={{
+                headerClass: 'checkbox-header',
+              }}
+            />
+          </div>
         </div>
       </div>
+
       <BottomGroupComponent
         rightCont={
           <div className="button-group">
@@ -253,13 +242,35 @@ export default function FaultMonitoringPage() {
         }
       />
       <Modal
-        isOpen={isFaultDetailOpen}
-        onOpenChange={setIsFaultDetailOpen}
+        isOpen={modalType === 'detail'}
+        onOpenChange={(open) => {
+          if (!open && modalType === 'detail') setModalType('none');
+        }}
         title="장애 상세 정보"
         width={1180}
       >
         <FaultDetailForm />
       </Modal>
+
+      <PlantSelectorModal
+        isOpen={modalType === 'plant'}
+        onOpen={(open) => {
+          if (!open && modalType === 'plant') setModalType('none');
+        }}
+        onPrimaryAction={(selected) => {
+          const ids = selected.map((select) => select.pwplId);
+          setSelectedPwplIds(ids);
+        }}
+        selectedPwplIds={selectedPwplIds}
+      />
+
+      <PasswordVerifyModal
+        isOpen={modalType === 'verify'}
+        onOpen={(open) => {
+          if (!open && modalType === 'verify') setModalType('none');
+        }}
+        onPrimaryAction={(verifiedCode) => handleManualDown(verifiedCode)}
+      />
     </>
   );
 }

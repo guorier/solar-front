@@ -4,11 +4,23 @@ import { ButtonComponent, DatePicker, FieldButton, Icons, Select, SelectItem } f
 // import { parseDate } from '@internationalized/date';
 import './search-fields.component.scss';
 
-export type FieldType = 'text' | 'select' | 'date' | 'search-text' | 'password' | 'textarea';
+export type FieldType =
+  | 'text'
+  | 'select'
+  | 'date'
+  | 'search-text'
+  | 'password'
+  | 'textarea'
+  | 'date-range';
 
 export interface SearchFieldOption {
   label: string;
   value: string | number;
+}
+
+export interface DateRangeValue {
+  start?: string;
+  end?: string;
 }
 
 export interface SearchFieldConfig {
@@ -156,7 +168,52 @@ export const SearchFields = ({
       const value = typeof raw === 'string' ? raw : undefined;
 
       return (
-        <DatePicker value={value} onChange={(v) => onChange(field.key, v)} isDisabled={disabled} />
+        <DatePicker
+          value={value}
+          onChange={(v) => onChange(field.key, v)}
+          isDisabled={disabled}
+          aria-label="날짜 선택"
+        />
+      );
+    }
+
+    if (field.type === 'date-range') {
+      const raw = values[field.key] as DateRangeValue | undefined;
+      const value = raw ?? { start: undefined, end: undefined };
+
+      return (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            width: width ? (typeof width === 'number' ? `${width}px` : width) : '100%',
+          }}
+        >
+          <DatePicker
+            value={value.start}
+            onChange={(start) =>
+              onChange(field.key, {
+                ...value,
+                start,
+              })
+            }
+            isDisabled={disabled}
+            aria-label="시작일 선택"
+          />
+          <span>-</span>
+          <DatePicker
+            value={value.end}
+            onChange={(end) =>
+              onChange(field.key, {
+                ...value,
+                end,
+              })
+            }
+            isDisabled={disabled}
+            aria-label="종료일 선택"
+          />
+        </div>
       );
     }
 

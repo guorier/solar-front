@@ -16,7 +16,7 @@ import {
   INITIAL_SEARCH_VALUES,
   MENU_GROUP_COLUMN,
   MENU_GROUP_SEARCH_CONFIG,
-} from '@/constants/menu/menu';
+} from '@/constants/setting/menu';
 import { useGetComCodeList, useGetMenuGroupList } from '@/services/common/query';
 import { MenuGroupDetailRes, MenuGroupListParams } from '@/services/common/type';
 import { formatYmdHm } from '@/utils';
@@ -214,7 +214,7 @@ function MenuAuthorityPageInner() {
           <div className="button-group">
             <ButtonComponent
               variant="contained"
-              icon={<Icons iName="edit" size={16} color="#fff" />}
+              icon={<Icons iName="plus" size={16} color="#fff" />}
               onClick={handleCreate}
             >
               등록

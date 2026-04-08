@@ -24,6 +24,7 @@ interface InfoBoxProps {
   unit?: string;
   tag?: string;
   rightSide?: ReactNode;
+  headerRight?: ReactNode;
   children?: ReactNode;
   direction?: string;
 }
@@ -140,6 +141,7 @@ export const InfoBoxComponent: React.FC<InfoBoxProps> = ({
   unit,
   tag,
   rightSide,
+  headerRight,
   children,
 }) => {
   const formatNumber = (value: number | string) => {
@@ -151,6 +153,40 @@ export const InfoBoxComponent: React.FC<InfoBoxProps> = ({
 
     return Number.isFinite(value) ? value.toLocaleString() : '';
   };
+
+  const countNode = (
+    <Count>
+      {tag && <p>{tag}</p>}
+      {formatNumber(count)}
+      {totalCount !== undefined && totalCount !== null && (
+        <span>
+          <b>/</b>
+          {formatNumber(totalCount)}
+        </span>
+      )}
+      {unit && <small>{unit}</small>}
+    </Count>
+  );
+
+  if (headerRight || children) {
+    return (
+      <InfoBoxGroup style={{ width: width, flex: flex }}>
+        <InfoBox style={{ background: bg }}>
+          <HeaderRow $isSpread={true}>
+            <Title>
+              <Icons iName={icon} size={20} color="#8B8888" />
+              <span>{title}</span>
+            </Title>
+            {headerRight}
+          </HeaderRow>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-4)' }}>
+            {children && <div style={{ flex: 1 }}>{children}</div>}
+            {countNode}
+          </div>
+        </InfoBox>
+      </InfoBoxGroup>
+    );
+  }
 
   return (
     <InfoBoxGroup style={{ width: width, flex: flex }}>
@@ -164,22 +200,12 @@ export const InfoBoxComponent: React.FC<InfoBoxProps> = ({
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: 'var(--spacing-8)',
+              gap: 'var(--spacing-4)',
               alignItems: 'flex-end',
             }}
           >
             {children && <Content>{children}</Content>}
-            <Count>
-              {tag && <p>{tag}</p>}
-              {formatNumber(count)}
-              {totalCount !== undefined && totalCount !== null && (
-                <span>
-                  <b>/</b>
-                  {formatNumber(totalCount)}
-                </span>
-              )}
-              {unit && <small>{unit}</small>}
-            </Count>
+            {countNode}
           </div>
         </HeaderRow>
       </InfoBox>

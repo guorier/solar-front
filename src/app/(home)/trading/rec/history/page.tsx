@@ -19,6 +19,8 @@ import {
   TopInfoBoxComponent,
   SearchFieldConfig,
   SearchForm,
+  CountArea,
+  SearchFields,
 } from '@/components';
 import {
   recHistoryRows,
@@ -27,6 +29,18 @@ import {
 } from '@/mockup/rec-history.mock';
 
 const PAGE_SIZE = 20;
+
+const showNumberConfig: (SearchFieldConfig | SearchFieldConfig[])[] = [
+  {
+    key: 'showNumber',
+    type: 'select',
+    options: [
+      { label: '20개씩 보기', value: '20' },
+      { label: '40개씩 보기', value: '40' },
+      { label: '60개씩 보기', value: '60' },
+    ],
+  },
+];
 
 type SearchState = {
   plant: string;
@@ -77,18 +91,6 @@ const centerCellStyle: CSSProperties = {
   textAlign: 'center',
 };
 
-const countAreaStyle: CSSProperties = {
-  fontSize: '14px',
-  fontWeight: 500,
-  color: '#222222',
-  lineHeight: 1,
-};
-
-const totalCountStyle: CSSProperties = {
-  color: '#D70251',
-  fontWeight: 700,
-};
-
 const emptyStateStyle: CSSProperties = {
   padding: '24px 16px',
   color: '#8b8888',
@@ -118,6 +120,11 @@ const searchConfig: SearchFieldConfig[] = [
 export default function RecHistoryPage() {
   const [draftSearch, setDraftSearch] = useState<Record<string, unknown>>(initialSearch);
   const [query, setQuery] = useState<PageState>({ ...initialSearch, page: 1 });
+  const [values, setValues] = useState<Record<string, unknown>>({ showNumber: String(PAGE_SIZE) });
+
+  const onChangeValues = (key: string, value: unknown) => {
+    setValues((prev) => ({ ...prev, [key]: value }));
+  };
 
   const filteredRows = useMemo(() => {
     let rows = recHistoryRows;
@@ -191,23 +198,11 @@ export default function RecHistoryPage() {
 
         <div className="table-group">
           <TableTitleComponent
-            leftCont={
-              <div style={countAreaStyle}>
-                검색 {filteredRows.length} / 전체{' '}
-                <span style={totalCountStyle}>{recHistoryRows.length}</span>
-              </div>
-            }
+            leftCont={<CountArea search={filteredRows.length} total={recHistoryRows.length} />}
             rightCont={
-              <ButtonComponent
-                variant="excel"
-                icon={<Icons iName="xlsx" size={16} color="#fff" />}
-                onPress={() => undefined}
-              >
-                Excel
-              </ButtonComponent>
+              <SearchFields config={showNumberConfig} values={values} onChange={onChangeValues} />
             }
           />
-
           <div style={tableWrapStyle}>
             <Table aria-label="REC 발급 내역" style={tableStyle}>
               <TableHeader>
@@ -237,11 +232,20 @@ export default function RecHistoryPage() {
       </div>
 
       <BottomGroupComponent
-        centerCont={
+        leftCont={
           <Pagination
             data={{ page: query.page, size: PAGE_SIZE, total: filteredRows.length }}
             onChange={(page) => setQuery((prev) => ({ ...prev, page }))}
           />
+        }
+        rightCont={
+          <ButtonComponent
+            variant="excel"
+            icon={<Icons iName="xlsx" size={16} color="#fff" />}
+            onPress={() => undefined}
+          >
+            Excel
+          </ButtonComponent>
         }
       />
     </>

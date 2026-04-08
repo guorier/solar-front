@@ -1,13 +1,14 @@
 import { useRef, useEffect } from 'react';
-import { AgGridReact } from 'ag-grid-react';
+import { AgGridReact, AgGridReactProps } from 'ag-grid-react';
 import {
   ClientSideRowModelModule,
   PaginationModule,
   RowSelectionModule,
   ColumnAutoSizeModule,
+  CellStyleModule,
+  RowApiModule,
   type ColDef,
   RowDoubleClickedEvent,
-  CellStyleModule,
   RowClickedEvent,
   CellClickedEvent,
   CellMouseOverEvent,
@@ -26,7 +27,10 @@ type PaginationRequest = {
   size: number;
 };
 
-type BaseAgGridProps<T extends PaginationRequest, R extends RowDataType> = {
+type BaseAgGridProps<
+  T extends PaginationRequest,
+  R extends RowDataType | object,
+> = AgGridReactProps<R> & {
   rowData: R[]; // 외부에서 데이터 전달
   columnDefs: ColDef<R>[]; // ✅ ColDef[] -> ColDef<R>[] (주석의 주석: row 타입 연결)
   actions?: { label: string; onClick: () => void; color?: string }[]; // 사용자 정의 액션 버튼
@@ -48,7 +52,7 @@ type BaseAgGridProps<T extends PaginationRequest, R extends RowDataType> = {
   isPagination?: boolean;
 };
 
-export const AgGridComponent = <T extends PaginationRequest, R extends RowDataType>({
+export const AgGridComponent = <T extends PaginationRequest, R extends RowDataType | object>({
   rowData = [],
   columnDefs,
   // actions = [], //선언없어서 주석처리
@@ -65,6 +69,7 @@ export const AgGridComponent = <T extends PaginationRequest, R extends RowDataTy
   loadingText = '로딩중...',
   emptyText = '일치하는 DATA가 없습니다',
   isPagination = true,
+  ...gridProps
 }: BaseAgGridProps<T, R>) => {
   const gridRef = useRef<AgGridReact<R>>(null); // ✅ R 연결
 
@@ -127,6 +132,7 @@ export const AgGridComponent = <T extends PaginationRequest, R extends RowDataTy
           PaginationModule,
           ColumnAutoSizeModule,
           CellStyleModule,
+          RowApiModule,
         ]}
         pagination={isPagination}
         paginationPageSize={rowData.length > 0 ? rowData.length : initialPageSize}
@@ -143,6 +149,10 @@ export const AgGridComponent = <T extends PaginationRequest, R extends RowDataTy
         onSelectionChanged={onSelectionChanged}
         loadingOverlayComponent={() => <Loading loadingText={loadingText} />}
         noRowsOverlayComponent={() => <EmptyBox>{emptyText}</EmptyBox>}
+        // ✅ 문구 지정 (Td 대신 overlay)
+        overlayLoadingTemplate={`<span class="ag-overlay-loading-center">${loadingText}</span>`}
+        overlayNoRowsTemplate={`<span class="ag-overlay-no-rows-center">${emptyText}</span>`}
+        {...gridProps}
       />
     </div>
   );

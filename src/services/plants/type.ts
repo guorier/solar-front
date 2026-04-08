@@ -42,10 +42,12 @@ export type PlantBase = {
   pwplExpln: string | null; // 설명
   delYn: 'Y' | 'N'; // 삭제 여부
   rgtrId: string | null; // 등록자 ID
-  regDt: string; // 등록일시
   mdfrId: string | null; // 수정자 ID
+  loginId: string | null; // 로그인 ID
+  regDt: string; // 등록일시
   mdfcnDt: string | null; // 수정일시
   msrstnNm: string | null; // 측정소명
+  weight: number | null; // 가중치
 };
 
 /**
@@ -114,12 +116,15 @@ export type PlantBaseCreateReq = {
   instlYmd: string; // 설치 일자
   cmrcoprYmd: string; // 상업운전 일자
 
+  weight: number; // 가중치
+
   pwplExpln: string; // 발전소 설명
   delYn: string; // 삭제 여부
 
-  rgtrId: string; // 등록자 아이디
   regDt: string; // 등록 일시
+  rgtrId: string; // 등록자 아이디
   mdfrId: string; // 수정자 아이디
+  loginId: string; // 수정자 아이디
   mdfcnDt: string; // 수정 일시
 
   bcode: string; // 법정동코드
@@ -175,6 +180,7 @@ export type PlantBaseDetailRes = {
   grdnt: number | null;
   az: number | null;
   pr: number | null;
+  weight: number | null; // 가중치
   bldgStrctNm: string | null;
   instlPlcNm: string | null;
   infraNm: string | null;
@@ -221,6 +227,7 @@ export type PlantBaseUpdateReq = {
   grdnt: string | null;
   az: string | null;
   pr: number | null;
+  weight: number | null; // 가중치
   bldgStrctNm: string | null;
   instlPlcNm: string | null;
   infraNm: string | null;

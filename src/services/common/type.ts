@@ -167,3 +167,33 @@ export type MenuGroupSaveReq = {
   grdCd: string;
   menuCds: string[];
 };
+
+/**
+ * 파일 업로드 Request 타입
+ * domainSeCd: com | operate | plant
+ */
+export type FileUploadReq = {
+  file: File;
+  domainSeCd: string;
+  resourceSeCd: string;
+  fileGroupId?: string;
+  bizSeCd?: string;
+  refId?: string;
+  regId?: string;
+};
+
+/**
+ * 파일 업로드 Response 타입
+ */
+export type FileUploadRes = {
+  fileId: string;
+  fileGroupId: string;
+  fileSeq: number;
+  objectKey: string;
+  originalFileName: string;
+  savedFileName: string;
+  extension: string;
+  contentType: string;
+  fileSize: number;
+  bucketNm: string;
+};

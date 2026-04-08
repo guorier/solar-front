@@ -4,6 +4,7 @@ import {
   Pagination,
   SearchFields,
   TableTitleComponent,
+  BottomGroupComponent,
 } from '@/components';
 import type { SearchFieldConfig } from '@/components';
 import type { ColDef } from 'ag-grid-community';
@@ -31,23 +32,30 @@ export function TradeListSection({
   onPageChange,
 }: TradeListSectionProps) {
   return (
-    <>
-      <TableTitleComponent
-        leftCont={<CountArea search={listData?.items.length ?? 0} total={listData?.total ?? 0} />}
-        rightCont={
-          <SearchFields
-            config={showNumberConfig}
-            values={showNumberValues}
-            onChange={onShowNumberChange}
-          />
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
+      <div className="table-group" style={{ height: '100%' }}>
+        <TableTitleComponent
+          leftCont={<CountArea search={listData?.items.length ?? 0} total={listData?.total ?? 0} />}
+          rightCont={
+            <SearchFields
+              config={showNumberConfig}
+              values={showNumberValues}
+              onChange={onShowNumberChange}
+            />
+          }
+        />
+        <AgGridComponent
+          rowData={listData?.items ?? []}
+          columnDefs={columnDefs}
+          emptyText="일치하는 DATA가 없습니다"
+        />
+      </div>
+
+      <BottomGroupComponent
+        centerCont={
+          <Pagination data={{ page, size, total: listData?.total ?? 0 }} onChange={onPageChange} />
         }
       />
-      <AgGridComponent
-        rowData={listData?.items ?? []}
-        columnDefs={columnDefs}
-        emptyText="일치하는 DATA가 없습니다"
-      />
-      <Pagination data={{ page, size, total: listData?.total ?? 0 }} onChange={onPageChange} />
-    </>
+    </div>
   );
 }

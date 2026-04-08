@@ -183,8 +183,8 @@ export const buildOperationSocketInverterMap = (
           inverterStatus: '',
           statusConnection: String(item.statusConnection),
           inverterTotalEnergy: safeToFixed(item.inverterTotalEnergy, 2),
-          modulePower: safeToFixed(item.predictionPowerW, 2),
-          predictionPowerW: safeToFixed(item.predictionPowerW, 2),
+          modulePower: safeToFixed(item.predictionPowerW, 3),
+          predictionPowerW: safeToFixed(item.predictionPowerW, 3),
           irradianceWm2: safeToFixed(item.irradianceWm2, 2),
           temperatureC: safeToFixed(item.temperatureC, 2),
         };
@@ -242,10 +242,7 @@ export const aggregateRealtimeData = (
       values.reduce((s, i) => s + i.modulePower, 0),
       2,
     ),
-    predictionPowerW: safeToFixed(
-      values.reduce((s, i) => s + i.predictionPowerW, 0),
-      2,
-    ),
+    predictionPowerW: safeToFixed(values[0].predictionPowerW, 3),
     irradianceWm2: safeToFixed(values.reduce((s, i) => s + i.irradianceWm2, 0) / count, 2),
     temperatureC: safeToFixed(values.reduce((s, i) => s + i.temperatureC, 0) / count, 2),
   };

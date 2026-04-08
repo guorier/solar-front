@@ -233,6 +233,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         name: token.name,
         image: token.picture ?? null,
         role: token.role,
+        classify: token.classify as string,
         accessTokenExp: token.accessTokenExp,
       };
 

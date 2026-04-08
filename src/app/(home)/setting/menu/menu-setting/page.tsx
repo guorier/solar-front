@@ -47,7 +47,7 @@ export default function MenuSettingPage() {
   const [isSubMenu, setIsSubMenu] = useState<boolean>(false);
   const [isDeleteConfirm, setIsDeleteConfirm] = useState<boolean>(false);
 
-  const isEditMode = !!selectedMenu && !isSubMenu;
+  const isEdit = !!selectedMenu && !isSubMenu;
 
   const { data: menuTree } = useGetMenuTree();
   const { data: menuDetail } = useGetMenuDetail(selectedMenu?.menuCd ?? '');
@@ -93,7 +93,7 @@ export default function MenuSettingPage() {
     const { upMenuCd, ...rest } = emptyToNull(values);
     const basePayload = upMenuCd ? { ...rest, upMenuCd } : rest;
 
-    if (isEditMode) {
+    if (isEdit) {
       // 수정
       if (!selectedMenu || !menuDetail) return toast.error('수정할 메뉴를 선택해주세요.');
 
@@ -207,9 +207,9 @@ export default function MenuSettingPage() {
             <ButtonComponent
               onClick={handleSubmit(onSubmit)}
               variant="contained"
-              icon={<Icons iName={isEditMode ? 'edit' : 'plus'} size={14} color="#fff" />}
+              icon={<Icons iName={isEdit ? 'edit' : 'plus'} size={16} color="#fff" />}
             >
-              {isEditMode ? '수정' : '등록'}
+              {isEdit ? '수정' : '등록'}
             </ButtonComponent>
             <ButtonComponent
               onClick={() => setIsDeleteConfirm(true)}

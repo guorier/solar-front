@@ -1,147 +1,213 @@
 'use client';
 
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AgGridComponent,
   BottomGroupComponent,
-  Cell,
-  Column,
+  ButtonComponent,
+  CountArea,
+  Icons,
   InfoBoxComponent,
   InfoBoxGroup,
-  Meter,
+  Modal,
   Pagination,
-  Row,
-  Table,
-  TableBody,
-  TableHeader,
+  SearchFieldConfig,
+  SearchFields,
+  SearchForm,
+  TableTitleComponent,
   TitleComponent,
   TopInfoBoxComponent,
+  Checkbox,
 } from '@/components';
-import {
-  recStatusMonthlyMock,
-  recStatusRecentIssuesMock,
-  recStatusSummaryMock,
-  type RecStatusRecentIssueRow,
-} from '@/mockup/rec-status.mock';
+import type {
+  ColDef,
+  ICellRendererParams,
+  IHeaderParams,
+  RowClickedEvent,
+  SelectionChangedEvent,
+} from 'ag-grid-community';
+import { recStatusRecentIssuesMock, recStatusSummaryMock } from '@/mockup/rec-status.mock';
+import type { RecIssueRow } from '@/mockup/rec-status.mock';
 
-type RecentIssueColumn = {
-  key: keyof RecStatusRecentIssueRow;
-  label: string;
-  width: string;
-  isRowHeader?: boolean;
-};
+function SelectAllHeader({ api }: IHeaderParams<RecIssueRow>) {
+  const [checkState, setCheckState] = useState<'none' | 'some' | 'all'>('none');
 
-const PAGE_SIZE = 10;
+  const getCheckState = useCallback(() => {
+    let selectableCount = 0;
+    let selectedCount = 0;
 
-const sectionTitleStyle: CSSProperties = {
-  fontSize: '16px',
-  fontWeight: 700,
-  color: '#111827',
-};
+    api.forEachNode((node) => {
+      if (node.selectable) {
+        selectableCount += 1;
+        if (node.isSelected()) selectedCount += 1;
+      }
+    });
 
-const progressCardStyle: CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '6px',
-  border: '1px solid #d9dde5',
-  borderRadius: '12px',
-  padding: '16px 18px',
-  background: '#ffffff',
-};
+    if (selectableCount === 0 || selectedCount === 0) return 'none';
+    if (selectedCount === selectableCount) return 'all';
+    return 'some';
+  }, [api]);
 
-const progressLabelStyle: CSSProperties = {
-  color: '#8b8888',
-  fontSize: '13px',
-  fontWeight: 500,
-  lineHeight: 1,
-};
+  const updateCheckState = useCallback(() => {
+    setCheckState(getCheckState());
+  }, [getCheckState]);
 
-const progressRowStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-};
+  useEffect(() => {
+    updateCheckState();
+    api.addEventListener('selectionChanged', updateCheckState);
+    api.addEventListener('modelUpdated', updateCheckState);
 
-const progressValueStyle: CSSProperties = {
-  minWidth: '56px',
-  color: '#8b8888',
-  fontSize: '16px',
-  fontWeight: 700,
-  textAlign: 'right',
-};
+    return () => {
+      api.removeEventListener('selectionChanged', updateCheckState);
+      api.removeEventListener('modelUpdated', updateCheckState);
+    };
+  }, [api, updateCheckState]);
 
-const tableWrapStyle: CSSProperties = {
-  width: '100%',
-  overflow: 'auto',
-  border: '1px solid #d9dde5',
-  background: '#ffffff',
-};
+  const handleChange = (isSelected: boolean) => {
+    setCheckState(isSelected ? 'all' : 'none');
 
-const tableStyle: CSSProperties = {
-  width: '100%',
-  minWidth: '980px',
-  tableLayout: 'fixed',
-};
+    api.forEachNode((node) => {
+      if (node.selectable) node.setSelected(isSelected);
+    });
+  };
 
-const centerCellStyle: CSSProperties = {
-  textAlign: 'center',
-};
-
-const emptyStateStyle: CSSProperties = {
-  padding: '24px 16px',
-  color: '#8b8888',
-  textAlign: 'center',
-  borderTop: '1px solid #e5e7eb',
-};
-
-const recentIssueColumns: RecentIssueColumn[] = [
-  { key: 'tradeDate', label: '거래 일', width: '14%', isRowHeader: true },
-  { key: 'plantName', label: '발전소/기지국', width: '21%' },
-  { key: 'transactionAmount', label: '거래량(kWh)', width: '18%' },
-  { key: 'smpUnitPrice', label: 'SMP 단가', width: '16%' },
-  { key: 'recUnitPrice', label: 'REC 단가', width: '16%' },
-  { key: 'totalRevenue', label: '총 수익', width: '15%' },
-];
-
-function RecentIssueTable({ rows }: { rows: RecStatusRecentIssueRow[] }) {
   return (
-    <div style={tableWrapStyle}>
-      <Table aria-label="최근 발급 현황" style={tableStyle}>
-        <TableHeader>
-          {recentIssueColumns.map((column) => (
-            <Column
-              key={column.key}
-              style={{ width: column.width }}
-              isRowHeader={column.isRowHeader}
-            >
-              {column.label}
-            </Column>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {rows.map((row, index) => (
-            <Row key={`${row.tradeDate}-${row.plantName}-${index}`}>
-              <Cell style={centerCellStyle}>{row.tradeDate}</Cell>
-              <Cell style={centerCellStyle}>{row.plantName}</Cell>
-              <Cell style={centerCellStyle}>{row.transactionAmount}</Cell>
-              <Cell style={centerCellStyle}>{row.smpUnitPrice}</Cell>
-              <Cell style={centerCellStyle}>{row.recUnitPrice}</Cell>
-              <Cell style={centerCellStyle}>{row.totalRevenue}</Cell>
-            </Row>
-          ))}
-        </TableBody>
-      </Table>
-      {rows.length === 0 ? <div style={emptyStateStyle}>일치하는 DATA가 없습니다</div> : null}
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        cursor: 'pointer',
+        width: '100%',
+      }}
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <Checkbox
+        isSelected={checkState === 'all'}
+        isIndeterminate={checkState === 'some'}
+        onChange={handleChange}
+        aria-label="전체 선택"
+      />
     </div>
   );
 }
 
+function CheckboxCell({ node }: ICellRendererParams<RecIssueRow>) {
+  const isRegistered = node.data?.certStatus === '등록';
+  const [isSelected, setIsSelected] = useState(!!node.isSelected());
+
+  useEffect(() => {
+    const handleRowSelected = () => setIsSelected(!!node.isSelected());
+    node.addEventListener('rowSelected', handleRowSelected);
+    return () => node.removeEventListener('rowSelected', handleRowSelected);
+  }, [node]);
+
+  const handleChange = (nextSelected: boolean) => {
+    if (isRegistered) return;
+    node.setSelected(nextSelected);
+  };
+
+  return (
+    <div
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <Checkbox
+        isSelected={isRegistered || isSelected}
+        isDisabled={isRegistered}
+        onChange={handleChange}
+        aria-label="행 선택"
+      />
+    </div>
+  );
+}
+
+const PAGE_SIZE = 20;
+
+const showNumberConfig: (SearchFieldConfig | SearchFieldConfig[])[] = [
+  {
+    key: 'showNumber',
+    type: 'select',
+    options: [
+      { label: '20개씩 보기', value: '20' },
+      { label: '40개씩 보기', value: '40' },
+      { label: '60개씩 보기', value: '60' },
+    ],
+  },
+];
+
+const searchConfig: SearchFieldConfig[] = [
+  { key: 'period', label: '발급기간', type: 'date-range', gridSize: 3 },
+];
+
 export default function RecStatusPage() {
   const [page, setPage] = useState(1);
+  const [searchValues, setSearchValues] = useState<Record<string, unknown>>({});
+  const [showValues, setShowValues] = useState<Record<string, unknown>>({
+    showNumber: String(PAGE_SIZE),
+  });
+  const [rowData, setRowData] = useState<RecIssueRow[]>(recStatusRecentIssuesMock);
+  const [selectedRows, setSelectedRows] = useState<RecIssueRow[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const total = rowData.length;
+  const pageSize = Number(showValues.showNumber) || PAGE_SIZE;
 
   const pagedRows = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return recStatusRecentIssuesMock.slice(start, start + PAGE_SIZE);
-  }, [page]);
+    const start = (page - 1) * pageSize;
+    return rowData.slice(start, start + pageSize);
+  }, [page, rowData, pageSize]);
+
+  const handleSelectionChanged = (event: SelectionChangedEvent<RecIssueRow>) => {
+    setSelectedRows(event.api.getSelectedRows());
+  };
+
+  const handleRegister = () => {
+    const selectedIds = new Set(selectedRows.map((r) => r.id));
+    setRowData((prev) =>
+      prev.map((row) => (selectedIds.has(row.id) ? { ...row, certStatus: '등록' as const } : row)),
+    );
+    setSelectedRows([]);
+    setSelectedFileName('');
+    setIsModalOpen(false);
+  };
+
+  const columnDefs: ColDef<RecIssueRow>[] = useMemo(
+    () => [
+      {
+        colId: 'checkbox',
+        headerComponent: SelectAllHeader,
+        width: 80,
+        minWidth: 80,
+        maxWidth: 80,
+        resizable: false,
+        suppressSizeToFit: true,
+        cellRenderer: CheckboxCell,
+      },
+      { field: 'targetDate', headerName: '대상 일', width: 200, minWidth: 200, maxWidth: 200 },
+      { field: 'plantName', headerName: '발전소/기지국', flex: 1 },
+      { field: 'powerAmount', headerName: '발전량(kWh)', width: 160, minWidth: 160, maxWidth: 160 },
+      { field: 'recCount', headerName: 'REC수량', width: 160, minWidth: 160, maxWidth: 160 },
+      {
+        field: 'certStatus',
+        headerName: '인증서 등록 상태',
+        width: 160,
+        minWidth: 160,
+        maxWidth: 160,
+        cellRenderer: (params: ICellRendererParams<RecIssueRow>) => (
+          <span style={{ color: params.value === '등록' ? '#2563eb' : '#888' }}>
+            {params.value}
+          </span>
+        ),
+      },
+    ],
+    [],
+  );
 
   return (
     <>
@@ -153,79 +219,125 @@ export default function RecStatusPage() {
           desc="REC 발급 관리에서 발급 현황 정보"
         />
       </div>
-
-      <TopInfoBoxComponent title="총 발급 현황" bg="var(--point-orange-5)" color="#A34600">
-        <InfoBoxGroup className="row-type">
-          {recStatusSummaryMock.map((item) => (
-            <InfoBoxComponent
-              key={`${item.label}-${item.value}`}
-              icon="feedback"
-              title={item.label}
-              count={item.value}
-              bg="white"
-            >
-              {item.helper}
-            </InfoBoxComponent>
-          ))}
-        </InfoBoxGroup>
-      </TopInfoBoxComponent>
-
       <div className="content-group" style={{ gap: '16px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <TopInfoBoxComponent
-            title="이번 달 REC 발급 현황 (2026년 1월)"
-            bg="var(--point-orange-5)"
-            color="#A34600"
-          >
-            <InfoBoxGroup className="row-type">
-              {recStatusMonthlyMock.metrics.map((item, idx) => (
-                <InfoBoxComponent
-                  key={`${item.label}-${item.value}`}
-                  icon={idx === 0 ? 'energy' : 'feedback'}
-                  title={item.label}
-                  count={item.value}
-                  bg="white"
-                >
-                  {item.helper}
-                </InfoBoxComponent>
-              ))}
-            </InfoBoxGroup>
-          </TopInfoBoxComponent>
+        <SearchForm
+          config={searchConfig}
+          values={searchValues}
+          onChange={(key, val) => setSearchValues((prev) => ({ ...prev, [key]: val }))}
+          onSearch={() => {}}
+        />
 
-          <div style={progressCardStyle}>
-            <div style={progressLabelStyle}>진행률</div>
-            <div style={progressRowStyle}>
-              <Meter
-                className="rec-progress-meter flex-1"
-                aria-label="REC 발급 진행률"
-                minValue={0}
-                maxValue={100}
-                value={recStatusMonthlyMock.progressRate}
+        <TopInfoBoxComponent title="총 발급 현황" bg="var(--point-orange-5)" color="#A34600">
+          <InfoBoxGroup className="row-type">
+            {recStatusSummaryMock.map((item) => (
+              <InfoBoxComponent
+                key={item.label}
+                icon="feedback"
+                title={item.label}
+                count={item.value}
+                bg="white"
+                tag={item.helper}
               />
-              <div style={progressValueStyle}>{recStatusMonthlyMock.progressRate.toFixed(1)}%</div>
-            </div>
-          </div>
-        </div>
+            ))}
+          </InfoBoxGroup>
+        </TopInfoBoxComponent>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={sectionTitleStyle}>최근 발급 현황</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <RecentIssueTable rows={pagedRows} />
-            <BottomGroupComponent
-              leftCont={
-                <Pagination
-                  data={{
-                    page,
-                    size: PAGE_SIZE,
-                    total: recStatusRecentIssuesMock.length,
-                  }}
-                  onChange={setPage}
-                />
+        <div className="table-group">
+          <TableTitleComponent
+            leftCont={<CountArea search={rowData.length} total={total} />}
+            rightCont={
+              <SearchFields
+                config={showNumberConfig}
+                values={showValues}
+                onChange={(k, v) => setShowValues((prev) => ({ ...prev, [k]: v }))}
+              />
+            }
+          />
+          <AgGridComponent
+            rowData={pagedRows}
+            columnDefs={columnDefs}
+            rowSelection={{
+              mode: 'multiRow',
+              checkboxes: false,
+              headerCheckbox: false,
+              isRowSelectable: (node) => node.data?.certStatus !== '등록',
+            }}
+            onSelectionChanged={handleSelectionChanged}
+            onRowClicked={(event: RowClickedEvent<RecIssueRow>) => {
+              if (event.node.selectable) {
+                event.node.setSelected(!event.node.isSelected());
               }
-            />
-          </div>
+            }}
+          />
+          <BottomGroupComponent
+            centerCont={<Pagination data={{ page, size: pageSize, total }} onChange={setPage} />}
+            rightCont={
+              <ButtonComponent
+                variant="contained"
+                isDisabled={selectedRows.length === 0}
+                icon={<Icons iName="plus" color="#fff" size={16} />}
+                iconPosition="left"
+                onClick={() => setIsModalOpen(true)}
+              >
+                인증서 등록
+              </ButtonComponent>
+            }
+          />
         </div>
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onOpenChange={(open) => {
+          setIsModalOpen(open);
+          if (!open) setSelectedFileName('');
+        }}
+        title="REC 인증서 등록"
+        primaryButton="등록"
+        secondaryButton="취소"
+        onPrimaryPress={handleRegister}
+        width={480}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '16px 0 8px',
+          }}
+        >
+          <span style={{ whiteSpace: 'nowrap', fontSize: '14px', minWidth: '80px' }}>
+            인증서 업로드
+          </span>
+          <div
+            style={{
+              flex: 1,
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius)',
+              padding: '6px 10px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              color: selectedFileName ? '#333' : '#aaa',
+              background: '#fff',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {selectedFileName || '파일을 선택하세요'}
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              setSelectedFileName(file?.name ?? '');
+            }}
+          />
+        </div>
+      </Modal>
     </>
   );
 }

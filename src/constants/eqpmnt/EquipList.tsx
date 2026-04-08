@@ -11,7 +11,6 @@ import {
   BottomGroupComponent,
   Pagination,
   SearchForm,
-  CountArea,
 } from '@/components';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -349,13 +348,14 @@ export default function EquipList({ kind }: EquipListProps) {
 
         <div className="table-group">
           <TableTitleComponent
-            leftCont={<CountArea search={searchCount} total={totalCount} />}
-            // leftCont={
-            //   <div style={countAreaStyle}>
-            //     검색 {searchCount ?? '-'} / 전체{' '}
-            //     <span style={totalCountStyle}>{totalCount ?? '-'}</span>
-            //   </div>
-            // }
+            leftCont={
+              <h3 style={{ fontWeight: '400' }}>
+                <span style={{ fontWeight: '600' }}>
+                  검색 {searchCount ?? '-'}
+                </span> /
+                총 {totalCount ?? '-'}
+              </h3>
+            }
             rightCont={
               <SearchFields config={equipRightConfig} values={values} onChange={handleChange} />
             }
@@ -375,8 +375,7 @@ export default function EquipList({ kind }: EquipListProps) {
 
       <BottomGroupComponent
         leftCont={
-          <Pagination
-            data={{ page, size, total: filteredTotal }}
+          <Pagination data={{page,size,total: filteredTotal,}}
             onChange={(p: number) => setPage(p)}
           />
         }
@@ -384,7 +383,7 @@ export default function EquipList({ kind }: EquipListProps) {
           <div className="button-group">
             <ButtonComponent
               variant="contained"
-              icon={<Icons iName="edit" size={16} color="#fff" />}
+              icon={<Icons iName="plus" size={16} color="#fff" />}
               onPress={handleCreateMove}
             >
               등록

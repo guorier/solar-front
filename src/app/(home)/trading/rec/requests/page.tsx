@@ -18,6 +18,8 @@ import {
   TableHeader,
   TableTitleComponent,
   TitleComponent,
+  CountArea,
+  SearchFields,
 } from '@/components';
 import {
   recRequestRows,
@@ -28,6 +30,18 @@ import {
 import { Tag, TagGroup, TagList } from 'react-aria-components';
 
 const PAGE_SIZE = 20;
+
+const showNumberConfig: (SearchFieldConfig | SearchFieldConfig[])[] = [
+  {
+    key: 'showNumber',
+    type: 'select',
+    options: [
+      { label: '20개씩 보기', value: '20' },
+      { label: '40개씩 보기', value: '40' },
+      { label: '60개씩 보기', value: '60' },
+    ],
+  },
+];
 
 type RecRequestSearchState = {
   plant: string;
@@ -62,14 +76,6 @@ const requestColumns: RecRequestColumn[] = [
   { key: 'status', label: '상태', width: '13%' },
 ];
 
-const tableWrapStyle: CSSProperties = {
-  width: '100%',
-  height: 'calc(100dvh - 500px)',
-  overflow: 'auto',
-  border: '1px solid #d9dde5',
-  background: '#ffffff',
-};
-
 const tableStyle: CSSProperties = {
   width: '100%',
   minWidth: '980px',
@@ -78,28 +84,6 @@ const tableStyle: CSSProperties = {
 
 const centerCellStyle: CSSProperties = {
   textAlign: 'center',
-};
-
-const countAreaStyle: CSSProperties = {
-  fontSize: '14px',
-  fontWeight: 500,
-  color: '#222222',
-  lineHeight: 1,
-};
-
-const totalCountStyle: CSSProperties = {
-  color: '#D70251',
-  fontWeight: 700,
-};
-
-const tableLabelStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '6px 12px',
-  fontSize: '14px',
-  fontWeight: 600,
-  color: '#272727',
 };
 
 const emptyStateStyle: CSSProperties = {
@@ -141,6 +125,11 @@ export default function RecRequestsPage() {
     ...initialSearchState,
     page: 1,
   });
+  const [values, setValues] = useState<Record<string, unknown>>({ showNumber: String(PAGE_SIZE) });
+
+  const onChangeValues = (key: string, value: unknown) => {
+    setValues((prev) => ({ ...prev, [key]: value }));
+  };
 
   const filteredRows = useMemo(() => {
     let rows = recRequestRows;
@@ -162,10 +151,12 @@ export default function RecRequestsPage() {
     return rows;
   }, [queryState.plant, queryState.requestCode, queryState.status]);
 
+  const pageSize = Number(values.showNumber) || PAGE_SIZE;
+
   const pagedRows = useMemo(() => {
-    const start = (queryState.page - 1) * PAGE_SIZE;
-    return filteredRows.slice(start, start + PAGE_SIZE);
-  }, [filteredRows, queryState.page]);
+    const start = (queryState.page - 1) * pageSize;
+    return filteredRows.slice(start, start + pageSize);
+  }, [filteredRows, queryState.page, pageSize]);
 
   const handleSearchChange = (key: string, value: unknown) => {
     setDraftSearch((prev) => ({
@@ -232,84 +223,74 @@ export default function RecRequestsPage() {
 
         <div className="table-group">
           <TableTitleComponent
-            leftCont={
-              <div style={countAreaStyle}>
-                검색 {filteredRows.length} / 전체{' '}
-                <span style={totalCountStyle}>{recRequestRows.length}</span>
-              </div>
-            }
+            leftCont={<CountArea search={filteredRows.length} total={recRequestRows.length} />}
             rightCont={
-              <div className="button-group">
-                <ButtonComponent
-                  variant="excel"
-                  icon={<Icons iName="download" size={16} color="#fff" />}
-                  onPress={() => undefined}
-                >
-                  Excel
-                </ButtonComponent>
-                <ButtonComponent
-                  variant="contained"
-                  icon={<Icons iName="plus" size={16} color="#fff" />}
-                  iconPosition="left"
-                  onPress={() => router.push('/trading/rec/requests/create')}
-                >
-                  등록
-                </ButtonComponent>
-              </div>
+              <SearchFields config={showNumberConfig} values={values} onChange={onChangeValues} />
             }
           />
 
-          <div style={tableLabelStyle}>
-            <Icons iName="menu01" size={18} color="#444242" />
-            <span>REC 발급 신청 관리</span>
-          </div>
-
-          <div style={tableWrapStyle}>
-            <Table aria-label="REC 발급 신청 관리" style={tableStyle}>
-              <TableHeader>
-                {requestColumns.map((column) => (
-                  <Column
-                    key={column.key}
-                    style={{ width: column.width }}
-                    isRowHeader={column.isRowHeader}
-                  >
-                    {column.label}
-                  </Column>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {pagedRows.map((row) => (
-                  <Row key={row.requestNo}>
-                    <Cell style={centerCellStyle}>{row.requestNo}</Cell>
-                    <Cell style={centerCellStyle}>{row.plantName}</Cell>
-                    <Cell style={centerCellStyle}>{row.requestedAt}</Cell>
-                    <Cell style={centerCellStyle}>{row.targetMonth}</Cell>
-                    <Cell style={centerCellStyle}>{row.generationKwh}</Cell>
-                    <Cell style={centerCellStyle}>{row.recAmount}</Cell>
-                    <Cell style={centerCellStyle}>{row.status}</Cell>
-                  </Row>
-                ))}
-              </TableBody>
-            </Table>
-            {pagedRows.length === 0 ? (
-              <div style={emptyStateStyle}>일치하는 DATA가 없습니다</div>
-            ) : null}
-          </div>
+          <Table aria-label="REC 발급 신청 관리" style={tableStyle}>
+            <TableHeader>
+              {requestColumns.map((column) => (
+                <Column
+                  key={column.key}
+                  style={{ width: column.width }}
+                  isRowHeader={column.isRowHeader}
+                >
+                  {column.label}
+                </Column>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {pagedRows.map((row) => (
+                <Row key={row.requestNo}>
+                  <Cell style={centerCellStyle}>{row.requestNo}</Cell>
+                  <Cell style={centerCellStyle}>{row.plantName}</Cell>
+                  <Cell style={centerCellStyle}>{row.requestedAt}</Cell>
+                  <Cell style={centerCellStyle}>{row.targetMonth}</Cell>
+                  <Cell style={centerCellStyle}>{row.generationKwh}</Cell>
+                  <Cell style={centerCellStyle}>{row.recAmount}</Cell>
+                  <Cell style={centerCellStyle}>{row.status}</Cell>
+                </Row>
+              ))}
+            </TableBody>
+          </Table>
+          {pagedRows.length === 0 ? (
+            <div style={emptyStateStyle}>일치하는 DATA가 없습니다</div>
+          ) : null}
         </div>
+        <BottomGroupComponent
+          leftCont={
+            <Pagination
+              data={{
+                page: queryState.page,
+                size: pageSize,
+                total: filteredRows.length,
+              }}
+              onChange={handlePageChange}
+            />
+          }
+          rightCont={
+            <div className="button-group">
+              <ButtonComponent
+                variant="excel"
+                icon={<Icons iName="download" size={16} color="#fff" />}
+                onPress={() => undefined}
+              >
+                Excel
+              </ButtonComponent>
+              <ButtonComponent
+                variant="contained"
+                icon={<Icons iName="plus" size={16} color="#fff" />}
+                iconPosition="left"
+                onPress={() => router.push('/trading/rec/requests/create')}
+              >
+                등록
+              </ButtonComponent>
+            </div>
+          }
+        />
       </div>
-
-      <BottomGroupComponent
-        centerCont={
-          <Pagination
-            data={{
-              page: queryState.page,
-              size: PAGE_SIZE,
-              total: filteredRows.length,
-            }}
-            onChange={handlePageChange}
-          />
-        }
-      />
     </>
   );
 }

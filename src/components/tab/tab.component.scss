@@ -211,10 +211,9 @@
 .tabs {
   display: flex;
   flex-direction: column;
-  gap:10px;
   height: 100%;
 
-  > [class^='table-title-component_'] {
+  > .table-title-root {
     position: relative;
     align-items: center;
     padding: var(--spacing-5) 0;

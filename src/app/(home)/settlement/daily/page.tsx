@@ -1,17 +1,37 @@
 'use client';
 import {
   AgGridComponent,
+  BottomGroupComponent,
+  CountArea,
   InfoBoxComponent,
   InfoBoxGroup,
   Meter,
+  Pagination,
+  SearchFieldConfig,
+  SearchFields,
   Select,
   SelectItem,
+  TableTitleComponent,
   TitleComponent,
   TopInfoBoxComponent,
 } from '@/components';
 import { iName } from '@/components/icon/Icons';
 import { ColDef } from 'ag-grid-community';
 import { useState } from 'react';
+
+const PAGE_SIZE = 20;
+
+const showNumberConfig: (SearchFieldConfig | SearchFieldConfig[])[] = [
+  {
+    key: 'showNumber',
+    type: 'select',
+    options: [
+      { label: '20개씩 보기', value: '20' },
+      { label: '40개씩 보기', value: '40' },
+      { label: '60개씩 보기', value: '60' },
+    ],
+  },
+];
 
 type SettlementSummaryItem = {
   icon: iName;
@@ -82,6 +102,12 @@ const PlantSelector = () => (
 
 
 export default function DailyPage() {
+  const [page, setPage] = useState(1);
+  const [values, setValues] = useState<Record<string, unknown>>({ showNumber: String(PAGE_SIZE) });
+
+  const onChangeValues = (key: string, value: unknown) => {
+    setValues((prev) => ({ ...prev, [key]: value }));
+  };
 
   //그리드
   const columnDefs: ColDef[] = [
@@ -139,12 +165,11 @@ export default function DailyPage() {
               title="정산 진행률"
               count={120}
               unit="%"
+              headerRight={<span>마감일 2026-01-10</span>}
             >
-              <span style={{ position: 'absolute', right: 0, top: 14, marginRight: 80 }}>
-                마감일 2026-01-10
-              </span>
               <Meter value={20} />
             </InfoBoxComponent>
+
           </InfoBoxGroup>
         </TopInfoBoxComponent>
 
@@ -159,7 +184,26 @@ export default function DailyPage() {
             ))}
           </InfoBoxGroup>
         </TopInfoBoxComponent>
+
+        <TableTitleComponent
+          leftCont={<CountArea search={settlementList.length} total={settlementList.length} />}
+          rightCont={
+            <SearchFields config={showNumberConfig} values={values} onChange={onChangeValues} />
+          }
+        />
         <AgGridComponent rowData={settlementList} columnDefs={columnDefs} />
+        <BottomGroupComponent
+          centerCont={
+            <Pagination
+              data={{
+                page,
+                size: PAGE_SIZE,
+                total: settlementList.length,
+              }}
+              onChange={setPage}
+            />
+          }
+        />
       </div>
     </>
   );

@@ -93,7 +93,6 @@ export function TradingPerformancePage() {
         style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}
       >
         <TradeSummaryPanel summary={summary} />
-
         <TradePeriodSearchForm
           config={searchConfig}
           values={searchValues}
@@ -101,7 +100,6 @@ export function TradingPerformancePage() {
           onSearch={handleSearch}
           periodSummary={periodSummary}
         />
-
         <TradeListSection
           listData={listData}
           columnDefs={tradeColumnDefs}

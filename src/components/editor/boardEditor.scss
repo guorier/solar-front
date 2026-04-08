@@ -1,0 +1,226 @@
+.tiptap-editor {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  overflow: hidden;
+
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    gap: var(--spacing-5);
+    padding: var(--spacing-6) var(--spacing-8);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  &__group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+  }
+
+  &__divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border-color);
+    flex-shrink: 0;
+  }
+
+  &__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+
+    padding: var(--spacing-10);
+  }
+
+  .ProseMirror {
+    min-height: 100%;
+    word-break: break-word;
+
+    p {
+      margin: 0 0 var(--spacing-6);
+    }
+
+    p.is-editor-empty:first-child::before {
+      content: attr(data-placeholder);
+      color: var(--gray-50);
+      pointer-events: none;
+      float: left;
+      height: 0;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: var(--spacing-9) 0 var(--spacing-6);
+    }
+
+    em,
+    i {
+      font-style: italic;
+    }
+
+    ul,
+    ol {
+      margin: 0 0 var(--spacing-6);
+      padding-left: var(--spacing-12);
+    }
+
+    ul > li {
+      display: list-item;
+      list-style-type: disc;
+      list-style-position: outside;
+      margin-bottom: var(--spacing-2);
+      padding-left: 0;
+    }
+
+    ol > li {
+      display: list-item;
+      list-style-type: decimal;
+      list-style-position: outside;
+      margin-bottom: var(--spacing-2);
+      padding-left: 0;
+    }
+
+    ul > li::marker,
+    ol > li::marker {
+      color: var(--gray-70);
+      opacity: 1;
+      font-size: var(--font-size-16);
+    }
+
+    a {
+      color: var(--gray-50);
+      text-decoration: underline;
+    }
+
+    pre {
+      margin: var(--spacing-6) 0;
+      padding: var(--spacing-8);
+      border-radius: 8px;
+      background: #182030;
+      color: white;
+      overflow-x: auto;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+      margin: var(--spacing-6) 0;
+    }
+
+    blockquote {
+      margin: var(--spacing-6) 0;
+      padding-left: var(--spacing-8);
+      border-left: 4px solid var(--border-color);
+      color: var(--gray-60);
+      font-style: italic;
+    }
+
+    // 표 wrapper
+    .tableWrapper {
+      overflow-x: auto;
+      margin: var(--spacing-8) 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      position: relative;
+      min-width: 100px;
+      border: 1px solid var(--border-color);
+      padding: var(--spacing-5) var(--spacing-6);
+      vertical-align: top;
+      box-sizing: border-box;
+    }
+
+    th {
+      background: var(--gray-20);
+      font-weight: 600;
+    }
+
+    th p,
+    td p {
+      margin: 0;
+    }
+
+    // 선택된 셀 표시
+    .selectedCell::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.05);
+      pointer-events: none;
+    }
+
+    // 열 리사이즈 핸들
+    .column-resize-handle {
+      position: absolute;
+      top: 0;
+      right: -2px;
+      bottom: -2px;
+      width: 4px;
+      background: #3b82f6;
+      pointer-events: none;
+    }
+  }
+
+  .resize-cursor {
+    cursor: col-resize;
+  }
+}
+
+.toolbar-tooltip {
+  padding: var(--spacing-3) var(--spacing-5);
+  border-radius: var(--radius-md);
+  background: var(--gray-80);
+  color: var(--gray-0);
+  font-size: var(--font-size-13);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform-origin: var(--trigger-anchor-point);
+}
+
+.toolbar-tooltip[data-placement='top'] {
+  margin-bottom: var(--spacing-3);
+}
+
+.toolbar-tooltip[data-entering] {
+  animation: tooltip-fade-in 160ms ease-out;
+}
+
+.toolbar-tooltip[data-exiting] {
+  animation: tooltip-fade-out 120ms ease-in forwards;
+}
+
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes tooltip-fade-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+}

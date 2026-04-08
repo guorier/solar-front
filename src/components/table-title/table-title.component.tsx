@@ -9,7 +9,7 @@ type TableTitleComponentProps = {
   rightCont?: React.ReactNode;
 };
 
-const TableTitleGroup = styled.div`
+const TableTitleGroup = styled.div.attrs({ className: 'table-title-root' })`
   display: flex;
   justify-content: space-between;
   align-items: flex-end;

@@ -17,7 +17,6 @@ import {
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { type AxiosError } from 'axios';
 
 import { getComCodeList } from '@/services/common/request';
 import { getPlantBaseList } from '@/services/plants/request';
@@ -43,8 +42,6 @@ interface infoListResponse {
   regisDate: string;
   pwplId: string;
 }
-
-type ApiErrorBody = { message?: string };
 
 const isOperating = (p: PlantBase) => (p.pwplSttsCd ?? '').trim() === '001';
 const isConstructing = (p: PlantBase) => (p.pwplSttsCd ?? '').trim() === '002';
@@ -115,8 +112,6 @@ export default function PlantList() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState('');
-
   const [page, setPage] = useState(1);
   const size = 10;
   const [total, setTotal] = useState(0);
@@ -151,16 +146,11 @@ export default function PlantList() {
 
   const fetchList = async () => {
     setLoading(true);
-    setMsg('');
     try {
       const res = await getPlantBaseList({ page, size });
       setData(res);
       setTotal(Number(res.total ?? 0));
-    } catch (e) {
-      const err = e as AxiosError<ApiErrorBody>;
-      setMsg(
-        `조회 실패: ${err.response?.status ?? ''} ${err.response?.data?.message ?? err.message}`,
-      );
+    } catch {
       setData(null);
     } finally {
       setLoading(false);
@@ -253,7 +243,7 @@ export default function PlantList() {
       return true;
     });
   }, [data, qStatus, qType, qName]);
-  
+
   const summary = useMemo(() => {
     const items = filtered;
     const totalCount = items.length;
@@ -265,7 +255,7 @@ export default function PlantList() {
 
     return { totalCount, operating, constructing, totalInstlKw, totalDesignKw };
   }, [filtered]);
-  
+
   const infoRightConfig: (SearchFieldConfig | SearchFieldConfig[])[] = [
     {
       key: 'statusType',
@@ -345,8 +335,8 @@ export default function PlantList() {
       { field: 'plantName', headerName: '발전소', flex: 1 },
       { field: 'plantType', headerName: '유형', width: 160 },
       { field: 'plantStatus', headerName: '상태', width: 160 },
-      { field: 'designCapacity', headerName: '설계 용량', width: 160 },
-      { field: 'installCapacity', headerName: '설치 용량', width: 160 },
+      { field: 'designCapacity', headerName: '설계 용량', width: 160, cellStyle: { justifyContent: 'flex-end', paddingRight: '16px' } },
+      { field: 'installCapacity', headerName: '설치 용량', width: 160, cellStyle: { justifyContent: 'flex-end', paddingRight: '16px' } },
       { field: 'plantLoc', headerName: '위치', width: 400 },
       { field: 'owner', headerName: '소유자', width: 100 },
       { field: 'opCompany', headerName: '운영 회사', width: 200 },
@@ -394,9 +384,7 @@ export default function PlantList() {
               <SearchFields config={infoRightConfig} values={draftValues} onChange={handleChange} />
             }
           />
-          {msg ? <div style={{ margin: '6px 0 12px', fontSize: 12 }}>{msg}</div> : null}
-          
-          
+
           <AgGridComponent
             rowData={infoList}
             columnDefs={gridOptions.columnDefs}
@@ -425,7 +413,7 @@ export default function PlantList() {
           <div className="button-group">
             <ButtonComponent
               variant="contained"
-              icon={<Icons iName="edit" size={16} color="#fff" />}
+              icon={<Icons iName="plus" size={16} color="#fff" />}
               onClick={onCreate}
             >
               등록

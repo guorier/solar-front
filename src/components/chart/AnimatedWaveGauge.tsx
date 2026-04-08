@@ -24,7 +24,7 @@ export default function AnimatedWaveGauge({
   max = 100000,
   size = 400,
   strokeWidth = 10,
-  title = '3상 출력 전류',
+  title = '현재 출력 전류',
   unit = 'W',
   duration = 1400,
   // statusText = '이전대비',
